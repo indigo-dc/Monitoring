@@ -17,6 +17,7 @@ public class PropertiesManager
 	public static final String JAVA_KEYSTORE = "java.keystore";
 	public static final String ZABBIX_IP = "zabbix.ip";
 	public static final String ZABBIX_SENDER = "zabbix.sender.location";
+	public static final String CMDB_URL = "cmdb.location";
 	
 	private HashMap <String, String> propertiesList;
 	
