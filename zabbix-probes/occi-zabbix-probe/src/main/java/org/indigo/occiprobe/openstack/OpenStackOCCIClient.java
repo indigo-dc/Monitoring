@@ -1,14 +1,35 @@
+/**
+Copyright 2016 ATOS SPAIN S.A.
+
+Licensed under the Apache License, Version 2.0 (the License);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Authors Contact:
+Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
+@email francisco.nieto@atos.net
+**/
+
 package org.indigo.occiprobe.openstack;
+
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.JerseyClientBuilder;
+
+import org.openstack4j.api.OSClient;
+import org.openstack4j.openstack.OSFactory;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
-
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.openstack4j.api.OSClient;
-import org.openstack4j.openstack.OSFactory;
 
 public class OpenStackOCCIClient 
 {
@@ -19,14 +40,14 @@ public class OpenStackOCCIClient
 	private String openStackPwd = "";
 	private String currentToken = "";
 		
-	public OpenStackOCCIClient ()
+	public OpenStackOCCIClient (String keystoneLocation, String occiLocation)
 	{
 		// Retrieve properties
         PropertiesManager myProp = new PropertiesManager();
-		String keystoneUrl = myProp.getProperty(PropertiesManager.KEYSTONE_LOCATION);
-		String keystonePort = myProp.getProperty(PropertiesManager.KEYSTONE_PORT);
-		String occiUrl = myProp.getProperty(PropertiesManager.OCCI_LOCATION);
-		String occiPort = myProp.getProperty(PropertiesManager.OCCI_PORT);
+		//String keystoneUrl = myProp.getProperty(PropertiesManager.KEYSTONE_LOCATION);
+		//String keystonePort = myProp.getProperty(PropertiesManager.KEYSTONE_PORT);
+		//String occiUrl = myProp.getProperty(PropertiesManager.OCCI_LOCATION);
+		//String occiPort = myProp.getProperty(PropertiesManager.OCCI_PORT);
 		openStackUser = myProp.getProperty(PropertiesManager.OPENSTACK_USER);
 		openStackPwd = myProp.getProperty(PropertiesManager.OPENSTACK_PASSWORD);
         
@@ -41,12 +62,19 @@ public class OpenStackOCCIClient
 		client = JerseyClientBuilder.newClient(cc);
 		
 		// Prepare access URLs		
-		baseKeystoneURL = keystoneUrl + ":" + keystonePort + "/v2.0";
-        baseOCCIURL = occiUrl + ":" + occiPort;
-        
+		//baseKeystoneURL = keystoneUrl + ":" + keystonePort + "/v2.0";
+        //baseOCCIURL = occiUrl + ":" + occiPort;
+		baseKeystoneURL = keystoneLocation + "/v2.0";
+        baseOCCIURL = occiLocation;
+		
         // Retrieve the operation token
         currentToken = getToken();
                        
+	}
+	
+	public OpenStackOCCIClient (Client mockClient)
+	{
+		client = mockClient;
 	}
 	
 	private String getToken()
@@ -114,7 +142,6 @@ public class OpenStackOCCIClient
 		// Invoke the OCCI service and measure response time
 		long startTime = System.currentTimeMillis();
 		Response response = invocationBuilder.post(null);
-		System.out.println(response.toString());
 		long responseTime = System.currentTimeMillis() - startTime;
 	    System.out.println("Total elapsed http request/response time in milliseconds: " + responseTime);
 		
@@ -123,7 +150,7 @@ public class OpenStackOCCIClient
 	 	int httpCode = response.getStatus();
 	 	int availability = 1;
 	 		
-	 	if (httpCode>=500 && httpCode <= 600)
+	 	if (httpCode>=400 && httpCode <= 600)
 	 	{
 	 		availability = 0;
 	 	}
@@ -145,7 +172,7 @@ public class OpenStackOCCIClient
 	private String getVMsList ()
 	{		
 		// Build the OCCI call
-		WebTarget target = client.target(baseOCCIURL + "/occi/network/");
+		WebTarget target = client.target(baseOCCIURL + "/occi/compute/");
 		Invocation.Builder invocationBuilder = target.request();
 		invocationBuilder.header("Content-Type", "text/occi");
 		invocationBuilder.header("X-Auth-Token", currentToken);		
@@ -173,7 +200,7 @@ public class OpenStackOCCIClient
 		invocationBuilder.header("Content-Type", "text/occi");
 		invocationBuilder.header("X-Auth-Token", currentToken);		
 		
-		System.out.println(invocationBuilder.toString());
+		//System.out.println(invocationBuilder.toString());
 		
 		// Invoke the OCCI service and measure response time
 		long startTime = System.currentTimeMillis();
@@ -181,12 +208,11 @@ public class OpenStackOCCIClient
 		long responseTime = System.currentTimeMillis() - startTime;
 	    System.out.println("Total elapsed http request/response time in milliseconds: " + responseTime);
 	    
-		// Get response information
-		System.out.println(response.toString());
+		// Get response information		
 		int httpCode = response.getStatus();
 		int availability = 1;
 		
-		if (httpCode>=500 && httpCode <= 600)
+		if (httpCode>=400 && httpCode <= 600)
 		{
 			availability = 0;
 		}
@@ -209,7 +235,7 @@ public class OpenStackOCCIClient
 		invocationBuilder.header("Content-Type", "text/occi");
 		invocationBuilder.header("X-Auth-Token", currentToken);
 				
-		System.out.println(invocationBuilder.toString());
+		// System.out.println(invocationBuilder.toString());
 		
 		// Invoke the OCCI service and measure response time
 		long startTime = System.currentTimeMillis();
@@ -222,7 +248,7 @@ public class OpenStackOCCIClient
 	 	int httpCode = response.getStatus();
 	 	int availability = 1;
 	 		
-	 	if (httpCode>=500 && httpCode <= 600)
+	 	if (httpCode>=400 && httpCode <= 600)
 	 	{
 	 		availability = 0;
 	 	}
@@ -237,10 +263,26 @@ public class OpenStackOCCIClient
 		return monitoredInfo;
 	}
 	
+	public void getNetworksList()
+	{
+		// Build the OCCI call
+		WebTarget target = client.target(baseOCCIURL + "/occi/network/");
+		Invocation.Builder invocationBuilder = target.request();
+		invocationBuilder.header("Content-Type", "text/occi");
+		invocationBuilder.header("X-Auth-Token", currentToken);
+						
+		System.out.println(invocationBuilder.toString());
+		Response response = invocationBuilder.get();
+		// Get response message
+		String message = response.readEntity(String.class);
+		System.out.println (message);
+		
+	}
+	
 	public OCCIProbeResult getOCCIMonitoringInfo()
 	{
 		// Follow the full lifecycle for a VM
-		getVMsList();
+		//getVMsList();
 		CreateVMResult createVMInfo = createVM();
 		if (createVMInfo.getCreateVMAvailability()==0)
 		{
@@ -300,12 +342,16 @@ public class OpenStackOCCIClient
 		finalResult.addGlobalInfo(globalAvailability, globalResult, globalResponseTime);
 		
 		return finalResult;
-	}
+	}	
+	
 	
 	public static void main(String[] args)
 	{
-		OpenStackOCCIClient myClient = new OpenStackOCCIClient();
-		//myClient.createVM();
+		// Run the OCCI monitoring process and retrieve the result
+		OpenStackOCCIClient myClient = new OpenStackOCCIClient("https://cloud.recas.ba.infn.it:5000", "http://cloud.recas.ba.infn.it:8787");
+		myClient.getNetworksList();
+		
 		myClient.getOCCIMonitoringInfo();
 	}
+	
 }

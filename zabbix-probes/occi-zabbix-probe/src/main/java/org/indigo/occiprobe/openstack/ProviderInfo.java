@@ -20,32 +20,47 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
-public class DeleteVMResult 
+public class ProviderInfo 
 {
-	private int deleteVMAvailability;
-	private int deleteVMResult;
-	private long deleteVMResponseTime;
+
+	private String providerId;
+	private boolean isOpenStack;
+	private String keystoneUrl;
+	private String occiUrl;
 	
-	public DeleteVMResult (int availability, int result, long responseTime)
+	public ProviderInfo (String identifier, String keystoneLocation, String occiLocation)
 	{
-		deleteVMAvailability = availability;
-		deleteVMResult = result;
-		deleteVMResponseTime = responseTime;
+		isOpenStack = true;
+		providerId = identifier;
+		keystoneUrl = keystoneLocation;
+		occiUrl = occiLocation;
 	}
 	
-	public int getDeleteVMAvailability ()
+	public ProviderInfo (String identifier, String occiLocation)
 	{
-		return deleteVMAvailability;
+		isOpenStack = false;
+		providerId = identifier;		
+		occiUrl = occiLocation;
 	}
 	
-	public int getDeleteVMResult ()
+	public boolean isOpenStack()
 	{
-		return deleteVMResult;
+		return isOpenStack;
 	}
 	
-	public long getDeleteVMResponseTime ()
+	public String getProviderId()
 	{
-		return deleteVMResponseTime;
+		return providerId;
+	}
+	
+	public String getOCCIURL()
+	{
+		return occiUrl;
+	}
+	
+	public String getKeystoneURL()
+	{
+		return keystoneUrl;
 	}
 	
 }
