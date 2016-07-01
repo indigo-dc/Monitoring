@@ -30,7 +30,8 @@ public class ZabbixSender
 
 	private String zabbixLocation;
 	private String zabbixSender;
-	private String provider;
+	private String provider = "Testing";
+	private Runtime rt;
 	
 	public ZabbixSender(String targetProvider)
 	{
@@ -39,11 +40,26 @@ public class ZabbixSender
 		zabbixLocation = myProp.getProperty(PropertiesManager.ZABBIX_IP);
 		zabbixSender = myProp.getProperty(PropertiesManager.ZABBIX_SENDER);
 		provider = targetProvider;
+		
+		// Create standard Runtime
+		rt = Runtime.getRuntime();
+	}
+	
+	public ZabbixSender (Runtime mockRuntime)
+	{
+		rt = mockRuntime;
 	}
 	
 	public boolean sendMetrics(OCCIProbeResult metrics)
 	{
-		// Prepare invocation strings
+		// Check the input is not null
+		if (metrics == null || metrics.getCreateVMElement() == null)
+		{
+			return false;
+		}
+		
+		// Prepare invocation strings and failures counter
+		int failures = 0;
 		String globalAvailability = "-z " + zabbixLocation + " -s \"" + provider + "\" -k occi.global[availability] -o " + metrics.getGlobalAvailability();
 		String globalResult = "-z " + zabbixLocation + " -s \"" + provider + "\" -k occi.global[result] -o " + metrics.getGlobalResult();
 		String globalResponseTime = "-z " + zabbixLocation + " -s \"" + provider + "\" -k occi.global[responseTime] -o " + metrics.getGlobalResponseTime();
@@ -71,8 +87,7 @@ public class ZabbixSender
 			deleteVMResult = "-z " + zabbixLocation + " -s \"" + provider + "\" -k occi.deletevm[result] -o " + metrics.getDeleteVMElement().getDeleteVMResult();
 			deleteVMResponseTime = "-z " + zabbixLocation + " -s \"" + provider + "\" -k occi.deletevm[responseTime] -o " + metrics.getDeleteVMElement().getDeleteVMResponseTime();
 		}
-		
-		Runtime rt = Runtime.getRuntime();
+				
 		try
 		{
 			// Determine execution context
@@ -113,69 +128,90 @@ public class ZabbixSender
 				deleteVMResult = zabbixSender + "/zabbix_sender " + deleteVMResult;
 				deleteVMResponseTime = zabbixSender + "/zabbix_sender " + deleteVMResponseTime;
 			}
-									
+			
+			// Run calls to Zabbix Sender
 			// Process pr = rt.exec("cmd /c dir");
 			Process pr = rt.exec(globalAvailability);			
 			readExecResponse (pr.getInputStream());
-			System.out.println (pr.waitFor());			
+			failures = failures + pr.waitFor();
+			System.out.println ("Failures: " + failures);			
 			
 			pr = rt.exec(globalResult);
 			readExecResponse (pr.getInputStream());
-			System.out.println (pr.waitFor());
+			failures = failures + pr.waitFor();
+			System.out.println ("Failures: " + failures);
 			
 			pr = rt.exec(globalResponseTime);
 			readExecResponse (pr.getInputStream());
-			System.out.println (pr.waitFor());
+			failures = failures + pr.waitFor();
+			System.out.println ("Failures: " + failures);
 			
 			pr = rt.exec(createVMAvailability);			
 			readExecResponse (pr.getInputStream());
-			System.out.println (pr.waitFor());			
+			failures = failures + pr.waitFor();
+			System.out.println ("Failures: " + failures);		
 			
 			pr = rt.exec(createVMResult);
 			readExecResponse (pr.getInputStream());
-			System.out.println (pr.waitFor());
+			failures = failures + pr.waitFor();
+			System.out.println ("Failures: " + failures);
 			
 			pr = rt.exec(createVMResponseTime);
 			readExecResponse (pr.getInputStream());
-			System.out.println (pr.waitFor());
+			failures = failures + pr.waitFor();
+			System.out.println ("Failures: " + failures);
 			
 			if (metrics.getInspectVMElement()!=null)
 			{
 				pr = rt.exec(inspectVMAvailability);			
 				readExecResponse (pr.getInputStream());
-				System.out.println (pr.waitFor());			
+				failures = failures + pr.waitFor();
+				System.out.println ("Failures: " + failures);		
 				
 				pr = rt.exec(inspectVMResult);
 				readExecResponse (pr.getInputStream());
-				System.out.println (pr.waitFor());
+				failures = failures + pr.waitFor();
+				System.out.println ("Failures: " + failures);
 				
 				pr = rt.exec(inspectVMResponseTime);
 				readExecResponse (pr.getInputStream());
-				System.out.println (pr.waitFor());
+				failures = failures + pr.waitFor();
+				System.out.println ("Failures: " + failures);
 			}
 			
 			if (metrics.getDeleteVMElement()!=null)
 			{
 				pr = rt.exec(deleteVMAvailability);			
 				readExecResponse (pr.getInputStream());
-				System.out.println (pr.waitFor());			
+				failures = failures + pr.waitFor();
+				System.out.println ("Failures: " + failures);		
 				
 				pr = rt.exec(deleteVMResult);
 				readExecResponse (pr.getInputStream());
-				System.out.println (pr.waitFor());
+				failures = failures + pr.waitFor();
+				System.out.println ("Failures: " + failures);
 				
 				pr = rt.exec(deleteVMResponseTime);
 				readExecResponse (pr.getInputStream());
-				System.out.println (pr.waitFor());
+				failures = failures + pr.waitFor();
+				System.out.println ("Failures: " + failures);
 			}
 		}
 		catch (IOException ex)
 		{
 			System.out.println("Error: " + ex.getMessage());
+			return false;
 		}
 		catch (InterruptedException iex)
 		{
 			System.out.println("Error: " + iex.getMessage());
+			return false;
+		}
+		
+		// Check execution status
+		if (failures > 0)
+		{
+			return false; 
 		}
 		
 		return true;

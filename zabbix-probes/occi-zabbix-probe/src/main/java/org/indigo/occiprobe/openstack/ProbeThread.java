@@ -20,6 +20,8 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -30,22 +32,13 @@ public class ProbeThread
 	private final ScheduledExecutorService scheduler;
 	private static ProbeThread _instance = null;	
 	private long interval = 200;
-	private long initialDelay = 30;	
-	private volatile MonitoringThread myTask;
-	
+	private long initialDelay = 10;	
+	private int numThreads = 2;
+		
 	private ProbeThread() 
 	{
-		/*
-		// Configure interval and initial delay
-		PropertyConfigurator.configure(PropertiesUtils.getLogConfig());
-		interval = Long.valueOf(PropertiesUtils.getProperty("TRUST","interval"));
-		initialDelay = Long.valueOf(PropertiesUtils.getProperty("TRUST","initial.delay"));
-		*/
-		
-		// Build elements for thread and tasks scheduling
-		scheduler = Executors.newScheduledThreadPool(1);
-		myTask = new MonitoringThread("", "", "");
-		scheduler.scheduleWithFixedDelay(myTask, initialDelay, interval, TimeUnit.SECONDS);		
+		// Build element for thread and tasks scheduling
+		scheduler = Executors.newScheduledThreadPool(numThreads);			
 	}
 	
 	public static synchronized ProbeThread instance() {
@@ -64,20 +57,49 @@ public class ProbeThread
 		String[] providers = myClient.getProvidersList();
 		myClient.getProviderData(providers[0]);
 		
-		// Create threads and run the monitoring actions
+		ArrayList<MonitoringThread> myTaskList = new ArrayList<MonitoringThread> ();
+		MonitoringThread myTask1 = new MonitoringThread("provider-RECAS-BARI", "http://cloud.recas.ba.infn.it:8787", "https://cloud.recas.ba.infn.it:5000");
+		MonitoringThread myTask2 = new MonitoringThread("provider-RECAS-BARI2", "http://cloud.recas.ba.infn.it:8787", "https://cloud.recas.ba.infn.it:5000");
+		MonitoringThread myTask3 = new MonitoringThread("provider-RECAS-BARI3", "http://cloud.recas.ba.infn.it:8787", "https://cloud.recas.ba.infn.it:5000");
+		MonitoringThread myTask4 = new MonitoringThread("provider-RECAS-BARI4", "http://cloud.recas.ba.infn.it:8787", "https://cloud.recas.ba.infn.it:5000");
+		myTaskList.add(myTask1);
+		myTaskList.add(myTask2);
+		myTaskList.add(myTask3);
+		myTaskList.add(myTask4);
 		
+		// Create threads and run the monitoring actions
+		Iterator<MonitoringThread> myTaskIterator = myTaskList.iterator();
+		while (myTaskIterator.hasNext())
+		{
+			MonitoringThread currentTask = myTaskIterator.next();
+			scheduler.schedule(currentTask, initialDelay, TimeUnit.SECONDS);
+		}
+		
+		// Terminate thread manager		
+		scheduler.shutdown();
+		try 
+		{
+			scheduler.awaitTermination(30, TimeUnit.MINUTES);
+		}
+		catch (InterruptedException ex)
+		{
+			System.out.println("The scheduler was interrupted because of unexpected reasons!");
+		}				
 	}
 
 	public void stopThread ()
 	{
 		System.out.println ("Destroying the monitoring thread...");
-		scheduler.shutdown();
-		myTask=null;
+		scheduler.shutdownNow();		
 	}
 	
 	public static void main(String[] args)
 	{
+		// Retrieve input arguments
 		
+		// Start the monitoring process
+		ProbeThread probeManager = ProbeThread.instance();
+		probeManager.startMonitoringProcess();
 	}
 	
 	class MonitoringThread extends Thread 

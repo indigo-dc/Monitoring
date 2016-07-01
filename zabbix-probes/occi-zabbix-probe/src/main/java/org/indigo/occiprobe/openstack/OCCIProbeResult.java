@@ -34,6 +34,13 @@ public class OCCIProbeResult
 	public OCCIProbeResult ()
 	{}
 	
+	public OCCIProbeResult (int availability, int result, long responseTime)
+	{
+		globalAvailability = availability;
+		globalResult = result;
+		globalResponseTime = responseTime;
+	}
+	
 	public void addGlobalInfo (int availability, int result, long responseTime)
 	{
 		globalAvailability = availability;
