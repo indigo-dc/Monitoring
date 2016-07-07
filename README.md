@@ -47,6 +47,7 @@ In order to get information and successfully monitor a specific cloud provider i
 
 2.3 Installation
 ----------------
+
 When having the war at disposal starting from a clean VM with Ubuntu install the docker manager:
 ```
 sudo apt-get update
@@ -69,6 +70,7 @@ docker logs -f `sudo docker run --name zabbixwrapper -h zabbixwrapper -p 80:8080
 The deploy will be successfull if the endpoints written in the property file are correct and the wrapper can reach the server itself
 
 #### In case wrapper is not a war --> Compile the code
+
 To compile the project you need to be in the same folder as the `pom.xml` file and type:
 ```
 mvn clean install -DskipTests
