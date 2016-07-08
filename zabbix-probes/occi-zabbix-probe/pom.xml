@@ -116,7 +116,7 @@
     	
     	<!-- Creation of the deb package -->
       	<plugin>
-        	<configuration><controlDir>${basedir}/project/debfiles</controlDir></configuration>
+        	<configuration><controlDir>target/debfiles</controlDir></configuration>
         	<artifactId>jdeb</artifactId>
         	<groupId>org.vafer</groupId>
         	<version>1.5</version>
