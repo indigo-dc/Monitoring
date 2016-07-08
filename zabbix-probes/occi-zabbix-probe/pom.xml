@@ -115,7 +115,33 @@
 		</plugin>
     	
     	<!-- Creation of the deb package -->
-      	
+      	<plugin>
+        	<configuration><controlDir>${basedir}/project/debfiles</controlDir></configuration>
+        	<artifactId>jdeb</artifactId>
+        	<groupId>org.vafer</groupId>
+        	<version>1.5</version>
+	
+        	<executions>
+          		<execution>
+            		<goals>
+              			<goal>jdeb</goal>
+            		</goals>
+            		<configuration>
+              			<deb>target/${artifactId}-${version}.deb</deb>
+              			<dataSet>
+                			<data>
+                  				<src>target/${artifactId}-${version}-jar-with-dependencies.jar</src>
+                  				<type>file</type>
+                  				<mapper>
+                    				<type>perm</type>
+                    				<prefix>/usr/share/java/zabbix/</prefix>
+                  				</mapper>
+                			</data>
+              			</dataSet>
+            		</configuration>
+          		</execution>
+        	</executions>
+		</plugin>
       
       	<!-- Creation of the rpm package -->
       	<plugin>
@@ -153,7 +179,7 @@
               				<groupname>root</groupname>
               				<sources>
                 				<source>
-                  					<location>target/occi-zabbix-probe-0.8-SNAPSHOT-jar-with-dependencies.jar</location>
+                  					<location>target/${artifactId}-${version}-jar-with-dependencies.jar</location>
                 				</source>
               				</sources>
 					</mapping>
