@@ -1,0 +1,3 @@
+<jboss-web>
+	<context-root>monitoring</context-root>
+</jboss-web>

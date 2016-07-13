@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug" monitorInterval="30">
+
+	<Properties>
+		<Property name="log-path">${jboss.server.log.dir}"</Property>
+		<Property name="log-path">/${sys:jboss.server.log.dir}</Property>
+	</Properties>
+
+	<CustomLevels>
+		<CustomLevel name="CUSTOM_LOG" intLevel="350" />
+	</CustomLevels>
+
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+		</Console>
+
+		<!-- <File name="RollingFile" fileName="${log-path}/PillarLog.log" -->
+		<RollingFile name="RollingFile" fileName="${log-path}/PillarLog.log"
+			filePattern="${log-path}/PillarLog-%d{yyyy-MM-dd}-%i.log">
+			<!-- <PatternLayout> <pattern>%d{dd/MMM/yyyy HH:mm:ss,SSS}- %c{1}: %m%n</pattern> 
+				</PatternLayout> -->
+			<Policies>
+				<SizeBasedTriggeringPolicy size="1 MB" />
+			</Policies>
+			<DefaultRolloverStrategy>
+				<Delete basePath="${log-path}/PillarLog.log" maxDepth="2">
+					<IfFileName glob="*/app-*.log.gz" />
+					<IfLastModified age="7d" />
+				</Delete>
+			</DefaultRolloverStrategy>
+		</RollingFile>
+		<!-- </File> -->
+	</Appenders>
+
+	<Loggers>
+		<Root level="DEBUG">
+			<!-- Only events at CUSTOM_LOG level or more specific are sent to the 
+				console and the pillarLog File. -->
+			<AppenderRef ref="RollingFile" level="custom_log" />
+			<AppenderRef ref="Console" />
+			<!-- <AppenderRef ref="Console" level="custom_log"/> -->
+		</Root>
+	</Loggers>
+</Configuration>

@@ -1,0 +1,42 @@
+zones:
+  - name: zone_name
+    distributedArchitecture: ..bool
+    id: 1
+    servers:
+    # Omit not used servers   
+
+      - type: service
+        url: http://<url>/zabbix/api_jsonrpc.php
+        username: admin
+        password: pswd
+     
+        # Only if proxy-architecture is enabled
+        proxy:
+          # Omit not used proxies
+          name: proxyname
+          # If using distributed-architecture, the nameTemplate will be used to generate the tenant's proxy name replace the placeholder %s
+          nameTemplate: ...-proxy-watcher-%s
+
+      - type: watcher
+        url: http://<url>/zabbix/api_jsonrpc.php
+        username: admin
+        password: pswd
+
+        # Only if proxy-architecture is enabled
+        proxy:
+          # Omit not used proxies
+          name: proxyname
+          # If using distributed-architecture, the nameTemplate will be used to generate the tenant's proxy name replace the placeholder %s
+          nameTemplate: ...-proxy-watcher-%s
+
+      - type: infrastructure
+        url: http://<url>/zabbix/api_jsonrpc.php
+        username: admin
+        password: pswd
+
+        # Only if proxy-architecture is enabled
+        proxy:
+          # Omit not used proxies
+          name: proxyname
+          # If using distributed-architecture, the nameTemplate will be used to generate the tenant's proxy name replace the placeholder %s
+          nameTemplate: ...-proxy-iaas-%s

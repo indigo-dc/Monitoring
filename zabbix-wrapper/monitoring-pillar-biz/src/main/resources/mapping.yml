@@ -1,0 +1,55 @@
+serviceMonitoring:
+ iaasCategoryServices:
+   - iaasAtomicServices:
+     - name: iaas  
+       active: TemplateActiveIaaS
+       passive: TemplateIaaS
+       metrics:
+
+       - name: IaaSCeilometerCPULOAD
+         key: ceilometer[cpu_util,{$UUID}] 
+         triggers:
+           - name: iaasceilometerCpuloadLastValue
+             expression: .lastValue()=0
+
+       - name: IaaSCeilometerUPTIME
+         key: ceilometer[cpu,{$UUID}] 
+         triggers:
+           - name: iaasceilometerCpuLastValue
+             expression: .lastValue()=0     
+          
+       - name: IaaSCeilometerMEMORYRAM
+         key: ceilometer[memory,{$UUID}]
+         triggers:
+           - name: iaasceilometerMemoryLastValue
+             expression: .lastValue()=0
+
+       - name: IaaSCeilometerNETWORKIN
+         key: ceilometer[network.incoming.bytes,{$UUID}]
+         triggers:
+           - name: iaasceilometerNetworkIn
+             expression: .lastValue()=0
+
+       - name: IaaSCeilometerNETWORKOUT
+         key: ceilometer[network.outgoing.bytes,{$UUID}]
+         triggers:
+           - name: iaasceilometerNetworkOut
+             expression: .lastValue()=0
+    
+       - name: IaaSCeilometerSTORAGE
+         key: ceilometer[disk.root.size,{$UUID}]
+         triggers:
+           - name: iaasceilometerStorage
+             expression: .lastValue()=0
+
+     name: IaaS
+
+ paasCategoryServices:
+   - paasAtomicServices:
+     - name: mysql
+       active: TemplateActiveMySQL
+       passive: TemplateMySQL
+       portsMacros:
+           - name: MYSQLPORT
+             value: 80
+     name: PaaS
