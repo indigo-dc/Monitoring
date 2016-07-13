@@ -20,38 +20,62 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
-public class CreateVMResult 
-{
-	private int createVMAvailability;
-	private int createVMResult;
-	private long createVMResponseTime;
-	private String vmId;
-	
-	public CreateVMResult (int availability, int result, long responseTime, String id)
-	{
-		createVMAvailability = availability;
-		createVMResult = result;
-		createVMResponseTime = responseTime;
-		vmId = id;
-	}
-	
-	public int getCreateVMAvailability ()
-	{
-		return createVMAvailability;
-	}
-	
-	public int getCreateVMResult ()
-	{
-		return createVMResult;
-	}
-	
-	public long getCreateVMResponseTime ()
-	{
-		return createVMResponseTime;
-	}
-	
-	public String getVmId()
-	{
-		return vmId;
-	}
+/**
+ * This class holds the information related to the monitoring of a Cloud
+ * Provider when doing the Create VM Operation.
+ * @author ATOS
+ *
+ */
+public class CreateVmResult {
+  private int createVmAvailability;
+  private int createVmResult;
+  private long createVmResponseTime;
+  private String vmId;
+  
+  /**
+   * This method is the constructor of the class, assigning the received values to
+   * the private variables.
+   * @param availability It denotes whether the endpoint was available
+   * @param result It represents the HTTP response code received
+   * @param responseTime It indicates how much time it took to run the operation
+   * @param id It is the VM id received from the operation
+   */
+  public CreateVmResult(int availability, int result, long responseTime, String id) {
+    createVmAvailability = availability;
+    createVmResult = result;
+    createVmResponseTime = responseTime;
+    vmId = id;
+  }
+  
+  /**
+   * It retrieves the availability result of the Create VM operation.
+   * @return An integer indicating available (1) or unavailable (0).
+   */
+  public int getCreateVmAvailability() {
+    return createVmAvailability;
+  }
+  
+  /**
+   * It retrieves the HTTP response received in the operation.
+   * @return Integer representing the HTTP response code.
+   */
+  public int getCreateVmResult() {
+    return createVmResult;
+  }
+  
+  /**
+   * It retrieves the response time of the Create VM operation.
+   * @return Response time in milliseconds.
+   */
+  public long getCreateVmResponseTime() {
+    return createVmResponseTime;
+  }
+  
+  /**
+   * It retrieves the identifier of the created VM.
+   * @return String representing the identifier.
+   */
+  public String getVmId() {
+    return vmId;
+  }
 }

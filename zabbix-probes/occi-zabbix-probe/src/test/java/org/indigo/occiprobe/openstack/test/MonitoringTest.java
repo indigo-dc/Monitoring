@@ -20,8 +20,8 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack.test;
 
-import org.indigo.occiprobe.openstack.OCCIProbeResult;
-import org.indigo.occiprobe.openstack.OpenStackOCCIClient;
+import org.indigo.occiprobe.openstack.OcciProbeResult;
+import org.indigo.occiprobe.openstack.OpenStackOcciClient;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -93,15 +93,15 @@ public class MonitoringTest
 	public void monitoringOperationsShouldReturnCompleteResult()
 	{
 		// Run the OCCI monitoring process and retrieve the result
-		OpenStackOCCIClient myClient = new OpenStackOCCIClient(mockClient);
-		OCCIProbeResult result = myClient.getOCCIMonitoringInfo();
+		OpenStackOcciClient myClient = new OpenStackOcciClient(mockClient);
+		OcciProbeResult result = myClient.getOcciMonitoringInfo();
 		
 		// Check Results
 		Assert.assertNotNull("The result must contain information.", result);
-		Assert.assertEquals("The createVM invocation should reflect 200 status.", 200, result.getCreateVMElement().getCreateVMResult());
-		Assert.assertNotNull("The inspectVM result should exist.", result.getInspectVMElement());
-		Assert.assertNotNull("The inspectVM result should include response time.", result.getInspectVMElement().getInspectVMResponseTime());
-		Assert.assertNotNull("The deleteVM result should exist.", result.getDeleteVMElement());
+		Assert.assertEquals("The createVM invocation should reflect 200 status.", 200, result.getCreateVmElement().getCreateVmResult());
+		Assert.assertNotNull("The inspectVM result should exist.", result.getInspectVmElement());
+		Assert.assertNotNull("The inspectVM result should include response time.", result.getInspectVmElement().getInspectVmResponseTime());
+		Assert.assertNotNull("The deleteVM result should exist.", result.getDeleteVmElement());
 		Assert.assertEquals("The general availability result should be 1", 1, result.getGlobalAvailability());		
 	}
 	
@@ -109,13 +109,13 @@ public class MonitoringTest
 	public void monitoringOperationShouldReturnPartialResult()
 	{
 		// Run the OCCI monitoring process and retrieve the result
-		OpenStackOCCIClient myClient = new OpenStackOCCIClient(mockClientFailure);
-		OCCIProbeResult result = myClient.getOCCIMonitoringInfo();
+		OpenStackOcciClient myClient = new OpenStackOcciClient(mockClientFailure);
+		OcciProbeResult result = myClient.getOcciMonitoringInfo();
 		
 		// Check Results
 		Assert.assertNotNull("The result must contain information.", result);
-		Assert.assertEquals("The createVM invocation should reflect 404 status.", 404, result.getCreateVMElement().getCreateVMResult());
-		Assert.assertNull("The inspectVM result should not exist.", result.getInspectVMElement());
+		Assert.assertEquals("The createVM invocation should reflect 404 status.", 404, result.getCreateVmElement().getCreateVmResult());
+		Assert.assertNull("The inspectVM result should not exist.", result.getInspectVmElement());
 		Assert.assertEquals("The general availability result should be 0", 0, result.getGlobalAvailability());
 	}
 	

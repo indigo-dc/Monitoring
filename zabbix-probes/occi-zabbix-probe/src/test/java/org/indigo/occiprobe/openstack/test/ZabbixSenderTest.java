@@ -24,10 +24,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.indigo.occiprobe.openstack.CreateVMResult;
-import org.indigo.occiprobe.openstack.DeleteVMResult;
-import org.indigo.occiprobe.openstack.InspectVMResult;
-import org.indigo.occiprobe.openstack.OCCIProbeResult;
+import org.indigo.occiprobe.openstack.CreateVmResult;
+import org.indigo.occiprobe.openstack.DeleteVmResult;
+import org.indigo.occiprobe.openstack.InspectVmResult;
+import org.indigo.occiprobe.openstack.OcciProbeResult;
 import org.indigo.occiprobe.openstack.ZabbixSender;
 
 import org.junit.Assert;
@@ -79,13 +79,13 @@ public class ZabbixSenderTest
 	public void sendingMetricsShouldCompleteFine()
 	{
 		// Generate input object
-		CreateVMResult create = new CreateVMResult (1, 200, 1429, "testVM");
-		InspectVMResult inspect = new InspectVMResult (1, 200, 426);
-		DeleteVMResult delete = new DeleteVMResult (1, 204, 612);
-		OCCIProbeResult global = new OCCIProbeResult(1, 204, 2467);
-		global.addCreateVMInfo(create);
-		global.addInspectVMInfo(inspect);
-		global.addDeleteVMInfo(delete);
+		CreateVmResult create = new CreateVmResult (1, 200, 1429, "testVM");
+		InspectVmResult inspect = new InspectVmResult (1, 200, 426);
+		DeleteVmResult delete = new DeleteVmResult (1, 204, 612);
+		OcciProbeResult global = new OcciProbeResult(1, 204, 2467);
+		global.addCreateVmInfo(create);
+		global.addInspectVmInfo(inspect);
+		global.addDeleteVmInfo(delete);
 		
 		// Send metrics and check the result
 		ZabbixSender mySender = new ZabbixSender(mockRuntime);
@@ -99,13 +99,13 @@ public class ZabbixSenderTest
 	public void sendingFullMetricsShouldFail()
 	{		
 		// Generate input object
-		CreateVMResult create = new CreateVMResult (1, 200, 1429, "testVM");
-		InspectVMResult inspect = new InspectVMResult (1, 200, 426);
-		DeleteVMResult delete = new DeleteVMResult (1, 204, 612);
-		OCCIProbeResult global = new OCCIProbeResult(1, 204, 2467);
-		global.addCreateVMInfo(create);
-		global.addInspectVMInfo(inspect);
-		global.addDeleteVMInfo(delete);
+		CreateVmResult create = new CreateVmResult (1, 200, 1429, "testVM");
+		InspectVmResult inspect = new InspectVmResult (1, 200, 426);
+		DeleteVmResult delete = new DeleteVmResult (1, 204, 612);
+		OcciProbeResult global = new OcciProbeResult(1, 204, 2467);
+		global.addCreateVmInfo(create);
+		global.addInspectVmInfo(inspect);
+		global.addDeleteVmInfo(delete);
 		
 		// Send metrics to unavailable Zabbix and check the result
 		ZabbixSender mySender = new ZabbixSender(mockRuntimeFail);
@@ -126,7 +126,7 @@ public class ZabbixSenderTest
 		Assert.assertFalse("The result of sending the metrics should be wrong.", result);
 		
 		// Create and send an empty result
-		OCCIProbeResult global = new OCCIProbeResult();
+		OcciProbeResult global = new OcciProbeResult();
 		result = mySender.sendMetrics(global);
 		
 		// Check Results
