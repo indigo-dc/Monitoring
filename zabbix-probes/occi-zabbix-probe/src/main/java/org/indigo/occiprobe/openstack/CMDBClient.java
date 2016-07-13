@@ -36,73 +36,95 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 
-public class CMDBClient 
-{
-	private Client client = null;
-	private String CMDBUrl;
-	
-	public CMDBClient()
-	{
-		// Retrieve properties
-        PropertiesManager myProp = new PropertiesManager();
-		CMDBUrl = myProp.getProperty(PropertiesManager.CMDB_URL);
-		
-		// Create the Client
-		ClientConfig cc = new ClientConfig();		
-		client = JerseyClientBuilder.newClient(cc);
-	}
-	
-	public String[] getProvidersList()
-	{
-		// Call to CMDB API
-		WebTarget target = client.target(CMDBUrl + "/provider/list");
-		Invocation.Builder invocationBuilder = target.request();
-		Response response = invocationBuilder.get();
-		String message = response.readEntity(String.class);
-		
-		// Retrieve the providers list
-		JsonElement jelement = new JsonParser().parse(message);
-		JsonObject parsedRes = jelement.getAsJsonObject();
-		JsonArray listArray = parsedRes.getAsJsonArray("rows");
-		
-		ArrayList<String> providersList = new ArrayList<String> ();
-		Iterator <JsonElement> myIter = listArray.iterator();
-        while (myIter.hasNext())
-        {            	           	
-        	JsonObject currentResource = myIter.next().getAsJsonObject();
-        	String providerId = currentResource.get("id").getAsString();
-        	providersList.add(providerId);        	
-        }
-		
-        // Prepare the result
-        providersList.trimToSize();
-		String[] resultList = new String[providersList.size()];
-		providersList.toArray(resultList);
-		
-		return resultList;
-	}
-	
-	public ProviderInfo getProviderData (String providerId)
-	{
-		// Call to CMDB API
-		WebTarget target = client.target(CMDBUrl + "/provider/id/" + providerId);
-		Invocation.Builder invocationBuilder = target.request();
-		Response response = invocationBuilder.get();
-		String message = response.readEntity(String.class);
-		
-		System.out.println (message);
-		
-		// Retrieve the providers list
-		JsonElement jelement = new JsonParser().parse(message);
-		JsonObject parsedRes = jelement.getAsJsonObject();
-		
-		return null;
-	}
-	
-	public static void main(String[] args)
-	{
-		CMDBClient myClient = new CMDBClient();
-		String[] providers = myClient.getProvidersList();
-		myClient.getProviderData(providers[0]);
-	}
+/**
+ * The CmdbClient class is in charge of the interactions between the probe and
+ * the CMDB component. Such component provides information about the available
+ * providers, such as their name, location, list of services provided, etc...
+ * 
+ * @author Atos
+ *
+ */
+public class CmdbClient {
+  private Client client = null;
+  private String cmdbUrl;
+  
+  /**
+   * It constructs an object of the CmdbClient type, retrieving certain properties
+   * and initializing a Jersey client.
+   */
+  public CmdbClient() {
+    // Retrieve properties
+    PropertiesManager myProp = new PropertiesManager();
+    cmdbUrl = myProp.getProperty(PropertiesManager.CMDB_URL);
+    
+    // Create the Client
+    ClientConfig cc = new ClientConfig();
+    client = JerseyClientBuilder.newClient(cc);
+  }
+  
+  /**
+   * Using the created Jersey client, it invokes the CMDB REST API in 
+   * order to retrieve the full list of Cloud providers which are
+   * currently available.
+   * @return Strings array with the identifiers of the providers found.
+   */
+  public String[] getProvidersList() {
+    // Call to CMDB API
+    WebTarget target = client.target(cmdbUrl + "/provider/list");
+    Invocation.Builder invocationBuilder = target.request();
+    Response response = invocationBuilder.get();
+    String message = response.readEntity(String.class);
+    
+    // Retrieve the providers list
+    JsonElement jelement = new JsonParser().parse(message);
+    JsonObject parsedRes = jelement.getAsJsonObject();
+    JsonArray listArray = parsedRes.getAsJsonArray("rows");
+    
+    ArrayList<String> providersList = new ArrayList<String>();
+    Iterator<JsonElement> myIter = listArray.iterator();
+    while (myIter.hasNext()) {
+      JsonObject currentResource = myIter.next().getAsJsonObject();
+      String providerId = currentResource.get("id").getAsString();
+      providersList.add(providerId);
+    }
+    
+    // Prepare the result
+    providersList.trimToSize();
+    String[] resultList = new String[providersList.size()];
+    providersList.toArray(resultList);
+    
+    return resultList;
+  }
+  
+  /**
+   * This method access the CMDB service in order to retrieve the available 
+   * data from a Cloud Provider (i.e. its location, provided services, etc.)
+   * @param providerId Represents the identifier of the Cloud provider
+   * @return An object with all the information retrieved
+   */
+  public ProviderInfo getProviderData(String providerId) {
+    // Call to CMDB API
+    WebTarget target = client.target(cmdbUrl + "/provider/id/" + providerId);
+    Invocation.Builder invocationBuilder = target.request();
+    Response response = invocationBuilder.get();
+    String message = response.readEntity(String.class);
+    
+    System.out.println(message);
+    
+    // Retrieve the providers list
+    JsonElement jelement = new JsonParser().parse(message);
+    JsonObject parsedRes = jelement.getAsJsonObject();
+    
+    return null;
+  }
+  
+  /**
+   * Temporary main for testing.
+   * @param args Typical arguments
+   */
+  public static void main(String[] args) {
+    CmdbClient myClient = new CmdbClient();
+    String[] providers = myClient.getProvidersList();
+    myClient.getProviderData(providers[0]);
+  }
 }

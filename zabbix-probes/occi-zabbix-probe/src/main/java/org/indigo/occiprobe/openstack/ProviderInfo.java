@@ -20,47 +20,74 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
-public class ProviderInfo 
-{
+/**
+ * This class is for managing information about the Cloud providers listed
+ * by the CMDB component. All these providers are expected to be monitored.
+ * @author ATOS
+ *
+ */
+public class ProviderInfo {
 
-	private String providerId;
-	private boolean isOpenStack;
-	private String keystoneUrl;
-	private String occiUrl;
-	
-	public ProviderInfo (String identifier, String keystoneLocation, String occiLocation)
-	{
-		isOpenStack = true;
-		providerId = identifier;
-		keystoneUrl = keystoneLocation;
-		occiUrl = occiLocation;
-	}
-	
-	public ProviderInfo (String identifier, String occiLocation)
-	{
-		isOpenStack = false;
-		providerId = identifier;		
-		occiUrl = occiLocation;
-	}
-	
-	public boolean isOpenStack()
-	{
-		return isOpenStack;
-	}
-	
-	public String getProviderId()
-	{
-		return providerId;
-	}
-	
-	public String getOCCIURL()
-	{
-		return occiUrl;
-	}
-	
-	public String getKeystoneURL()
-	{
-		return keystoneUrl;
-	}
-	
+  private String providerId;
+  private boolean isOpenStack;
+  private String keystoneUrl;
+  private String occiUrl;
+  
+  /**
+   * This constructor applies to those Cloud Providers who are providing services
+   * based on OpenStack platforms (which require Keystone for authentication).
+   * @param identifier String identifying the Cloud provider
+   * @param keystoneLocation Base URL for Keystone [IP:Port]
+   * @param occiLocation Base URL for OCCI API [IP:Port]
+   */
+  public ProviderInfo(String identifier, String keystoneLocation, String occiLocation) {
+    isOpenStack = true;
+    providerId = identifier;
+    keystoneUrl = keystoneLocation;
+    occiUrl = occiLocation;
+  }
+  
+  /**
+   * This constructor is used with those Cloud Providers who are providing services
+   * based on OpenNebula platforms.
+   * @param identifier String identifying the Cloud provider
+   * @param occiLocation Base URL for OCCI API [IP:Port]
+   */
+  public ProviderInfo(String identifier, String occiLocation) {
+    isOpenStack = false;
+    providerId = identifier;
+    occiUrl = occiLocation;
+  }
+  
+  /**
+   * It provides a boolean indicating whether the provider is based on OpenStack.
+   * @return True for OpenStack providers, False for others.
+   */
+  public boolean isOpenStack() {
+    return isOpenStack;
+  }
+  
+  /**
+   * It provides the identifier of the Cloud provider.
+   * @return String with the identifier.
+   */
+  public String getProviderId() {
+    return providerId;
+  }
+  
+  /**
+   * It provides the base URL of the REST OCCI API.
+   * @return String with the base URL in the form [IP:Port]
+   */
+  public String getOcciUrl() {
+    return occiUrl;
+  }
+  
+  /**
+   * It provides the base URL of the Keystone component.
+   * @return String with the base URL in the form [IP:Port]
+   */
+  public String getKeystoneUrl() {
+    return keystoneUrl;
+  }
 }
