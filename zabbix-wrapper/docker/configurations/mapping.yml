@@ -1,0 +1,24 @@
+serviceMonitoring:
+ iaasCategoryServices:
+   - iaasAtomicServices:
+     - name: iaas  
+       active: TemplateActiveIaaS
+       passive: TemplateIaaS
+       metrics:
+
+       - name: IaaSCeilometerCPULOAD
+         key: ceilometer[cpu_util,{$UUID}] 
+         triggers:
+           - name: iaasceilometerCpuloadLastValue
+             expression: .lastValue()=0
+     name: IaaS
+
+ paasCategoryServices:
+   - paasAtomicServices:
+     - name: paas
+       active: TemplateActiveMySQL
+       passive: TemplateMySQL
+       portsMacros:
+           - name: MYSQLPORT
+             value: 3306
+     name: PaaS

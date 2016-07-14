@@ -1,0 +1,18 @@
+environment:
+  name: indigo
+
+options:
+  wsDebug: true
+  # 3 servers: true; false otherwise
+  multipleServers: false  
+  # whether monitoring system proxies are used (if available in for the chosen adapter)
+  proxyArchitecture: false
+  # whether there is a proxy in each tenant (only available if proxy-architecture is enabled)
+  # distributedArchitecture: ${monitoring.distributedArchitecture.enabled}
+  # whether to enable the IaaS monitoring (with the external script)
+  iaasMonitoring: false  
+
+adapter:
+  type: zabbix
+  version: 3.0
+  rpcVersion: 2.0

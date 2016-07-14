@@ -1,0 +1,20 @@
+#######################
+# INDIGO ZONE or SITE
+######################
+zones:
+  - name: indigo
+    distributedArchitecture: false
+    id: 1
+    servers:
+    # Omit not used servers
+    
+    - type: service
+      url: {$url}
+      username: {$usr}
+      password: {$password}
+      proxy:
+        name: 
+        nameTemplate: proxy-%s
+
+
+
