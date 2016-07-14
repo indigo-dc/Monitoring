@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: zabbix-wrapper
+  labels:
+    name: zabbix-wrapper
+spec:
+  replicas: 1
+  selector:
+    name: zabbix-wrapper
+  template:
+    metadata:
+      labels:
+        name: zabbix-wrapper
+    spec:
+      containers:
+      - name: zabbix-wrapper
+        image: michelegrandolfo/zabbix-wrapper:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /monitoring
+            port: 8080
+          initialDelaySeconds: 180
+          timeoutSeconds: 5
+        env:
+          - name: ZABBIX_URL
+            value: http://90.147.102.197/api_jsonrpc.php
+          - name: ZABBIX_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: zabbix-wrapper-secrets
+                key: username
+          - name: ZABBIX_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: zabbix-wrapper-secrets
+                key: password
+        
+         

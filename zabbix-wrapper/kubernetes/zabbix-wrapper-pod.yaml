@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: zabbix-wrapper
+  labels: 
+    name: zabbix-wrapper
+spec: 
+  containers: 
+    - image: michelegrandolfo/zabbix-wrapper:latest
+      name: zabbix-wrapper
+      ports: 
+        - containerPort: 8080
