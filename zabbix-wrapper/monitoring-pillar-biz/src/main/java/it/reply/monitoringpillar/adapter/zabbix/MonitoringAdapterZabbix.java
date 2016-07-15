@@ -59,7 +59,7 @@ import javax.naming.NameNotFoundException;
  * 
  * @author m.grandolfo This class implements the interface for giving back all the methods (for
  *         properly managing Zabbix API) to be used by MoniotringPillarService class which will
- *         expose them as Restful API
+ *         expose them as Restful API.
  */
 @IMonitAdaptZabbix
 @Stateless
@@ -333,7 +333,8 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
           zabAdapClientSetter.createProxyService(zone, url, token, serverType, hostGroup, proxyName,
               ZabbixMethods.CREATEPROXY.getzabbixMethod());
         } catch (DuplicateResourceZabbixException de) {
-          // If the group already exists keep creating it on others withiut launching an exception
+          // If the group already exists keep creating it on others
+          // withiut launching an exception
           isDuplicate = true;
         }
 
@@ -392,7 +393,7 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
       } else {
 
         /*************
-         * IAAS CASE
+         * IAAS CASE.
          ************/
         if (serverType.toLowerCase().equals(InfoType.INFRASTRUCTURE)) {
           // ZABBIX-IAAS
@@ -411,7 +412,7 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
           }
 
           /********************************************
-           * PAAS CASE: it Creates two hosts in two servers if
+           * PAAS CASE: it Creates two hosts in two servers.
            *******************************************/
           // Create a Host into Metrics and Watcher Server
         } else {
@@ -489,7 +490,7 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
       if (!config.getMonitoringConfigurations().getOptions().isMultipleServers()) {
         try {
           /*************
-           * GENERAL CASE
+           * GENERAL CASE.
            ************/
           url = config.getZabbixServerUrl(zone, serverType);
           token = zabbixHelper.getZabbixToken(zone, serverType);
@@ -523,7 +524,7 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
         } else {
           try {
             /********
-             * PAAS For ZABBIX METRICS
+             * PAAS For ZABBIX METRICS.
              ********/
             url = config.getZabbixServerUrl(zone, InfoType.SERVICE.getInfoType());
             token = zabbixHelper.getZabbixToken(zone, InfoType.SERVICE.getInfoType());
@@ -539,7 +540,7 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
           }
 
           /*********************
-           * For ZABBIX WATCHER
+           * For ZABBIX WATCHER.
            ********************/
           try {
             url = config.getZabbixServerUrl(zone, InfoType.WATCHER.getInfoType());
@@ -583,7 +584,7 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
       boolean isHostExisting = true;
 
       /*************
-       * GENERAL CASE
+       * GENERAL CASE.
        ************/
       if (!config.getMonitoringConfigurations().getOptions().isMultipleServers()) {
         try {
@@ -598,7 +599,7 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
         }
       } else {
         /*************
-         * IAAS CASE
+         * IAAS CASE.
          ************/
         try {
           String groupid2Zabbix = zabGroupId.getGroupIDsintoZabbix(zone,
@@ -612,7 +613,7 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
           isHostExisting = true;
         }
         /********************
-         * For ZABBIX METRICS
+         * For ZABBIX METRICS.
          ********************/
         try {
           String groupid2Zabbix = zabGroupId.getGroupIDsintoZabbix(zone,
@@ -626,7 +627,7 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
           isHostExisting = true;
         }
         /************************
-         * For ZABBIX WATCHER
+         * For ZABBIX WATCHER.
          ***********************/
         try {
           String groupid2Zabbix = zabGroupId.getGroupIDsintoZabbix(zone,
@@ -677,7 +678,7 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
       } else {
         if (serverType.equalsIgnoreCase(InfoType.ALL.getInfoType())) {
           /*************
-           * IAAS CASE
+           * IAAS CASE.
            ************/
           try {
             proxyRemovedFromIaaS =
@@ -689,7 +690,7 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
             isHostExisting = true;
           }
           /********************
-           * For ZABBIX METRICS
+           * For ZABBIX METRICS.
            ********************/
           try {
 
@@ -702,7 +703,7 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
             isHostExisting = true;
           }
           /************************
-           * AND For ZABBIX WATCHER
+           * AND For ZABBIX WATCHER.
            ***********************/
           try {
 
