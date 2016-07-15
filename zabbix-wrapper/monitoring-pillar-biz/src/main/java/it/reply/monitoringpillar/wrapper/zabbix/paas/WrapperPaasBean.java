@@ -193,7 +193,7 @@ public class WrapperPaasBean implements Serializable {
       }
 
       /********************************
-       * HOST UUID OR TAG ID AVAILABLE
+       * HOST UUID OR TAG ID AVAILABLE.
        ********************************/
       if (hostInfo != null && hostId != null) {
 
@@ -234,7 +234,7 @@ public class WrapperPaasBean implements Serializable {
         groups.add(workGroup);
 
         /**********************
-         * Only group specified
+         * Only group specified.
          **********************/
 
       } else {
@@ -437,9 +437,11 @@ public class WrapperPaasBean implements Serializable {
         serviceName = stringToFilter.substring(stringToFilter.lastIndexOf("ate") + 3);
         // else {
         // throw new
-        // ZabbixException("This host is in wrong MODE (Passive Agents in
+        // ZabbixException("This host is in wrong MODE (Passive Agents
+        // in
         // Pull mode): Platform has been configured for functioning in
-        // active mode. Contact the administrator to switch it to Passive");
+        // active mode. Contact the administrator to switch it to
+        // Passive");
         // }
       }
       service.setServiceName(serviceName);
@@ -533,7 +535,7 @@ public class WrapperPaasBean implements Serializable {
 
     /**********************************************
      * In case an External Script has been used and a particular Ceilometer metric is coming for a
-     * specific Metric into API
+     * specific Metric into API.
      ************************************************/
     if (metricsId != null
         && metricsId.toLowerCase().contains(MonitoringConstant.CEILOMETER.toLowerCase())
@@ -550,7 +552,7 @@ public class WrapperPaasBean implements Serializable {
 
       if (metricsId != null) {
         /********************************
-         * METRIC LAST VALUE - NO HISTORY. Only for the the specified Metric into API
+         * METRIC LAST VALUE - NO HISTORY. Only for the the specified Metric into API.
          *************/
         boolean metricFound = false;
 
@@ -575,7 +577,7 @@ public class WrapperPaasBean implements Serializable {
       }
 
       /**********
-       * HISTORY
+       * HISTORY.
        ***********/
     } else if (history != null) {
 
@@ -619,7 +621,7 @@ public class WrapperPaasBean implements Serializable {
         }
 
         /************************
-         * NO FILTER TIME HISTORY
+         * NO FILTER TIME HISTORY.
          *************************/
         if (requestTime == null) {
 
@@ -686,7 +688,7 @@ public class WrapperPaasBean implements Serializable {
         }
 
         /**********************
-         * FILTER TIME HISTORY
+         * FILTER TIME HISTORY.
          **********************/
         if (requestTime != null) {
           // HISTORY CASE vs TREND
@@ -1114,7 +1116,8 @@ public class WrapperPaasBean implements Serializable {
           && metricValue == 0.0) {
         thresholdtype.setThresholdStatus(PaasThresholdStatus.PROBLEM);
 
-        // generic case: trigger positive value matricValueType different
+        // generic case: trigger positive value matricValueType
+        // different
         // from boolean
       } else if ((triggerValue.equals("0")) && metricValue != -1) {
         thresholdtype.setThresholdStatus(PaasThresholdStatus.OK);

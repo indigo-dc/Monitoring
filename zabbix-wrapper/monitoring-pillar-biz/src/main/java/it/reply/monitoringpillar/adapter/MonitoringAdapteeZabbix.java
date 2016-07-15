@@ -197,7 +197,7 @@ public abstract class MonitoringAdapteeZabbix {
       }
 
       /*****************************
-       * ONLY TAG ID PASSED FROM API
+       * ONLY TAG ID PASSED FROM API.
        ****************************/
       if (tagService != null && hostuuid == null && group != null) {
         // Get the list of EXTENDED hosts (templates and metrics
@@ -241,7 +241,7 @@ public abstract class MonitoringAdapteeZabbix {
         groupName = groupsInZabbixPaaS.get(0).getName();
 
         /**********************************
-         * ONLY HOST UUID OR NAME SPECIFIED
+         * ONLY HOST UUID OR NAME SPECIFIED.
          **********************************/
       } else if (hostuuid != null && group != null && tagService == null) {
         hostsinZabbixPaaS = zabAdapClientSetter.getMonitoredHostsZabbixV24(zone, serverType,
@@ -284,7 +284,7 @@ public abstract class MonitoringAdapteeZabbix {
         groupName = groupsInZabbixPaaS.get(0).getName();
 
         /**************************
-         * ONLY GROUP SPECIFIED
+         * ONLY GROUP SPECIFIED.
          **************************/
       } else if (group != null && hostuuid == null && tagService == null) {
         List<ZabbixHostGroupResponse> groupsuseful = new ArrayList<>();

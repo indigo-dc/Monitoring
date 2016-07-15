@@ -37,14 +37,6 @@
 		<surefire.skip>false</surefire.skip>
 	</properties>
 
-	<repositories>
-			<repository>
-				<id>concept-reply-nexus-repository</id>
-				<name>Concept Reply Nexus</name>
-				<url>http://nexusconcept.cloud.reply.eu/content/groups/public</url>
-			</repository>
-	</repositories>
-
 	<dependencyManagement>
 		<dependencies>
 

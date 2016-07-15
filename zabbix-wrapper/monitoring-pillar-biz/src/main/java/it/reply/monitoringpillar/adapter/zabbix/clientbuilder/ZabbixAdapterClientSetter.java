@@ -776,14 +776,14 @@ public class ZabbixAdapterClientSetter<T> extends ZabbixBase implements Serializ
       itemParameters.setOutput(ZabbixConstant.EXTEND);
 
       /***************************************
-       * SETTING HISTORY or EVENTS in ZABBIX
+       * SETTING HISTORY or EVENTS in ZABBIX.
        **************************************/
       if (zabbixMethod.equals(ZabbixMethods.HISTORY.getzabbixMethod())
           || zabbixMethod.equals(ZabbixMethods.EVENT.getzabbixMethod())) {
         int limit = 10;
 
         /*****************
-         * EVENT CASE
+         * EVENT CASE.
          *****************/
         if (zabbixMethod.equals(ZabbixMethods.EVENT.getzabbixMethod())) {
           limit = 30;
@@ -809,7 +809,7 @@ public class ZabbixAdapterClientSetter<T> extends ZabbixBase implements Serializ
         parameters4history.setHistory(history);
         parameters4history.setLimit(limit);
         /************************
-         * TIME FILTER FOR EVENTS
+         * TIME FILTER FOR EVENTS.
          ************************/
         if (requestTime != null
             && (requestTime.getDateFrom() != null && requestTime.getDateTo() != null)) {
@@ -842,14 +842,14 @@ public class ZabbixAdapterClientSetter<T> extends ZabbixBase implements Serializ
         result = zabClient.getHistoryClient(request);
 
         /*************
-         * HISTORY CASE
+         * HISTORY CASE.
          **************/
         if (result.size() == 0 && (zabbixMethod.equals(ZabbixMethods.HISTORY.getzabbixMethod()))) {
           history = ZabbixConstant.INT_HISTORY_TYPE;
           parameters4history.setHistory(history);
 
           /**************
-           * FILTER TIME
+           * FILTER TIME.
            *************/
           if (requestTime != null) {
             if (requestTime != null
@@ -874,7 +874,7 @@ public class ZabbixAdapterClientSetter<T> extends ZabbixBase implements Serializ
         return result;
 
         /***************************
-         * SETTING ITEMS in ZABBIX
+         * SETTING ITEMS in ZABBIX.
          ***************************/
       } else {
 
