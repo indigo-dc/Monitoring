@@ -1,7 +1,7 @@
 <ejb-jar id="ejb-jar_ID" version="3.1"
-xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
 http://java.sun.com/xml/ns/javaee/ejb-jar_3_1.xsd">
-<enterprise-beans>
-</enterprise-beans>
+	<enterprise-beans>
+	</enterprise-beans>
 </ejb-jar>

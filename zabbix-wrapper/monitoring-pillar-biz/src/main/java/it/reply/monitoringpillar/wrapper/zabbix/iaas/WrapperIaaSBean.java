@@ -118,7 +118,7 @@ public class WrapperIaaSBean implements Serializable {
       groupName = groupInfo.getName();
 
       /*******************************
-       * HOST GROUP SPECIFIED
+       * HOST GROUP SPECIFIED.
        ******************************/
 
       if (iaasGroupNames != null && iaashostNames == null) {
@@ -131,7 +131,7 @@ public class WrapperIaaSBean implements Serializable {
         groupsList.add(hostgroupList);
 
         /*************************************************
-         * ASK FOR SPECIFIC HOST INTO A GROUP
+         * ASK FOR SPECIFIC HOST INTO A GROUP.
          ************************************************/
 
       } else if (iaashostNames != null) {
