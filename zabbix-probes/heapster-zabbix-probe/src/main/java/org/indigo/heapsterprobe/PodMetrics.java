@@ -29,15 +29,15 @@ package org.indigo.heapsterprobe;
  */
 public class PodMetrics {
 
-  String podName;
-  String namespaceName;
-  int networkTxErrors;
-  float networkTxErrorsRate;
-  int networkRxErrors;
-  float networkRxErrorsRate;
-  float memoryMajorPageFaultsRate;
-  float memoryPageFaultsRate;
-  int uptime;
+  private String podName;
+  private String namespaceName;
+  private int networkTxErrors;
+  private float networkTxErrorsRate;
+  private int networkRxErrors;
+  private float networkRxErrorsRate;
+  private float memoryMajorPageFaultsRate;
+  private float memoryPageFaultsRate;
+  private int uptime;
 
   /**
    * This is the main constructor of the class, which gathers all the information which 

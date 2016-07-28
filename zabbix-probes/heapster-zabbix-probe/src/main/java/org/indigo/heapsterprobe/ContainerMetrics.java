@@ -80,6 +80,36 @@ public class ContainerMetrics {
   }
   
   /**
+   * This is the class constructor, which gathers all the monitored information and
+   * assigns it to the corresponding private variables.
+   * @param name Name of the container as in the Kubernetes cluster
+   * @param cpuRate Percentage of requested CPU used   
+   * @param cpuUsed CPU under use  
+   * @param majorMemFaults Number of major memory page faults detected in the container
+   * @param memFaults Number of memory page faults detected in the container
+   * @param majorMemFaultsRate Percentage of major memory page faults
+   * @param pageMemFaultsRate Percentage of memory page faults
+   * @param memUsed Amount of memory under use
+   * @param workSet Working set
+   * @param time Amount of seconds the container has been available so far
+   */
+  public ContainerMetrics(String name, float cpuRate, long cpuUsed,  
+      int majorMemFaults, int memFaults, float majorMemFaultsRate, 
+      float pageMemFaultsRate, int memUsed, int workSet, int time) {
+    
+    containerName = name;
+    cpuUsageRate = cpuRate;    
+    cpuUsage = cpuUsed;    
+    majorPageFaults = majorMemFaults;
+    pageFaults = memFaults;
+    majorPageFaultsRate = majorMemFaultsRate;
+    pageFaultsRate = pageMemFaultsRate;
+    memoryUsage = memUsed;
+    workingSet = workSet;
+    uptime = time;
+  }
+  
+  /**
    * It provides the name of the container which produced the information.
    * @return Name of the container as registered in the Kubernetes cluster
    */

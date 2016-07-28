@@ -57,7 +57,7 @@ public class HeapsterClient {
     // Retrieve properties
     PropertiesManager myProp = new PropertiesManager();
     String heapsterUrl = myProp.getProperty(PropertiesManager.HEAPSTER_LOCATION);
-    String heapsterPort = myProp.getProperty(PropertiesManager.HEAPSTER_PORT);
+    //String heapsterPort = myProp.getProperty(PropertiesManager.HEAPSTER_PORT);
 
     // Prepare access URLs
     //baseHeapsterUrl = "http://" + heapsterUrl + ":" + heapsterPort + "/heapster/api/v1";
@@ -125,6 +125,41 @@ public class HeapsterClient {
     podsList.trimToSize();
     String[] resultList = new String[podsList.size()];
     podsList.toArray(resultList);
+    return resultList;
+  }
+  
+  /**
+   * Given a namespace and a pod name, this method access the Heapster API
+   * in order to list the containers which belong to the pod.
+   * @param podName String with the pod name
+   * @param namespace String indicating the pod namespace
+   * @return List of identifiers of the containers
+   */
+  public String[] getContainersList(String podName, String namespace) {
+    // Call to Heapster API
+    String targetUrl = baseHeapsterUrl + "/model/namespaces/" + namespace 
+        + "/pods/" + podName + "/containers/";
+    WebTarget target = client.target(targetUrl);
+    Invocation.Builder invocationBuilder = target.request();
+    Response response = invocationBuilder.get();
+    String message = response.readEntity(String.class);
+
+    // Retrieve the containers list
+    JsonElement jelement = new JsonParser().parse(message);
+    JsonArray listArray = jelement.getAsJsonArray();
+    System.out.println("Number of containers: " + listArray.size());
+    ArrayList<String> containersList = new ArrayList<String>();
+    Iterator<JsonElement> myIter = listArray.iterator();
+    while (myIter.hasNext()) {
+      String currentResource = myIter.next().getAsString();
+      System.out.println("Container: " + currentResource);
+      containersList.add(currentResource);
+    }  
+    
+    // Provide result
+    containersList.trimToSize();
+    String[] resultList = new String[containersList.size()];
+    containersList.toArray(resultList);
     return resultList;
   }
 
@@ -263,6 +298,128 @@ public class HeapsterClient {
     return podResult;
   }
   
+  /**
+   * This method accesses each metric available for a container, in order to
+   * monitor its current status.
+   * @param podName String with the pod identifier.
+   * @param namespace String with the namespace identifier
+   * @param containerName String with the container identifier
+   * @return Object with all the gathered metrics.
+   */
+  public ContainerMetrics getContainerMetrics(String podName, String namespace,
+      String containerName) {    
+        
+    // List the metrics available for the pod
+    String containerUrl = baseHeapsterUrl + "/model/namespaces/" 
+        + namespace + "/pods/" + podName + "/containers/" + containerName + "/";
+    System.out.println(containerUrl + "metrics/");
+    WebTarget target = client.target(containerUrl + "metrics/");
+    Invocation.Builder invocationBuilder = target.request();
+    Response response = invocationBuilder.get();
+    String message = response.readEntity(String.class);
+    System.out.println(message);
+    
+    // Prepare the result variables
+    float cpuUsageRate = -1.0f;    
+    long cpuUsage = -1L;    
+    int majorPageFaults = -1;
+    int pageFaults = -1;
+    float majorPageFaultsRate = -1.0f;
+    float pageFaultsRate = -1.0f;
+    int memoryUsage = -1;
+    int workingSet = -1;
+    int uptime = 0;   
+    
+    // Get the metrics list checking all are available      
+    JsonElement jelement = new JsonParser().parse(message);   
+    JsonArray listArray = jelement.getAsJsonArray();
+    System.out.println("Number of metrics: " + listArray.size());
+    
+    if (listArray.size() == 0) {
+      return null;
+    }
+    
+    HashMap<String, String> metricsList = new HashMap<String, String>();    
+    Iterator<JsonElement> myIter = listArray.iterator();
+    while (myIter.hasNext()) {
+      String currentMetric = myIter.next().getAsString();
+      System.out.println("Metric: " + currentMetric);
+      String metricUrl = containerUrl + "metrics/" + currentMetric + "/";
+      metricsList.put(currentMetric, metricUrl);      
+    }
+    
+    // Retrieve metrics
+    // Retrieve CPU Usage Rate
+    if (metricsList.containsKey("cpu/usage_rate")) {
+      JsonObject measurementObject = retrieveMetric(metricsList.get("cpu/usage_rate"));
+      cpuUsageRate = measurementObject.get("value").getAsFloat();
+      System.out.println("CPU Usage Rate Value: " + cpuUsageRate);       
+    }    
+    
+    // Retrieve CPU Usage
+    if (metricsList.containsKey("cpu/usage")) {
+      JsonObject measurementObject = retrieveMetric(metricsList.get("cpu/usage"));
+      cpuUsage = measurementObject.get("value").getAsLong();
+      System.out.println("CPU USage Value: " + cpuUsage);       
+    }
+    
+    // Retrieve Memory Major Page Faults
+    if (metricsList.containsKey("memory/major_page_faults")) {
+      JsonObject measurementObject = retrieveMetric(metricsList.get("memory/major_page_faults"));
+      majorPageFaults = measurementObject.get("value").getAsInt();
+      System.out.println("Memory Major Page Faults Value: " + majorPageFaults);       
+    }
+    
+    // Retrieve Memory Page Faults
+    if (metricsList.containsKey("memory/page_faults")) {
+      JsonObject measurementObject = retrieveMetric(metricsList.get("memory/page_faults"));
+      pageFaults = measurementObject.get("value").getAsInt();
+      System.out.println("Memory Page Faults Value: " + pageFaults);       
+    }
+    
+    // Retrieve Memory Major Page Faults Rate
+    if (metricsList.containsKey("memory/major_page_faults_rate")) {
+      JsonObject measurementObject = retrieveMetric(
+          metricsList.get("memory/major_page_faults_rate"));
+      majorPageFaultsRate = measurementObject.get("value").getAsFloat();
+      System.out.println("Major Page Faults Rate Value: " + majorPageFaultsRate);       
+    }
+    
+    // Retrieve Memory Fault Rate
+    if (metricsList.containsKey("memory/page_faults_rate")) {
+      JsonObject measurementObject = retrieveMetric(metricsList.get("memory/page_faults_rate"));
+      pageFaultsRate = measurementObject.get("value").getAsFloat();
+      System.out.println("Memory Page Faults Rate Value: " + pageFaultsRate);       
+    }
+    
+    // Retrieve Memory Fault Rate
+    if (metricsList.containsKey("memory/usage")) {
+      JsonObject measurementObject = retrieveMetric(metricsList.get("memory/usage"));
+      memoryUsage = measurementObject.get("value").getAsInt();
+      System.out.println("Memory Usage Value: " + memoryUsage);       
+    }
+    
+    // Retrieve Working Set
+    if (metricsList.containsKey("memory/working_set")) {
+      JsonObject measurementObject = retrieveMetric(metricsList.get("memory/working_set"));
+      workingSet = measurementObject.get("value").getAsInt();
+      System.out.println("Working Set Value: " + workingSet);       
+    }
+    
+    // Retrieve Uptime
+    if (metricsList.containsKey("uptime")) {
+      JsonObject measurementObject = retrieveMetric(metricsList.get("uptime"));
+      uptime = measurementObject.get("value").getAsInt();
+      System.out.println("Uptime Value: " + uptime);       
+    }
+    
+    // Build result
+    ContainerMetrics containerResult = new ContainerMetrics(containerName, cpuUsageRate, cpuUsage,
+        majorPageFaults, pageFaults, majorPageFaultsRate, pageFaultsRate, memoryUsage, 
+        workingSet, uptime);
+    return containerResult;
+  }
+  
   private JsonObject retrieveMetric(String metricUrl) {
     // Invoke the Heapster API with the metric absolute URL
     WebTarget metricTarget = client.target(metricUrl);
@@ -287,6 +444,7 @@ public class HeapsterClient {
     HeapsterClient myClient = new HeapsterClient();
     myClient.getPodsList();
     myClient.getPodMetrics("kube-system/monitoring-influxdb-grafana-v3-fpd4q");
+    myClient.getContainerMetrics("monitoring-influxdb-grafana-v3-fpd4q", "kube-system", "influxdb");
   }
 
 }
