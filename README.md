@@ -186,5 +186,6 @@ The Heapster probe, on the other hand, requires the heapsterprobe.properties fil
 2.5 Potential Issues
 --------------------
 In the case of providers requiring some communication using SSL, if the provider certificate is not signed by a known entity, the JVM may throw exceptions. In such case, it is necessary to register the corresponding certificate with the following command:
-
+```
 keytool -importcert -trustcacerts -alias infnkeystone -file infnkeystone.cer -keystore "%JAVA_HOME%/jre/lib/security/cacerts"
+```
