@@ -20,6 +20,9 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.heapsterprobe;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 /**
  * This class aims at implementing the management of the threads to be used for 
  * the monitoring operations. It follows a singleton pattern, so only one instance
@@ -30,11 +33,10 @@ package org.indigo.heapsterprobe;
 public class ProbeThread {
   // A handle to the unique Singleton instance.  
   private static ProbeThread _instance = null;
-  
+  private HeapsterClient myClient = null;
   
   private ProbeThread() {
-    // Build element for thread and tasks scheduling
-    
+    myClient = new HeapsterClient();    
   }
   
   /**
@@ -55,11 +57,63 @@ public class ProbeThread {
    * sending the metrics to Zabbix at the end of the process.
    */
   public void startMonitoringProcess() {
-    // Retrieve the list of providers with their info
+    ArrayList<PodMetrics> podMetricsList = new ArrayList<PodMetrics>();
+    ArrayList<ContainerMetrics> containerMetricsList = new ArrayList<ContainerMetrics>();
     
-   
+    // 1 - Retrieve the list of pods
+    String[] podsList = myClient.getPodsList();
+    if (podsList == null) {
+      System.out.println("No pods can be monitored! Finishing...");
+      return;
+    }
+  
+    // 2 - Retrieve pods metrics and containers metrics
+    for (int i = 0; i < podsList.length; i ++) {
+      // Get pod metrics
+      PodMetrics currentPod = myClient.getPodMetrics(podsList[i]);
+      podMetricsList.add(currentPod);
+      
+      // List containers in the pod
+      String podName = currentPod.getPodName();
+      String namespace = currentPod.getNamespaceName();
+      String[] containersList = myClient.getContainersList(podName, namespace);
     
+      // Retrieve Containers' metrics
+      if (containersList != null) {
+        for (int j = 0; j < containersList.length; j ++) {
+          ContainerMetrics currentContainer = myClient.getContainerMetrics(podName, namespace, 
+              containersList[j]);
+          containerMetricsList.add(currentContainer);
+        }
+      }      
+    }
     
+    // 3 - Send metrics to Zabbix
+    ZabbixSender mySender = new ZabbixSender("Indigo");
+    
+    // Send pods metrics
+    int podFailures = 0;
+    Iterator<PodMetrics> myPodIterator = podMetricsList.iterator();
+    while (myPodIterator.hasNext()) {
+      PodMetrics currentPod = myPodIterator.next();
+      boolean success = mySender.sendPodMetrics(currentPod);
+      if (!success) { 
+        podFailures ++; 
+      }    
+    }
+    System.out.println("Number of pods failed: " + podFailures);
+    
+    // Send containers metrics
+    int containerFailures = 0;
+    Iterator<ContainerMetrics> myContainerIterator = containerMetricsList.iterator();
+    while (myContainerIterator.hasNext()) {
+      ContainerMetrics currentContainer = myContainerIterator.next();
+      boolean success = mySender.sendContainerMetrics(currentContainer);
+      if (!success) {
+        containerFailures ++;    
+      }
+    }
+    System.out.println("Number of container failed: " + containerFailures);
   }  
   
   /**

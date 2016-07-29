@@ -84,6 +84,10 @@ public class HeapsterClient {
     Invocation.Builder invocationBuilder = target.request();
     Response response = invocationBuilder.get();
     String message = response.readEntity(String.class);
+    if (response.getStatus() > 300) {
+      System.out.println("Heapster service did not respond as expected: " + response.getStatus());
+      return null;
+    }
 
     // Retrieve the namespaces list
     JsonElement jelement = new JsonParser().parse(message);
@@ -143,6 +147,10 @@ public class HeapsterClient {
     Invocation.Builder invocationBuilder = target.request();
     Response response = invocationBuilder.get();
     String message = response.readEntity(String.class);
+    if (response.getStatus() > 300) {
+      System.out.println("Heapster service did not respond as expected: " + response.getStatus());
+      return null;
+    }
 
     // Retrieve the containers list
     JsonElement jelement = new JsonParser().parse(message);
@@ -443,8 +451,8 @@ public class HeapsterClient {
   public static void main(String[] args) {
     HeapsterClient myClient = new HeapsterClient();
     myClient.getPodsList();
-    myClient.getPodMetrics("kube-system/monitoring-influxdb-grafana-v3-fpd4q");
-    myClient.getContainerMetrics("monitoring-influxdb-grafana-v3-fpd4q", "kube-system", "influxdb");
+    myClient.getPodMetrics("kube-system/monitoring-influxdb-grafana-v3-r9qck");
+    myClient.getContainerMetrics("monitoring-influxdb-grafana-v3-r9qck", "kube-system", "influxdb");
   }
 
 }

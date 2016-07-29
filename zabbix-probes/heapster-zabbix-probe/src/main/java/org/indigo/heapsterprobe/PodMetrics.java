@@ -74,6 +74,14 @@ public class PodMetrics {
   }
 
   /**
+   * It provides the name of the namespace which contains the monitored pod.
+   * @return string with the namespace name, as it is in the Kubernetes cluster
+   */
+  public String getNamespaceName() {
+    return namespaceName;
+  }
+  
+  /**
    * It provides the number of network transmission errors detected.
    * @return Number of errors detected
    */
