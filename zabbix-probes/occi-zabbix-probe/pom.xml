@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.indigo</groupId>
 	<artifactId>occi-zabbix-probe</artifactId>
-	<version>0.8-SNAPSHOT</version>
+	<version>0.95</version>
 	<name>ZabbixOCCIProbe</name>
   
 	<properties>
@@ -122,6 +122,11 @@
             <artifactId>maven-assembly-plugin</artifactId>
             <version>2.3</version>
             <configuration>
+            	<archive>
+					<manifest>
+						<mainClass>org.indigo.occiprobe.openstack.ProbeThread</mainClass>
+					</manifest>
+				</archive>
                 <descriptorRefs>
                     <descriptorRef>jar-with-dependencies</descriptorRef>
                 </descriptorRefs>
@@ -187,7 +192,7 @@
 				<description>Zabbix probe for monitoring OCCI APIs</description>
 				<packager>ATOS Spain</packager>
 				<projversion>${project.version}</projversion>
-				<release>${buildNumber}</release>
+				<release>R1</release>
 				<workarea>target</workarea>
 				<defineStatements>
             		<defineStatement>_unpackaged_files_terminate_build 0</defineStatement>

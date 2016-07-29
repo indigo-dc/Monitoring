@@ -9,26 +9,10 @@ The Monitoring Framework is divided in several main parts:
 
 This repository contains the supporting scripts for the Zabbix server (in order to perform automatic backups of the Zabbix database and configuration), the wrapper to be deployed with Zabbix (as a way to facilitate integration) and the probes released in the first version: a probe for monitoring OCCI interfaces of Infrastructure Providers and a probe for monitoring the Kubernetes cluster where the Indigo platform is deployed (by means of the Heapster tool).
 
-1. Zabbix Scripts
+1. Zabbix Wrapper
 =================
 
 1.1 Main Features
------------------
-
-
-1.2 Pre-Requisites
-------------------
-
-1.3 Installation
-----------------
-
-1.4 Configuration
------------------ 
-
-2. Zabbix Wrapper
-=================
-
-2.1 Main Features
 -----------------
 The first release of Zabbix Wrapper provides a Restful version of zabbix (natively JSON-RPC 2.0 protocol) APIs and potentially allows to develop a wrapper for another product APIs behaving as an adapter.
 For indigo project purposes is meant to be the middle layer between Monitoring Framework and zabbix so that it can: 
@@ -40,12 +24,12 @@ For indigo project purposes is meant to be the middle layer between Monitoring F
 
 All these information are just returned in form of a REST response API which wrap zabbix ones.
 
-2.2 Pre-Requisites
+1.2 Pre-Requisites
 ------------------
 In order to get information and successfully monitor a specific cloud provider it has to be both registered on zabbix (via "create host" wrapper API) and there must be a zabbix agent installed and properly configured (for communicate with zabbix server) on board of a machine otherwise an exception will be thrown.
 
 
-2.3 Installation
+1.3 Installation
 ----------------
 
 When having the war at disposal starting from a clean VM with Ubuntu install the docker manager:
@@ -91,14 +75,14 @@ You can build the docker image with the command
 docker build -t indigodatacloud/zabbixwrapper /path/to/the/docker/folder
 ```
 
-2.4 Configuration
+1.4 Configuration
 ----------------- 
 This project has been created with maven 3.3.3 and Java 1.8. Maven will take care of downloading the extra dependencies needed for the project but this project dependes on im-java-api also. To run the warpper you need docker and a MySQL Server on your machine. See next section to have details.
 
-3. Zabbix Probes
+2. Zabbix Probes
 ================
 
-3.1 Main Features
+2.1 Main Features
 -----------------
 The first release of the Monitoring Framework provides two probes for monitoring concrete aspects of the Indigo Platform:
 * A OCCI probe, which checks whether the OCCI API exposed by an Infrastructure Provider works as expected;
@@ -108,7 +92,7 @@ In the case of the OCCI probe, the list of available providers is retrieved and,
 
 The Heapster probe, on the other hand, access to the Heapster API in order to list the pods and the containers available per pod, retrieving several metrics at the pod and container level, since they are complementary. These metrics, later on, are sent to the Zabbix server.
 
-3.2 Pre-Requisites
+2.2 Pre-Requisites
 ------------------
 Each probe has different requirements, since they rely on existing infrastructure to be monitored. Not fulfilling these requisites will have a negative impact in the execution of the probes.
 
@@ -123,11 +107,60 @@ In the case of the Heapster probe, the requirements are the following:
 
 Since the implementation of the probes is in Java, both of them require, at least, a Java7 JVM to be already installed.
 
-3.3 Installation
+2.3 Installation
 ----------------
 
+First of all, make sure the main dependencies of the probes are available: the JRE and the Zabbix Agent. If this is not the case, they can be installed following a few simple steps.
 
-3.4 Configuration
+In order to install the JRE:
+* Ubuntu:
+```
+sudo apt-get install default-jre
+```
+
+* CentOS:
+```
+sudo yum install java-1.7.0-openjdk
+```
+
+In order to install the Zabbix Agent, it is necessary to run the following commands (see https://www.zabbix.com/documentation/3.0/manual/installation/install_from_packages):
+
+* Ubuntu (look at the link for repositories configuration):
+```
+apt-get install zabbix-agent
+```
+
+* CentOS:
+```
+yum install zabbix-agent
+```
+
+Then, it is necessary to install the corresponding packages generated for the probes.
+
+* Ubuntu:
+```
+
+```
+
+* CentOS
+```
+
+```
+
+Although the probes can be run just on demand, the best option is to configure them as Cron jobs. That can be configured by editing the configuration file with the following command:
+```
+crontab -e
+```
+
+Then, add the following lines:
+```
+0 * * * * java -jar /usr/share/java/zabbix/occi-zabbix-probe-0.95-jar-with-dependencies.jar
+30 * * * * java -jar /usr/share/java/zabbix/heapster-zabbix-probe-0.95-jar-with-dependencies.jar
+```
+
+This means that the probes will run every hour, one at xx:00 and the other one at xx:30 (avoiding potential issues when both probes aim at using the Zabbix Agent at the same time). Modify this configuration according to your needs, so the probes will run when required, but bear in mind that running them in parallel may create issues with the Zabbix Agent, since it is not ready to work with concurrent tasks.
+
+2.4 Configuration
 ----------------- 
 The probes require different parameters to be configured in order to enable their operation.
 
@@ -145,7 +178,7 @@ The Heapster probe, on the other hand, requires the heapsterprobe.properties fil
 *zabbix.ip - Provide the IP address of the Zabbix server where metrics will be sent
 *zabbix.sender.location - Configure the location where the Zabbix agent was installed, indicating the zabbix sender path
 
-3.5 Potential Issues
+2.5 Potential Issues
 --------------------
 In the case of providers requiring some communication using SSL, if the provider certificate is not signed by a known entity, the JVM may throw exceptions. In such case, it is necessary to register the corresponding certificate with the following command:
 

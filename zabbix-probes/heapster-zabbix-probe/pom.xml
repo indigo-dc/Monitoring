@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.indigo</groupId>
   <artifactId>heapster-zabbix-probe</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.95</version>
   <name>Zabbix Heapster Probe</name>
     
   <properties>
@@ -100,13 +100,18 @@
                 	</goals>
             	</execution>
         	</executions>
-        </plugin>
+        </plugin>    	
     	
     	<!-- Creation of the jar with dependencies -->
     	<plugin>
             <artifactId>maven-assembly-plugin</artifactId>
             <version>2.3</version>
             <configuration>
+          	  	<archive>
+					<manifest>
+						<mainClass>org.indigo.heapsterprobe.ProbeThread</mainClass>
+					</manifest>
+				</archive>
                 <descriptorRefs>
                     <descriptorRef>jar-with-dependencies</descriptorRef>
                 </descriptorRefs>
@@ -172,7 +177,7 @@
 				<description>Zabbix probe for monitoring a Kubernetes cluster using Heapster</description>
 				<packager>ATOS Spain</packager>
 				<projversion>${project.version}</projversion>
-				<release>${buildNumber}</release>
+				<release>R1</release>
 				<workarea>target</workarea>
 				<defineStatements>
             		<defineStatement>_unpackaged_files_terminate_build 0</defineStatement>

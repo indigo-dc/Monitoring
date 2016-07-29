@@ -1,5 +1,5 @@
 Package: [ZabbixHeapsterProbe]
-Version: [0.8]
+Version: [0.95]
 Section: misc
 Priority: low
 Architecture: all
