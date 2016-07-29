@@ -139,12 +139,17 @@ Then, it is necessary to install the corresponding packages generated for the pr
 
 * Ubuntu:
 ```
+wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/occi-zabbix-probe-0.95.deb
+wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/heapster-zabbix-probe/heapster-zabbix-probe-0.95.deb
 
+dpkg --install occi-zabbix-probe-0.95.deb
+dpkg --install heapster-zabbix-probe-0.95.deb
 ```
 
 * CentOS
 ```
-
+sudo yum install https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/OCCIZabbixProbe-0.95-R1.noarch.rpm
+sudo yum install https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/heapster-zabbix-probe/HeapsterZabbixProbe-0.95-R1.noarch.rpm
 ```
 
 Although the probes can be run just on demand, the best option is to configure them as Cron jobs. That can be configured by editing the configuration file with the following command:
@@ -165,18 +170,18 @@ This means that the probes will run every hour, one at xx:00 and the other one a
 The probes require different parameters to be configured in order to enable their operation.
 
 The OCCI probe requires to modify the occiprobe.properties file in order to set the following parameters:
-*openstack.user - Set here the user to be used for accessing OCCI APIs
-*openstack.password - Set here the password to be used for accessing the OCCI APIs
-*java.keystore - Set here the full location of the security certificates keystore
-*zabbix.ip - Provide the IP address of the Zabbix server where metrics will be sent
-*zabbix.sender.location - Configure the location where the Zabbix agent was installed, indicating the zabbix sender path
-*cmdb.location - Provide the full URL of the CMDB component, providing the information about the available providers
+* openstack.user - Set here the user to be used for accessing OCCI APIs
+* openstack.password - Set here the password to be used for accessing the OCCI APIs
+* java.keystore - Set here the full location of the security certificates keystore
+* zabbix.ip - Provide the IP address of the Zabbix server where metrics will be sent
+* zabbix.sender.location - Configure the location where the Zabbix agent was installed, indicating the zabbix sender path
+* cmdb.location - Provide the full URL of the CMDB component, providing the information about the available providers
 
 The Heapster probe, on the other hand, requires the heapsterprobe.properties file to be adapted:
-*heapster.url - Provide the URL where the Heapster API is available
-*java.keystore - Set here the full location of the security certificates keystore
-*zabbix.ip - Provide the IP address of the Zabbix server where metrics will be sent
-*zabbix.sender.location - Configure the location where the Zabbix agent was installed, indicating the zabbix sender path
+* heapster.url - Provide the URL where the Heapster API is available
+* java.keystore - Set here the full location of the security certificates keystore
+* zabbix.ip - Provide the IP address of the Zabbix server where metrics will be sent
+* zabbix.sender.location - Configure the location where the Zabbix agent was installed, indicating the zabbix sender path
 
 2.5 Potential Issues
 --------------------
