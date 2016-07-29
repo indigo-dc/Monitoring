@@ -40,6 +40,7 @@ public class ProbeThread {
   private long interval = 200;
   private long initialDelay = 10;
   private int numThreads = 2;
+  private boolean termination = true;
   
   private ProbeThread() {
     // Build element for thread and tasks scheduling
@@ -89,7 +90,7 @@ public class ProbeThread {
     // Terminate thread manager
     scheduler.shutdown();
     try {
-      scheduler.awaitTermination(30, TimeUnit.MINUTES);
+      termination = scheduler.awaitTermination(30, TimeUnit.MINUTES);
     } catch (InterruptedException ex) {
       System.out.println("The scheduler was interrupted because of unexpected reasons!");
     }
