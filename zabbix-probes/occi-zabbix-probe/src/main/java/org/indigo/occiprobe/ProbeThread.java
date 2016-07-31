@@ -23,6 +23,7 @@ package org.indigo.occiprobe.openstack;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -41,10 +42,21 @@ public class ProbeThread {
   private long initialDelay = 10;
   private int numThreads = 2;
   private boolean termination = true;
+  private CmdbClient myClient;
+  private ZabbixSender mySender;
   
   private ProbeThread() {
     // Build element for thread and tasks scheduling
     scheduler = Executors.newScheduledThreadPool(numThreads);
+    myClient = new CmdbClient();
+    mySender = ZabbixSender.instance();
+  }
+  
+  private ProbeThread(ScheduledExecutorService mock, ZabbixSender senderMock, CmdbClient cmdbMock) {
+    // Build element for thread and tasks scheduling
+    scheduler = mock;
+    mySender = senderMock;
+    myClient = cmdbMock;
   }
   
   /**
@@ -61,39 +73,89 @@ public class ProbeThread {
   }
   
   /**
+   * It provides the current ProbeThread instance and, in case it does not exist,
+   * it creates a new instance and gives it as the result. This method is for
+   * unit testing purposes.
+   * @return The current single instance of the ProbeThread 
+   */
+  public static synchronized ProbeThread instance(ScheduledExecutorService mock,
+      ZabbixSender senderMock, CmdbClient cmdbMock) {
+    _instance = new ProbeThread(mock, senderMock, cmdbMock);
+    System.out.println("A new instance of the testing Monitoring Probe thread was created!");
+    
+    return _instance;
+  }
+  
+  /**
    * It manages the process of retrieving Cloud providers' information, preparing 
    * the treads pool and launching monitoring operations per each provider.
    */
-  public void startMonitoringProcess() {
-    // Retrieve the list of providers with their info
-    CmdbClient myClient = new CmdbClient();
-    String[] providers = myClient.getProvidersList();
-    myClient.getProviderData(providers[0]);
+  public boolean startMonitoringProcess() {
+    // Retrieve the list of providers with their info   
+    System.out.println("Looking for providers and their info...");
+    ArrayList<CloudProviderInfo> providersList = myClient.getFeasibleProvidersInfo();
     
+    // Prepare the list of monitoring threads
+    System.out.println("Done! Now starting monitoring tasks...");
     ArrayList<MonitoringThread> myTaskList = new ArrayList<MonitoringThread>();
+    Iterator<CloudProviderInfo> providersIterator = providersList.iterator();
+    while (providersIterator.hasNext()) {
+      CloudProviderInfo currentProvider = providersIterator.next();
+      String providerId = currentProvider.getProviderId();
+      String occiEndpoint = currentProvider.getOcciEndpoint();
+      String keystoneEndpoint = currentProvider.getKeystoneEndpoint();
+      
+      MonitoringThread myTask = new MonitoringThread(providerId, occiEndpoint, keystoneEndpoint);
+      myTaskList.add(myTask);
+    }
+    /*
     MonitoringThread myTask1 = new MonitoringThread("provider-RECAS-BARI", "http://cloud.recas.ba.infn.it:8787", "https://cloud.recas.ba.infn.it:5000");
-    MonitoringThread myTask2 = new MonitoringThread("provider-RECAS-BARI2", "http://cloud.recas.ba.infn.it:8787", "https://cloud.recas.ba.infn.it:5000");
-    MonitoringThread myTask3 = new MonitoringThread("provider-RECAS-BARI3", "http://cloud.recas.ba.infn.it:8787", "https://cloud.recas.ba.infn.it:5000");
-    MonitoringThread myTask4 = new MonitoringThread("provider-RECAS-BARI4", "http://cloud.recas.ba.infn.it:8787", "https://cloud.recas.ba.infn.it:5000");
+    MonitoringThread myTask2 = new MonitoringThread("provider-UPV-GRyCAP", "http://cloud.recas.ba.infn.it:8787", "https://cloud.recas.ba.infn.it:5000");
+    MonitoringThread myTask3 = new MonitoringThread("provider-RECAS-BARI", "http://cloud.recas.ba.infn.it:8787", "https://cloud.recas.ba.infn.it:5000");
+    MonitoringThread myTask4 = new MonitoringThread("provider-UPV-GRyCAP", "http://cloud.recas.ba.infn.it:8787", "https://cloud.recas.ba.infn.it:5000");
     myTaskList.add(myTask1);
     myTaskList.add(myTask2);
     myTaskList.add(myTask3);
     myTaskList.add(myTask4);
+    */
     
     // Create threads and run the monitoring actions
     Iterator<MonitoringThread> myTaskIterator = myTaskList.iterator();
+    int schedulingFailures = 0;
     while (myTaskIterator.hasNext()) {
       MonitoringThread currentTask = myTaskIterator.next();
-      scheduler.schedule(currentTask, initialDelay, TimeUnit.SECONDS);
+      try {
+        scheduler.schedule(currentTask, initialDelay, TimeUnit.SECONDS);
+      } catch (RejectedExecutionException ex) {
+        System.out.println("Issue detected when scheduling a new thread!" + ex.getMessage());
+        schedulingFailures ++;
+      }      
     }
-    
+            
     // Terminate thread manager
+    boolean result = true;
+    if (schedulingFailures > 0) {
+      result = false;
+    } else {
+      // Check scheduled tasks finalization
+      
+    }
     scheduler.shutdown();
     try {
       termination = scheduler.awaitTermination(30, TimeUnit.MINUTES);
     } catch (InterruptedException ex) {
       System.out.println("The scheduler was interrupted because of unexpected reasons!");
+      result = false;
     }
+    
+    // Send all the metrics    
+    result = mySender.sendMetrics();
+    if (!result) {
+      System.out.println("Some metrics could not be sent correctly!");
+    }
+    
+    System.out.println("OCCI Monitoring Probe finished!");
+    return result;
   }
   
   /**
@@ -114,6 +176,7 @@ public class ProbeThread {
      
     // Start the monitoring process
     ProbeThread probeManager = ProbeThread.instance();
-    probeManager.startMonitoringProcess();
+    boolean result = probeManager.startMonitoringProcess();
+    System.out.println("Result: " + result);
   }
 }

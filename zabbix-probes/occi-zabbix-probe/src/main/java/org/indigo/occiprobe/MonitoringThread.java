@@ -12,8 +12,8 @@ package org.indigo.occiprobe.openstack;
  */
 public class MonitoringThread extends Thread {
   private String provider;
-  private String occiUrl;
-  private String keystone;
+  private ZabbixSender mySender;
+  private OpenStackOcciClient myClient;
   
   /**
    * This is the main constructor of the class, in order to retrieve the
@@ -24,8 +24,24 @@ public class MonitoringThread extends Thread {
    */
   protected MonitoringThread(String providerId, String providerUrl, String keystoneUrl) {
     provider = providerId;
-    occiUrl = providerUrl;
-    keystone = keystoneUrl;
+    mySender = ZabbixSender.instance();  
+    myClient = new OpenStackOcciClient(keystoneUrl, providerUrl, providerId);
+    
+    System.out.println("OCCI Endpoint: " + providerUrl);
+    System.out.println("Keystone Endpoint: " + keystoneUrl);
+  }
+  
+  /**
+   * This is a constructor for testing purposes, which uses mocks.
+   * @param senderMock Mock for the Zabbix sender
+   * @param occiMock Mock for the OCCI client
+   * @param providerId Provider identifier
+   */
+  public MonitoringThread(ZabbixSender senderMock, OpenStackOcciClient occiMock, 
+      String providerId) {
+    mySender = senderMock;
+    myClient = occiMock;
+    provider = providerId;
   }
   
   /**
@@ -35,15 +51,13 @@ public class MonitoringThread extends Thread {
    */
   public void run() {
     try {
-      System.out.println("Retrieving monitoring information about " + provider + "...");
-      
-      // Run the OCCI monitoring process and retrieve the result
-      OpenStackOcciClient myClient = new OpenStackOcciClient(keystone, occiUrl);
+      System.out.println("Retrieving monitoring information about " + provider + "...");      
+      // Run the OCCI monitoring process and retrieve the result      
       OcciProbeResult result = myClient.getOcciMonitoringInfo();
       
-      // Send the metrics to Zabbix collector
-      ZabbixSender mySender = new ZabbixSender(provider);
-      mySender.sendMetrics(result);
+      // Send the metrics to Zabbix collector 
+      System.out.println("Sending the metrics to Zabbix Sender...");
+      mySender.addMetricToQueue(result);
     } catch (Exception ex) {
       System.out.println("Failure when monitoring the provider" + provider + "!");
       System.out.println(ex.getMessage());

@@ -24,43 +24,113 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * The ZabbixSender class receives the monitored metrics for a Cloud Provider and it executes
  * the corresponding commands of the Zabbix agent in order to send all the metrics to the Zabbix
  * server, in line with the configured template and its properties.
+ * Since the Zabbix agent does not support concurrent invocations and we use several monitoring
+ * threads, this class follows a singleton pattern and provides some synchronized methods as a
+ * way to gather metrics and send them only once.
  * @author ATOS
  *
  */
 public class ZabbixSender {
   
+  private static ZabbixSender _instance = null;
   private String zabbixLocation;
   private String zabbixSender;
-  private String provider = "Testing";
   private Runtime rt;
+  private ZabbixWrapperClient myClient;
+  private ArrayList<OcciProbeResult> metricsQueue;
+  
+  /**
+   * It provides the current ZabbixSender instance and, in case it does not exist,
+   * it creates a new instance and gives it as the result.
+   * @return The current single instance of the ZabbixSender 
+   */
+  public static synchronized ZabbixSender instance() {
+    if (null == _instance) {
+      _instance = new ZabbixSender();
+      System.out.println("A new instance of the Zabbix Sender was created!");
+    }
+    return _instance;
+  }
   
   /**
    * Main constructor of the class. It retrieves the configuration properties related to the
    * Zabbix server and it constructs the Runtime object.
    * @param targetProvider String with the name of the Cloud Provider evaluated
    */
-  public ZabbixSender(String targetProvider) {
+  private ZabbixSender() {
     // Retrieve location of the Zabbix Server and the Zabbix sender (local)
     PropertiesManager myProp = new PropertiesManager();
     zabbixLocation = myProp.getProperty(PropertiesManager.ZABBIX_IP);
     zabbixSender = myProp.getProperty(PropertiesManager.ZABBIX_SENDER);
-    provider = targetProvider;
+    metricsQueue = new ArrayList<OcciProbeResult>();
     
-    // Create standard Runtime
+    // Create standard Runtime and Wrapper Client
     rt = Runtime.getRuntime();
+    myClient = new ZabbixWrapperClient();
+  }
+  
+  /**
+   * It provides the current ZabbixSender instance and, in case it does not exist,
+   * it creates a new instance and gives it as the result. This method is for
+   * unit testing purposes.
+   * @return The current single instance of the ZabbixSender 
+   */
+  public static synchronized ZabbixSender instance(Runtime mockRuntime, ZabbixWrapperClient mock) {
+    _instance = new ZabbixSender(mockRuntime, mock);
+    System.out.println("A new testing instance of the Zabbix sender for testing was created!");
+    
+    return _instance;
   }
   
   /**
    * Constructor for unit testing purposes.
    * @param mockRuntime Mock runtime for testing
    */
-  public ZabbixSender(Runtime mockRuntime) {
+  private ZabbixSender(Runtime mockRuntime, ZabbixWrapperClient wrapperMock) {
     rt = mockRuntime;
+    myClient = wrapperMock;
+    metricsQueue = new ArrayList<OcciProbeResult>();
+  }
+  
+  /**
+   * This method enqueues a set of monitoring metrics coming from an evaluation.
+   * They will be ready to be pushed to Zabbix whenever required.
+   * @param metrics An object containing all the gathered metrics
+   * @return True if the operation succeed.
+   */
+  public synchronized boolean addMetricToQueue(OcciProbeResult metrics) {
+    if (metrics == null) {
+      return false;
+    }
+    metricsQueue.add(metrics);
+    return true;
+  }
+  
+  /**
+   * It iterates que queue in order to push all the gathered metrics to Zabbix at the same
+   * time, in order to avoid issues with concurrent calls. 
+   * @return True if all the metrics where pushed correctly. False if not.
+   */
+  public synchronized boolean sendMetrics() {
+    // Iterate the queue and push the metrics to Zabbix
+    if (metricsQueue.size() == 0) {
+      return false;
+    }
+    boolean result = true;
+    Iterator<OcciProbeResult> metricsIterator = metricsQueue.iterator();
+    while (metricsIterator.hasNext()) {
+      OcciProbeResult currentMetric = metricsIterator.next();
+      System.out.println("Pushing metrics from: " + currentMetric.getProviderName());
+      result = result & sendMetrics(currentMetric);
+    }
+    return result;  
   }
   
   /**
@@ -69,14 +139,19 @@ public class ZabbixSender {
    * @param metrics An object containing all the gathered metrics
    * @return It indicates operation successful (true) or failed (false).
    */
-  public boolean sendMetrics(OcciProbeResult metrics) {
+  private boolean sendMetrics(OcciProbeResult metrics) {
     // Check the input is not null
     if (metrics == null || metrics.getCreateVmElement() == null) {
       return false;
     }
     
+    // Check the provider is available as Zabbix Host
+    String provider = metrics.getProviderName();
+    correctHostRegistration(provider);
+    
     // Prepare invocation strings and failures counter
     int failures = 0;
+    
     String globalAvailability = "-z " + zabbixLocation + " -s \"" 
         + provider + "\" -k occi.global[availability] -o " 
         + metrics.getGlobalAvailability();
@@ -256,5 +331,19 @@ public class ZabbixSender {
     } catch (Exception ex) {
       System.out.println("Error: " + ex.getMessage());
     }
+  }
+  
+  private boolean correctHostRegistration(String hostName) {
+    // Look for the host in the Wrapper
+    boolean result = false;
+    result = myClient.isHostRegistered(hostName);
+    
+    // If it is not available, register it
+    if (result == false) {
+      result = myClient.registerHost(hostName);
+      System.out.println("It was not possible to register the Host. Try anyway...");
+    }
+    
+    return result;
   }
 }

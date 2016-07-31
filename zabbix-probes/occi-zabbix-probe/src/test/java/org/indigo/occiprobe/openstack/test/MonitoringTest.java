@@ -20,24 +20,26 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack.test;
 
-import org.indigo.occiprobe.openstack.OcciProbeResult;
-import org.indigo.occiprobe.openstack.OpenStackOcciClient;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
-import org.mockito.Mockito;
-
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 
+import org.indigo.occiprobe.openstack.OcciProbeResult;
+import org.indigo.occiprobe.openstack.OpenStackOcciClient;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
+import org.openstack4j.api.OSClient;
+import org.openstack4j.api.client.IOSClientBuilder.V2;
+import org.openstack4j.model.identity.Token;
+
 public class MonitoringTest 
 {
 	private Client mockClient;
 	private Client mockClientFailure;
+	private V2 keystoneMock;
 
 	@Before
 	public void prepareMockOCCIServer()
@@ -86,6 +88,17 @@ public class MonitoringTest
 		Mockito.when(responsePostFailure.getStatus()).thenReturn(404);
 		Mockito.when(responsePostFailure.readEntity(String.class)).thenReturn("");
 		
+		// Define KeystoneMock
+		keystoneMock = Mockito.mock(V2.class);
+		V2 secondMock = Mockito.mock(V2.class);
+		OSClient mockOSClient = Mockito.mock(OSClient.class);
+		Token mockToken = Mockito.mock(Token.class);
+		Mockito.when(keystoneMock.endpoint(Mockito.anyString())).thenReturn(keystoneMock);
+		Mockito.when(keystoneMock.credentials(Mockito.anyString(), Mockito.anyString())).thenReturn(keystoneMock);
+		Mockito.when(keystoneMock.tenantName(Mockito.anyString())).thenReturn(keystoneMock);
+		Mockito.when(keystoneMock.authenticate()).thenReturn(mockOSClient);				
+		Mockito.when(mockOSClient.getToken()).thenReturn(mockToken);
+		Mockito.when(mockToken.getId()).thenReturn("FakeToken!");
 		System.out.println ("Finished!");
 	}
 	
@@ -93,7 +106,7 @@ public class MonitoringTest
 	public void monitoringOperationsShouldReturnCompleteResult()
 	{
 		// Run the OCCI monitoring process and retrieve the result
-		OpenStackOcciClient myClient = new OpenStackOcciClient(mockClient);
+		OpenStackOcciClient myClient = new OpenStackOcciClient(mockClient, keystoneMock);
 		OcciProbeResult result = myClient.getOcciMonitoringInfo();
 		
 		// Check Results
@@ -109,7 +122,7 @@ public class MonitoringTest
 	public void monitoringOperationShouldReturnPartialResult()
 	{
 		// Run the OCCI monitoring process and retrieve the result
-		OpenStackOcciClient myClient = new OpenStackOcciClient(mockClientFailure);
+		OpenStackOcciClient myClient = new OpenStackOcciClient(mockClientFailure, keystoneMock);
 		OcciProbeResult result = myClient.getOcciMonitoringInfo();
 		
 		// Check Results

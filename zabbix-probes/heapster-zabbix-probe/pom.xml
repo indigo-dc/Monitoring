@@ -149,6 +149,14 @@
                     				<prefix>/usr/share/java/zabbix/</prefix>
                   				</mapper>
                 			</data>
+                			<data>
+                  				<src>src/main/resources/heapsterprobe.properties</src>
+                  				<type>file</type>
+                  				<mapper>
+                    				<type>perm</type>
+                    				<prefix>/etc/zabbix/</prefix>
+                  				</mapper>
+                			</data>
               			</dataSet>
             		</configuration>
           		</execution>
@@ -192,6 +200,17 @@
               				<sources>
                 				<source>
                   					<location>target/${artifactId}-${version}-jar-with-dependencies.jar</location>
+                				</source>
+              				</sources>
+					</mapping>
+					<mapping>
+              			<directory>/etc/zabbix/</directory>
+            				<filemode>644</filemode>
+              				<username>root</username>
+              				<groupname>root</groupname>
+              				<sources>
+                				<source>
+                  					<location>src/main/resources/heapsterprobe.properties</location>
                 				</source>
               				</sources>
 					</mapping>

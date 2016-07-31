@@ -20,16 +20,16 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.JerseyClientBuilder;
-
-import org.openstack4j.api.OSClient;
-import org.openstack4j.openstack.OSFactory;
-
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
+
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.openstack4j.api.OSClient;
+import org.openstack4j.api.client.IOSClientBuilder.V2;
+import org.openstack4j.openstack.OSFactory;
 
 /**
  * It takes care of the interactions to be performed with Cloud Providers whose base platform
@@ -41,11 +41,13 @@ import javax.ws.rs.core.Response;
  */
 public class OpenStackOcciClient {
   private Client client = null;
-  private String baseOcciUrl;
-  private String baseKeystoneUrl;
+  private String baseOcciUrl = "";
+  private String baseKeystoneUrl = "";
   private String openStackUser = "";
   private String openStackPwd = "";
   private String currentToken = "";
+  private String providerId;
+  private V2 myKeystoneClient = null;
   
   /**
    * Main constructor of the OpenStackOcciClient class. It retrieves some information
@@ -53,36 +55,37 @@ public class OpenStackOcciClient {
    * will connect to the remote OCCI API of a cloud provider.
    * @param keystoneLocation String with the full location of Keystone [IP:Port]
    * @param occiLocation String with the root location of the OCCI API [IP:Port]
+   * @param providerName String with the identifier of the Cloud Provider
    */
-  public OpenStackOcciClient(String keystoneLocation, String occiLocation) {
+  public OpenStackOcciClient(String keystoneLocation, String occiLocation, String providerName) {
     // Retrieve properties
     PropertiesManager myProp = new PropertiesManager();
     openStackUser = myProp.getProperty(PropertiesManager.OPENSTACK_USER);
     openStackPwd = myProp.getProperty(PropertiesManager.OPENSTACK_PASSWORD);
+    providerId = providerName;
     
     // Disable issue with SSL Handshake in Java 7 and indicate certificates keystore
     System.setProperty("jsse.enableSNIExtension", "false");
     String certificatesTrustStorePath = myProp.getProperty(PropertiesManager.JAVA_KEYSTORE);
     System.setProperty("javax.net.ssl.trustStore", certificatesTrustStorePath);
     
-    // Create the Client
+    // Create the Clients
     ClientConfig cc = new ClientConfig();
     client = JerseyClientBuilder.newClient(cc);
+    myKeystoneClient = OSFactory.builder();
     
     // Prepare access URLs
-    baseKeystoneUrl = keystoneLocation + "/v2.0";
-    baseOcciUrl = occiLocation;
-    
-    // Retrieve the operation token
-    currentToken = getToken();                       
+    baseKeystoneUrl = keystoneLocation.replace("http", "https");
+    baseOcciUrl = occiLocation;                     
   }
   
   /**
    * Constructor to be used for automatic testing purposes only.
    * @param mockClient Mock of the Jersey Client class, for simulating.
    */
-  public OpenStackOcciClient(Client mockClient) {
+  public OpenStackOcciClient(Client mockClient, V2 mockKeystone) {
     client = mockClient;
+    myKeystoneClient = mockKeystone;
   }
   
   private String getToken() {
@@ -106,21 +109,22 @@ public class OpenStackOcciClient {
     *
     */
     
+    
     // Authenticate 
-    OSClient os = OSFactory.builder()
+    OSClient os = myKeystoneClient
                 .endpoint(baseKeystoneUrl)
                 .credentials(openStackUser,openStackPwd)
                 .tenantName("INDIGO_DEMO")
                 .authenticate();
     
-    System.out.println(os.getToken().toString());
+    //System.out.println(os.getToken().toString());
     
     return os.getToken().getId();
   }
   
   private CreateVmResult createVm() {
     // Call to OCCI API
-    WebTarget target = client.target(baseOcciUrl + "/occi/compute/");
+    WebTarget target = client.target(baseOcciUrl + "/compute/");
     Invocation.Builder invocationBuilder = target.request();
     invocationBuilder.header("Content-Type", "text/occi");
     invocationBuilder.header("X-Auth-Token", currentToken);
@@ -169,7 +173,7 @@ public class OpenStackOcciClient {
   
   private String getVmsList() {
     // Build the OCCI call
-    WebTarget target = client.target(baseOcciUrl + "/occi/compute/");
+    WebTarget target = client.target(baseOcciUrl + "/compute/");
     Invocation.Builder invocationBuilder = target.request();
     invocationBuilder.header("Content-Type", "text/occi");
     invocationBuilder.header("X-Auth-Token", currentToken);
@@ -191,7 +195,7 @@ public class OpenStackOcciClient {
   
   private InspectVmResult inspectVm(String vmId) {
     // Build the OCCI call
-    WebTarget target = client.target(baseOcciUrl + "/occi/compute/" + vmId);
+    WebTarget target = client.target(baseOcciUrl + "/compute/" + vmId);
     Invocation.Builder invocationBuilder = target.request();
     invocationBuilder.header("Content-Type", "text/occi");
     invocationBuilder.header("X-Auth-Token", currentToken);
@@ -222,7 +226,7 @@ public class OpenStackOcciClient {
   
   private DeleteVmResult deleteVm(String vmId) {
     // Build the OCCI call
-    WebTarget target = client.target(baseOcciUrl + "/occi/compute/" + vmId);
+    WebTarget target = client.target(baseOcciUrl + "/compute/" + vmId);
     Invocation.Builder invocationBuilder = target.request();
     invocationBuilder.header("Content-Type", "text/occi");
     invocationBuilder.header("X-Auth-Token", currentToken);
@@ -257,7 +261,7 @@ public class OpenStackOcciClient {
    */
   public void getNetworksList() {
     // Build the OCCI call
-    WebTarget target = client.target(baseOcciUrl + "/occi/network/");
+    WebTarget target = client.target(baseOcciUrl + "/network/");
     Invocation.Builder invocationBuilder = target.request();
     invocationBuilder.header("Content-Type", "text/occi");
     invocationBuilder.header("X-Auth-Token", currentToken);
@@ -278,11 +282,18 @@ public class OpenStackOcciClient {
    */
   public OcciProbeResult getOcciMonitoringInfo() {
     // Follow the full lifecycle for a VM
+    // Retrieve the operation token
+    currentToken = getToken();
+    if (currentToken == null) {
+      return null;
+    }
     //getVMsList();
+
+    System.out.println("Token is valid. Continue monitoring operation...");
     CreateVmResult createVmInfo = createVm();
     if (createVmInfo.getCreateVmAvailability() == 0) {
       // Send failure result, since we cannot go on with the process
-      OcciProbeResult failureResult = new OcciProbeResult();
+      OcciProbeResult failureResult = new OcciProbeResult(providerId);
       failureResult.addCreateVmInfo(createVmInfo);
       failureResult.addGlobalInfo(0, createVmInfo.getCreateVmResult(), -1);
       return failureResult;
@@ -324,7 +335,7 @@ public class OpenStackOcciClient {
         + deleteVmInfo.getDeleteVmResponseTime();
     
     // Construct the result
-    OcciProbeResult finalResult = new OcciProbeResult();
+    OcciProbeResult finalResult = new OcciProbeResult(providerId);
     finalResult.addCreateVmInfo(createVmInfo);
     finalResult.addInspectVmInfo(inspectVmInfo);
     finalResult.addDeleteVmInfo(deleteVmInfo);
@@ -339,7 +350,7 @@ public class OpenStackOcciClient {
    */
   public static void main(String[] args) {
     // Run the OCCI monitoring process and retrieve the result
-    OpenStackOcciClient myClient = new OpenStackOcciClient("https://cloud.recas.ba.infn.it:5000", "http://cloud.recas.ba.infn.it:8787");
+    OpenStackOcciClient myClient = new OpenStackOcciClient("https://cloud.recas.ba.infn.it:5000", "http://cloud.recas.ba.infn.it:8787", "provider-RECAS-BARI");
     myClient.getNetworksList();
     
     myClient.getOcciMonitoringInfo();

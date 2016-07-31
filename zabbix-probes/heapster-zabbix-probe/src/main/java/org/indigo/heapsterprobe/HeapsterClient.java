@@ -72,6 +72,14 @@ public class HeapsterClient {
     ClientConfig cc = new ClientConfig();
     client = JerseyClientBuilder.newClient(cc);
   }
+  
+  /**
+   * Constructor for unit testing.
+   * @param mock Mock for the client
+   */
+  public HeapsterClient(Client mock) {
+    client = mock;
+  }
 
   /**
    * This method access the Heapster REST API in order to obtain the list of pods 

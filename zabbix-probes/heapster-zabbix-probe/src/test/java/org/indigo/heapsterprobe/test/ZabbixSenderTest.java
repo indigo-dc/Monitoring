@@ -27,6 +27,7 @@ import java.io.InputStream;
 import org.indigo.heapsterprobe.ContainerMetrics;
 import org.indigo.heapsterprobe.PodMetrics;
 import org.indigo.heapsterprobe.ZabbixSender;
+import org.indigo.heapsterprobe.ZabbixWrapperClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,6 +37,7 @@ public class ZabbixSenderTest
 {
 	private Runtime mockRuntime;
 	private Runtime mockRuntimeFail;
+	private ZabbixWrapperClient mockWrapper;
 	
 	@Before
 	public void prepareMockOCCIServer() throws IOException, InterruptedException
@@ -47,6 +49,7 @@ public class ZabbixSenderTest
 		Process pr = Mockito.mock(Process.class);
 		mockRuntimeFail = Mockito.mock(Runtime.class);
 		Process prFail = Mockito.mock(Process.class);
+		mockWrapper = Mockito.mock(ZabbixWrapperClient.class);		
 				
 		// Define main relationships for the Runtime class
 		Mockito.when(mockRuntime.exec(Mockito.anyString())).thenReturn(pr);
@@ -68,6 +71,10 @@ public class ZabbixSenderTest
 		Mockito.when(prFail.waitFor()).thenReturn(1);
 		Mockito.when(prFail.getInputStream()).thenReturn(mockInputFail);
 		
+		// Define the wrapper stubs
+		Mockito.when(mockWrapper.isPodRegistered(Mockito.anyString())).thenReturn(true);
+		Mockito.when(mockWrapper.isContainerRegistered(Mockito.anyString())).thenReturn(true);		
+		
 		System.out.println ("Finished!");
 	}
 	
@@ -80,7 +87,7 @@ public class ZabbixSenderTest
 				1325342713608l, 524288000, 524288000, 0, 0, 0, 0, 287133696, 272068608, 74758561);
 		
 		// Send pod metrics and check the result
-		ZabbixSender mySender = new ZabbixSender(mockRuntime);
+		ZabbixSender mySender = new ZabbixSender(mockRuntime, mockWrapper);
 		boolean result = mySender.sendPodMetrics(pod);
 				
 		// Check Results
@@ -100,7 +107,7 @@ public class ZabbixSenderTest
 		PodMetrics pod = new PodMetrics ("PodPru", "NS", 0, 0, 0, 0, 10, 15, 1000);
 				
 		// Send metrics to unavailable Zabbix and check the result
-		ZabbixSender mySender = new ZabbixSender(mockRuntimeFail);
+		ZabbixSender mySender = new ZabbixSender(mockRuntimeFail, mockWrapper);
 		boolean result = mySender.sendPodMetrics(pod);
 		
 		// Check Results
@@ -111,7 +118,7 @@ public class ZabbixSenderTest
 	public void sendingIncompleteMetricsShouldFail()
 	{
 		// Try to send metrics with a null input
-		ZabbixSender mySender = new ZabbixSender(mockRuntime);
+		ZabbixSender mySender = new ZabbixSender(mockRuntime, mockWrapper);
 		boolean result = mySender.sendPodMetrics(null);
 				
 		// Check Results

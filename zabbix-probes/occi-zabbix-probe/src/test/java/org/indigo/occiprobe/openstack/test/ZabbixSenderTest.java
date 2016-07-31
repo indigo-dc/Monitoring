@@ -29,17 +29,17 @@ import org.indigo.occiprobe.openstack.DeleteVmResult;
 import org.indigo.occiprobe.openstack.InspectVmResult;
 import org.indigo.occiprobe.openstack.OcciProbeResult;
 import org.indigo.occiprobe.openstack.ZabbixSender;
-
+import org.indigo.occiprobe.openstack.ZabbixWrapperClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.mockito.Mockito;
 
 public class ZabbixSenderTest 
 {
 	private Runtime mockRuntime;
 	private Runtime mockRuntimeFail;
+	private ZabbixWrapperClient mockWrapper;
 	
 	@Before
 	public void prepareMockOCCIServer() throws IOException, InterruptedException
@@ -51,6 +51,7 @@ public class ZabbixSenderTest
 		Process pr = Mockito.mock(Process.class);
 		mockRuntimeFail = Mockito.mock(Runtime.class);
 		Process prFail = Mockito.mock(Process.class);
+		mockWrapper = Mockito.mock(ZabbixWrapperClient.class);
 				
 		// Define main relationships for the Runtime class
 		Mockito.when(mockRuntime.exec(Mockito.anyString())).thenReturn(pr);
@@ -72,6 +73,9 @@ public class ZabbixSenderTest
 		Mockito.when(prFail.waitFor()).thenReturn(1);
 		Mockito.when(prFail.getInputStream()).thenReturn(mockInputFail);
 		
+		// Define the wrapper stubs
+		Mockito.when(mockWrapper.isHostRegistered(Mockito.anyString())).thenReturn(true);		
+		
 		System.out.println ("Finished!");
 	}
 	
@@ -82,14 +86,15 @@ public class ZabbixSenderTest
 		CreateVmResult create = new CreateVmResult (1, 200, 1429, "testVM");
 		InspectVmResult inspect = new InspectVmResult (1, 200, 426);
 		DeleteVmResult delete = new DeleteVmResult (1, 204, 612);
-		OcciProbeResult global = new OcciProbeResult(1, 204, 2467);
+		OcciProbeResult global = new OcciProbeResult(1, 204, 2467, "TestProvider");
 		global.addCreateVmInfo(create);
 		global.addInspectVmInfo(inspect);
 		global.addDeleteVmInfo(delete);
 		
 		// Send metrics and check the result
-		ZabbixSender mySender = new ZabbixSender(mockRuntime);
-		boolean result = mySender.sendMetrics(global);
+		ZabbixSender mySender = ZabbixSender.instance(mockRuntime, mockWrapper);
+		mySender.addMetricToQueue(global);
+		boolean result = mySender.sendMetrics();
 				
 		// Check Results
 		Assert.assertTrue("The result of sending the metrics should be correct.", result);
@@ -102,14 +107,15 @@ public class ZabbixSenderTest
 		CreateVmResult create = new CreateVmResult (1, 200, 1429, "testVM");
 		InspectVmResult inspect = new InspectVmResult (1, 200, 426);
 		DeleteVmResult delete = new DeleteVmResult (1, 204, 612);
-		OcciProbeResult global = new OcciProbeResult(1, 204, 2467);
+		OcciProbeResult global = new OcciProbeResult(1, 204, 2467, "TestProvider");
 		global.addCreateVmInfo(create);
 		global.addInspectVmInfo(inspect);
 		global.addDeleteVmInfo(delete);
 		
 		// Send metrics to unavailable Zabbix and check the result
-		ZabbixSender mySender = new ZabbixSender(mockRuntimeFail);
-		boolean result = mySender.sendMetrics(global);
+		ZabbixSender mySender = ZabbixSender.instance(mockRuntimeFail, mockWrapper);
+		mySender.addMetricToQueue(global);
+		boolean result = mySender.sendMetrics();
 		
 		// Check Results
 		Assert.assertFalse("The result of sending the metrics should be wrong.", result);		
@@ -119,15 +125,17 @@ public class ZabbixSenderTest
 	public void sendingIncompleteMetricsShouldFail()
 	{
 		// Try to send metrics with a null input
-		ZabbixSender mySender = new ZabbixSender(mockRuntime);
-		boolean result = mySender.sendMetrics(null);
+		ZabbixSender mySender = ZabbixSender.instance(mockRuntime, mockWrapper);
+		mySender.addMetricToQueue(null);
+		boolean result = mySender.sendMetrics();
 				
 		// Check Results
 		Assert.assertFalse("The result of sending the metrics should be wrong.", result);
 		
 		// Create and send an empty result
-		OcciProbeResult global = new OcciProbeResult();
-		result = mySender.sendMetrics(global);
+		OcciProbeResult global = new OcciProbeResult("TestProvider");
+		mySender.addMetricToQueue(global);
+		result = mySender.sendMetrics();
 		
 		// Check Results
 		Assert.assertFalse("The result of sending the metrics should be wrong.", result);

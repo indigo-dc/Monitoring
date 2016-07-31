@@ -20,9 +20,9 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Properties;
@@ -44,6 +44,7 @@ public class PropertiesManager {
   public static final String JAVA_KEYSTORE = "java.keystore";
   public static final String ZABBIX_IP = "zabbix.ip";
   public static final String ZABBIX_SENDER = "zabbix.sender.location";
+  public static final String ZABBIX_WRAPPER = "zabbix.wrapper.location";
   public static final String CMDB_URL = "cmdb.location";
   
   private HashMap<String, String> propertiesList;
@@ -68,10 +69,18 @@ public class PropertiesManager {
     }
     
     try {
-      // We want to load file located in WEB-INF/classes/
+      // We want to load file located in /resources
       String fileName = "occiprobe.properties";
-      InputStream is = loader.getResourceAsStream(fileName);
+      String location = "";
+      String opSystem = System.getProperty("os.name").toLowerCase();
+      if (opSystem.indexOf("win") >= 0) {
+        location = "C://zabbixconfig//";
+      } else {
+        location = "/etc/zabbix/";
+      }
+      InputStream is = new FileInputStream(location + fileName);
       prop.load(is);
+      is.close();
     } catch (IOException e) {
       System.out.println(e.toString());
     }

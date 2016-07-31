@@ -20,10 +20,10 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
-import javax.ws.rs.client.Client;
-
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.JerseyClientBuilder;
+
+import javax.ws.rs.client.Client;
 
 /**
  * The class IamClient is in charge of the interactions between the OCCI probe

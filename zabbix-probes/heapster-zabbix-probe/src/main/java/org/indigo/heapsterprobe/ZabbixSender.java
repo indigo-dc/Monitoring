@@ -38,6 +38,7 @@ public class ZabbixSender {
   private String zabbixSender;
   private String cluster;
   private Runtime rt;
+  private ZabbixWrapperClient myClient;
 
   /**
    * Main constructor of the class. It retrieves the configuration properties related to the
@@ -51,16 +52,18 @@ public class ZabbixSender {
     zabbixSender = myProp.getProperty(PropertiesManager.ZABBIX_SENDER);
     cluster = clusterName;
 
-    // Create standard Runtime
+    // Create standard Runtime and Wrapper Client
     rt = Runtime.getRuntime();
+    myClient = new ZabbixWrapperClient();
   }
 
   /**
    * Constructor for unit testing purposes.
    * @param mockRuntime Mock runtime for testing
    */
-  public ZabbixSender(Runtime mockRuntime) {
+  public ZabbixSender(Runtime mockRuntime, ZabbixWrapperClient mockWrapper) {
     rt = mockRuntime;
+    myClient = mockWrapper;
   }
 
   /**
@@ -76,8 +79,11 @@ public class ZabbixSender {
       return false;
     }  
 
-    // Prepare local variables and failure counters
+    // Check the provider is available as Zabbix Host
     String podName = metrics.getPodName();
+    correctPodRegistration(podName);
+    
+    // Prepare local variables and failure counters    
     int failures = 0;
 
     // Prepare invocation strings
@@ -183,10 +189,13 @@ public class ZabbixSender {
       return false;
     }
 
+    // Check the provider is available as Zabbix Host
+    String containerName = metrics.getContainerName();
+    correctContainerRegistration(containerName);
+    
     // Prepare local variables and failure counters
     int failures = 0;
-    String containerName = metrics.getContainerName();
-
+    
     // Prepare invocation strings
     String cpuUsageRate = "-z " + zabbixLocation + " -s \"" + containerName
         + "\" -k container.cpu[usageRate] -o " + metrics.getCpuUsageRate();
@@ -290,6 +299,34 @@ public class ZabbixSender {
     } catch (Exception ex) {
       System.out.println("Error: " + ex.getMessage());
     }
+  }
+  
+  private boolean correctPodRegistration(String hostName) {
+    // Look for the host in the Wrapper
+    boolean result = false;
+    result = myClient.isPodRegistered(hostName);
+    
+    // If it is not available, register it
+    if (result == false) {
+      result = myClient.registerPodHost(hostName);
+      System.out.println("It was not possible to register the Host. Try anyway...");
+    }
+    
+    return result;
+  }
+  
+  private boolean correctContainerRegistration(String hostName) {
+    // Look for the host in the Wrapper
+    boolean result = false;
+    result = myClient.isContainerRegistered(hostName);
+    
+    // If it is not available, register it
+    if (result == false) {
+      result = myClient.registerContainerHost(hostName);
+      System.out.println("It was not possible to register the Host. Try anyway...");
+    }
+    
+    return result;
   }
 
   /**

@@ -20,9 +20,9 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.heapsterprobe;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Properties;
@@ -41,6 +41,7 @@ public class PropertiesManager {
   public static final String JAVA_KEYSTORE = "java.keystore";
   public static final String ZABBIX_IP = "zabbix.ip";
   public static final String ZABBIX_SENDER = "zabbix.sender.location";
+  public static final String ZABBIX_WRAPPER = "zabbix.wrapper.location";
 
   private HashMap<String, String> propertiesList;
 
@@ -66,7 +67,14 @@ public class PropertiesManager {
     try {
       // We want to load file located in WEB-INF/classes/
       String fileName = "heapsterprobe.properties";
-      InputStream is = loader.getResourceAsStream(fileName);
+      String location = "";
+      String opSystem = System.getProperty("os.name").toLowerCase();
+      if (opSystem.indexOf("win") >= 0) {
+        location = "C://zabbixconfig//";
+      } else {
+        location = "/etc/zabbix/";
+      }
+      InputStream is = new FileInputStream(location + fileName);
       prop.load(is);
     } catch (IOException e) {
       System.out.println(e.toString());
@@ -88,4 +96,13 @@ public class PropertiesManager {
   public String getProperty(String propertyName) {
     return propertiesList.get(propertyName);
   }  
+  
+  /**
+   * Typical main method for testing.
+   * @param args Typical args.
+   */
+  public static void main(String[] args) {
+    PropertiesManager myProp = new PropertiesManager();
+    System.out.println("HEAPSTER URL: " + myProp.getProperty("heapster.url"));
+  }
 }

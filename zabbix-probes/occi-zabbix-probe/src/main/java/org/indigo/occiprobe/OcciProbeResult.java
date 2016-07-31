@@ -29,6 +29,7 @@ package org.indigo.occiprobe.openstack;
  *
  */
 public class OcciProbeResult {
+  private String providerName;
   private int globalAvailability;
   private int globalResult;
   private long globalResponseTime;
@@ -40,7 +41,8 @@ public class OcciProbeResult {
   /**
    * This is an empty constructor for the class.
    */
-  public OcciProbeResult(){
+  public OcciProbeResult(String provider) {
+    providerName = provider;
   }
   
   /**
@@ -50,10 +52,11 @@ public class OcciProbeResult {
    * @param result It is a global HTTP response code, the most problematic one.
    * @param responseTime Sum of the response time of all calls, in milliseconds.
    */
-  public OcciProbeResult(int availability, int result, long responseTime) {
+  public OcciProbeResult(int availability, int result, long responseTime, String provider) {
     globalAvailability = availability;
     globalResult = result;
     globalResponseTime = responseTime;
+    providerName = provider;
   }
   
   /**
@@ -122,6 +125,14 @@ public class OcciProbeResult {
    */
   public long getGlobalResponseTime() {
     return globalResponseTime;
+  }
+  
+  /**
+   * It retrieves the name of the provider the metrics belong to.
+   * @return String with the provider identifier
+   */
+  public String getProviderName() {
+    return providerName;
   }
   
   /**
