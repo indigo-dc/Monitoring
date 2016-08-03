@@ -185,7 +185,6 @@
 				<description>Zabbix probe for monitoring a Kubernetes cluster using Heapster</description>
 				<packager>ATOS Spain</packager>
 				<projversion>${project.version}</projversion>
-				<release>R1</release>
 				<workarea>target</workarea>
 				<defineStatements>
             		<defineStatement>_unpackaged_files_terminate_build 0</defineStatement>
