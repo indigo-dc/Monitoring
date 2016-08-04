@@ -14,7 +14,7 @@ This repository contains the supporting scripts for the Zabbix server (in order 
 
 1.1 Main Features
 -----------------
-The first release of Zabbix Wrapper provides a Restful version of zabbix (natively JSON-RPC 2.0 protocol) APIs and potentially allows to develop a wrapper for another product APIs behaving as an adapter.
+The first release of Zabbix Wrapper provides a Restful version of zabbix (which natively comes with JSON-RPC 2.0 protocol) APIs and potentially allows to develop a wrapper another products, therefore behaving as an adapter.
 For indigo project purposes is meant to be the middle layer between Monitoring Framework and zabbix so that it can: 
 
 * Create a host on zabbix platform (corresponding to, from Indigo point of view, a specific Cloud Provider)
@@ -27,7 +27,6 @@ All these information are just returned in form of a REST response API which wra
 1.2 Pre-Requisites
 ------------------
 In order to get information and successfully monitor a specific cloud provider it has to be both registered on zabbix (via "create host" wrapper API) and there must be a zabbix agent installed and properly configured (for communicate with zabbix server) on board of a machine otherwise an exception will be thrown.
-
 
 1.3 Installation
 ----------------
@@ -45,10 +44,10 @@ sudo wget -qO- https://get.docker.com/ | sh
 
 Install the application server (Wildfly 9.x) right from directory into which there is the docker file for giving the proper instructions and deploy the webapp
 ```
-docker build -t indigodatacloud/zabbixwrapper .
+docker build -t indigodatacloud/zabbix-wrapper .
 ```
 ```
-docker logs -f `sudo docker run --name zabbixwrapper -h zabbixwrapper -p 80:8080 -d indigodatacloud/zabbixwrapper`
+docker logs -f `docker run -d --name=indigo-zabbix-wrapper -e ZABBIX_URL=http://<url-zabbix>/api_jsonrpc.php -e ZABBIX_USERNAME=<zabbix-username> -e ZABBIX_PASSWORD=<zabbix-password> -p 8080:808 indigodatacloud/zabbix-wrapper` 
 ```
 
 The deploy will be successfull if the endpoints written in the property file are correct and the wrapper can reach the server itself
@@ -64,7 +63,7 @@ This command compiles the code and skip the tests. If you want to compile the co
 mvn clean install
 ```
 
-At compilation completed, the `MonitoringPillar.war` file will be put inside the `target` folder.
+At compilation completed, the `zabbix-wrapper.war` file will be inserted in the `target` folder.
 
 #### Build the Docker image
 
@@ -72,12 +71,18 @@ The generated war must then be placed in the docker folder.
 
 You can build the docker image with the command
 ```
-docker build -t indigodatacloud/zabbixwrapper /path/to/the/docker/folder
+docker build -t indigodatacloud/zabbix-wrapper/path/to/the/docker/folder
+```
+```
+docker logs -f `docker run -d --name=indigo-zabbix-wrapper -e ZABBIX_URL=http://<url-zabbix>/api_jsonrpc.php -e ZABBIX_USERNAME=<zabbix-username> -e ZABBIX_PASSWORD=<zabbix-password>  --name zabbix-wrapper -h zabbix-wrapper  -p 8080:808 indigodatacloud/zabbix-wrapper` 
 ```
 
 1.4 Configuration
 ----------------- 
-This project has been created with maven 3.3.3 and Java 1.8. Maven will take care of downloading the extra dependencies needed for the project but this project dependes on im-java-api also. To run the warpper you need docker and a MySQL Server on your machine. See next section to have details.
+The only configuration needed for the project is concerned with the parameters to be passed when launching docker run command as the following:
+ 1. `ZABBIX_URL`: zabbix url in the format http://<url-zabbix>/api_jsonrpc.php
+ 2. `ZABBIX_USERNAME`: Zabbix username
+ 3. `ZABBIX_PASSWORD`: Zabbix password
 
 2. Zabbix Probes
 ================
@@ -88,7 +93,7 @@ The first release of the Monitoring Framework provides two probes for monitoring
 * A OCCI probe, which checks whether the OCCI API exposed by an Infrastructure Provider works as expected;
 * A Heapster probe, which retrieves information about the containers and pods running in a Kubernetes cluster.
 
-In the case of the OCCI probe, the list of available providers is retrieved and, for each OCCI API available, a VM is creted, inspected and deleted, as a way to confirm that the main operations to be done are working as expected in the provider under evaluation. The probe is able to monitor several providers concurrently and it sends all the gathered metrics to the Zabbix server collecting all the information.
+In the case of the OCCI probe, the list of available providers is retrieved and, for each OCCI API available, a VM is created, inspected and deleted, as a way to confirm that the main operations to be done are working as expected in the provider under evaluation. The probe is able to monitor several providers concurrently and it sends all the gathered metrics to the Zabbix server collecting all the information.
 
 The Heapster probe, on the other hand, access to the Heapster API in order to list the pods and the containers available per pod, retrieving several metrics at the pod and container level, since they are complementary. These metrics, later on, are sent to the Zabbix server.
 
