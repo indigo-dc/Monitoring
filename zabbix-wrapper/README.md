@@ -66,6 +66,6 @@ docker build -t indigodatacloud/zabbix-wrapper /path/to/the/docker/folder
 2. CONFIGURATION
 ===============
 The only configuration needed for the project is concerned with the parameters to be passed when launching docker run command as the following:
- 1. `ZABBIX_URL`: zabbix url in the format http://<url-zabbix>/api_jsonrpc.php
+ 1. `ZABBIX_URL`: zabbix url in the format http://{domain-name}/api_jsonrpc.php
  2. `ZABBIX_USERNAME`: Zabbix username
  3. `ZABBIX_PASSWORD`: Zabbix password
