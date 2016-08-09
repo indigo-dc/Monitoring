@@ -44,3 +44,4 @@ target/
 
 # CheckStyle
 .checkstyle
+/monitoring-pillar-domain.iml

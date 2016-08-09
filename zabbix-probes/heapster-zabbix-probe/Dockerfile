@@ -1,0 +1,1 @@
+FROM zabbix-probe-base:latest
