@@ -80,6 +80,15 @@
         <!-- Configuration for creating the deb and rpm packages -->
         <plugins>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.7</source>
+                    <target>1.7</target>
+                </configuration>
+            </plugin>
+
             <!-- Check Java style -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

@@ -6,3 +6,4 @@
 /zabbix-wrapper/monitoring-pillar.iml
 /MonitoringProbes.iml
 /.idea/
+/zabbix-probes/mesos-zabbix-probe/mesos-zabbix-probe.iml

@@ -1,0 +1,8 @@
+Package: [ZabbixMesosProbe]
+Version: [0.95]
+Section: misc
+Priority: low
+Architecture: all
+Description: [Zabbix probe for monitoring an Apache Mesos cluster]
+Maintainer: francisco.nieto@atos.net
+Depends: default-jre | java6-runtime
