@@ -26,4 +26,12 @@ public class ProbeClient {
   public static ZabbixClient getZabbixClient(String endpoint) {
     return getClient(ZabbixClient.class, endpoint);
   }
+
+  public  static ChronosClient getChronosClient(String endpoint) {
+    return getClient(ChronosClient.class, endpoint);
+  }
+
+  public static MarathonClient getMarathonClient(String endpoint) {
+    return getClient(MarathonClient.class, endpoint);
+  }
 }

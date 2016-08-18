@@ -6,6 +6,9 @@ package com.indigo.mesosprobe;
 public interface MesosProbeTags {
 
   String MESOS_MASTER_ENDPOINT = "mesos.master.endpoint";
+  String CHRONOS_ENDPOINT = "chronos.endpoint";
+  String MARATHON_ENDPOINT = "marathon.endpoint";
+
   String ZABBIX_WRAPPER_ENDPOINT = "zabbix.wrapper.location";
 
   String CONFIG_FILE = "mesosprobe.properties";

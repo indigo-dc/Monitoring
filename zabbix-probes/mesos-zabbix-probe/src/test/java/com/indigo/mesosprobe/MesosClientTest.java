@@ -56,6 +56,36 @@ public class MesosClientTest {
   }
 
   @Test
+  public void testChronosClient() {
+    List<String> endpoints = PropertiesManager
+      .getListProperty(MesosProbeTags.CHRONOS_ENDPOINT);
+
+    for (String endpoint : endpoints) {
+      ChronosClient client = ProbeClient.getChronosClient(endpoint);
+
+      JsonObject jobList = client.listJobs();
+
+      assert  jobList != null;
+      assert  !jobList.isJsonNull();
+    }
+  }
+
+  @Test
+  public void testMarathonClient() {
+    List<String> endpoints = PropertiesManager
+      .getListProperty(MesosProbeTags.MARATHON_ENDPOINT);
+
+    for (String endpoint : endpoints) {
+      MarathonClient client = ProbeClient.getMarathonClient(endpoint);
+
+      JsonObject status = client.getInfo();
+
+      assert  status != null;
+      assert  !status.isJsonNull();
+    }
+  }
+
+  @Test
   public void testZabbixClient() {
     ZabbixClient client = ProbeClient.getZabbixClient(
       PropertiesManager.getProperty(MesosProbeTags.ZABBIX_WRAPPER_ENDPOINT)
