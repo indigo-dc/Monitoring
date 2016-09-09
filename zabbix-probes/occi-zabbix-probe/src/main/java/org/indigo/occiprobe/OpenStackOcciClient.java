@@ -20,17 +20,17 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
-
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.JerseyClientBuilder;
+
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.client.IOSClientBuilder.V2;
 import org.openstack4j.openstack.OSFactory;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
 /**
  * It takes care of the interactions to be performed with Cloud Providers whose base platform
  * is OpenStack, since it requires additional interactions with the Keystone component, in order

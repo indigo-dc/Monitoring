@@ -67,10 +67,10 @@ public class PropertiesManager {
     if (loader == null) {
       loader = ClassLoader.getSystemClassLoader();
     }
+    String fileName = "occiprobe.properties";
     
     try {
-      // We want to load file located in /resources
-      String fileName = "occiprobe.properties";
+      // We want to load file located in /resources      
       String location = "";
       String opSystem = System.getProperty("os.name").toLowerCase();
       if (opSystem.indexOf("win") >= 0) {
@@ -83,6 +83,16 @@ public class PropertiesManager {
       is.close();
     } catch (IOException e) {
       System.out.println(e.toString());
+      System.out.println("Using the default config file...");
+
+      try {
+        // We want to load file located in WEB-INF/classes/
+        InputStream is = loader.getResourceAsStream(fileName);
+        prop.load(is);
+      } catch (Exception ex) {
+        System.out.println(ex.toString());
+        return;
+      }
     }
     
     //Put all the properties into the map
@@ -99,6 +109,9 @@ public class PropertiesManager {
    * @return A String with the value loaded from the configuration file.
    */
   public String getProperty(String propertyName) {
+    if (propertiesList.isEmpty()) {
+      return null;
+    }
     return propertiesList.get(propertyName);
   }
   
