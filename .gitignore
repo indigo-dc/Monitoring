@@ -1,0 +1,9 @@
+# Created by .ignore support plugin (hsz.mobi)
+/zabbix-probes/heapster-zabbix-probe/heapster-zabbix-probe.iml
+/zabbix-probes/occi-zabbix-probe/occi-zabbix-probe.iml
+/zabbix-probes/occi-zabbix-probe/target/
+/zabbix-probes/heapster-zabbix-probe/target/
+/zabbix-wrapper/monitoring-pillar.iml
+/MonitoringProbes.iml
+/.idea/
+/zabbix-probes/mesos-zabbix-probe/mesos-zabbix-probe.iml
