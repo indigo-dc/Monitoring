@@ -57,32 +57,14 @@ public class MesosClientTest {
 
   @Test
   public void testChronosClient() {
-    List<String> endpoints = PropertiesManager
-      .getListProperty(MesosProbeTags.CHRONOS_ENDPOINT);
-
-    for (String endpoint : endpoints) {
-      ChronosClient client = ProbeClient.getChronosClient(endpoint);
-
-      JsonObject jobList = client.listJobs();
-
-      assert  jobList != null;
-      assert  !jobList.isJsonNull();
-    }
+    ChronosClient client = new ChronosClient();
+    assert client.testChronos();
   }
 
   @Test
   public void testMarathonClient() {
-    List<String> endpoints = PropertiesManager
-      .getListProperty(MesosProbeTags.MARATHON_ENDPOINT);
-
-    for (String endpoint : endpoints) {
-      MarathonClient client = ProbeClient.getMarathonClient(endpoint);
-
-      JsonObject status = client.getInfo();
-
-      assert  status != null;
-      assert  !status.isJsonNull();
-    }
+    MarathonClient client = new MarathonClient();
+    assert client.testMarathon();
   }
 
   @Test

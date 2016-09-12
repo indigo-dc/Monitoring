@@ -2,10 +2,9 @@ package com.indigo.mesosprobe;
 
 import com.google.gson.JsonObject;
 
-import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+
+import feign.RequestLine;
 
 /**
  * Created by jose on 12/08/16.
@@ -13,9 +12,7 @@ import javax.ws.rs.core.MediaType;
 @Path("metrics")
 public interface MesosClient {
 
-  @GET
-  @Path("snapshot")
-  @Produces(MediaType.APPLICATION_JSON)
+  @RequestLine("GET /metrics/snapshot")
   JsonObject getMetrics();
 
 }

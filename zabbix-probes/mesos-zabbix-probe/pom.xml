@@ -30,25 +30,39 @@
 	</developer>
   </developers>
 
+	<repositories>
+        <repository>
+            <id>infn</id>
+            <name>INFN temporal repository until Chronos client is in maven central/indigo repo</name>
+            <url>http://nexusconcept.cloud.reply.eu/content/groups/public</url>
+        </repository>
+    </repositories>
+
 	<dependencies>
 
-		<dependency>
-			<groupId>org.glassfish.jersey.ext</groupId>
-			<artifactId>jersey-proxy-client</artifactId>
-			<version>${jersey-version}</version>
-		</dependency>
+        <dependency>
+            <groupId>it.infn.ba.indigo</groupId>
+            <artifactId>chronos-client</artifactId>
+            <version>0.0.1-BETA.1</version>
+        </dependency>
 
-		<dependency>
-			<groupId>org.zalando.phrs</groupId>
-			<artifactId>jersey-media-json-gson</artifactId>
-			<version>LATEST</version>
-		</dependency>
+        <dependency>
+            <groupId>com.mesosphere</groupId>
+            <artifactId>marathon-client</artifactId>
+            <version>0.3.0</version>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-configuration2</artifactId>
             <version>2.0</version>
         </dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.4</version>
+		</dependency>
 
 	</dependencies>
 
