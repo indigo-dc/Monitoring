@@ -20,9 +20,9 @@ public interface ZabbixClient {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   Response registerContainerHost(
-    @PathParam("hostName")
-    String hostName,
-    ZabbixHost host
+      @PathParam("hostName")
+      String hostName,
+      ZabbixHost host
   );
 
 
@@ -31,16 +31,16 @@ public interface ZabbixClient {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   Response registerPodHost(
-    @PathParam("hostName")
+      @PathParam("hostName")
       String hostName,
-    ZabbixHost host
+      ZabbixHost host
   );
 
   @GET
   @Path("Containers/hosts/{hostName}")
   @Produces(MediaType.APPLICATION_JSON)
   Response isContainerRegistered(
-    @PathParam("hostName")
+      @PathParam("hostName")
       String hostName
   );
 
@@ -49,7 +49,7 @@ public interface ZabbixClient {
   @Path("Pods/hosts/{hostName}")
   @Produces(MediaType.APPLICATION_JSON)
   Response isPodRegistered(
-    @PathParam("hostName")
+      @PathParam("hostName")
       String hostName
   );
 }

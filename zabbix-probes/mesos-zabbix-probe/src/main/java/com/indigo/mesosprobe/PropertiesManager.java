@@ -1,16 +1,12 @@
 package com.indigo.mesosprobe;
 
 import org.apache.commons.configuration2.PropertiesConfiguration;
-import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Reader;
-import java.net.URL;
 import java.util.List;
 
 /**
@@ -20,6 +16,10 @@ public class PropertiesManager {
 
   private static PropertiesConfiguration props = new PropertiesConfiguration();
 
+  /**
+   * Loads the configuration file from the default location.
+   * @throws IOException Exception in case of fail.
+   */
   public static void loadProperties() throws IOException {
 
     String location = "";
@@ -30,12 +30,17 @@ public class PropertiesManager {
       location = "/etc/zabbix/";
     }
 
-    File configFile = new File(location+"/"+MesosProbeTags.CONFIG_FILE);
+    File configFile = new File(location + "/" + MesosProbeTags.CONFIG_FILE);
 
     loadProperties(new FileReader(configFile));
 
   }
 
+  /**
+   * Load a configuration file into properties.
+   * @param confFile Configuration file reader.
+   * @throws IOException Exception if some I/O error occurs.
+   */
   public static void loadProperties(Reader confFile) throws IOException {
     try {
       props.read(confFile);

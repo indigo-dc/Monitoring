@@ -1,9 +1,6 @@
 package com.indigo.mesosprobe;
 
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import mesosphere.marathon.client.Marathon;
 import mesosphere.marathon.client.model.v2.App;
 import mesosphere.marathon.client.model.v2.Container;
@@ -12,11 +9,20 @@ import mesosphere.marathon.client.model.v2.GetAppResponse;
 import mesosphere.marathon.client.model.v2.Result;
 import mesosphere.marathon.client.utils.MarathonException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+
+
 public class MarathonClient {
 
   private static final Log logger = LogFactory.getLog(MarathonClient.class);
   public static final String APP_NAME = "zabbix-test-app";
 
+  /**
+   * Test that Marathon installation is working.
+   * @return result of the test.
+   */
   public boolean testMarathon() {
 
     boolean result = false;
@@ -26,7 +32,7 @@ public class MarathonClient {
     String password = PropertiesManager.getProperty(MesosProbeTags.MARATHON_PASSWORD);
 
     Marathon client = mesosphere.marathon.client.MarathonClient.getInstanceWithBasicAuth(
-      url, username, password
+        url, username, password
     );
 
     try {
@@ -41,7 +47,7 @@ public class MarathonClient {
       }
 
     } catch (MarathonException e) {
-      logger.error("Error creating app "+APP_NAME,e);
+      logger.error("Error creating app " + APP_NAME,e);
     }
 
 
@@ -49,7 +55,7 @@ public class MarathonClient {
 
   }
 
-  public App createApp(Marathon client) throws MarathonException {
+  private App createApp(Marathon client) throws MarathonException {
 
     App app = new App();
     app.setId(APP_NAME);
