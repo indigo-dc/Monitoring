@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import org.junit.Before;
-import org.junit.Test;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -26,7 +25,7 @@ public class MesosClientTest {
     );
   }
 
-  @Test
+  //@Test
   public void testClient() {
     List<String> endpoints = PropertiesManager
       .getListProperty(MesosProbeTags.MESOS_MASTER_ENDPOINT);
@@ -55,19 +54,19 @@ public class MesosClientTest {
 
   }
 
-  @Test
+  //@Test
   public void testChronosClient() {
     ChronosClient client = new ChronosClient();
     assert client.testChronos();
   }
 
-  @Test
+  //@Test
   public void testMarathonClient() {
     MarathonClient client = new MarathonClient();
     assert client.testMarathon();
   }
 
-  @Test
+  //@Test
   public void testZabbixClient() {
     ZabbixClient client = ProbeClient.getZabbixClient(
       PropertiesManager.getProperty(MesosProbeTags.ZABBIX_WRAPPER_ENDPOINT)

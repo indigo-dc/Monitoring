@@ -18,55 +18,60 @@ public class ChronosClient {
 
   public static final String JOB_NAME = "zabbix-test-job";
 
+  /**
+   * Test that chronos is running ok.
+   * @return the chronos status.
+   */
+
   public boolean testChronos() {
 
-   boolean result = false;
+    boolean result = false;
 
-   String url = PropertiesManager.getProperty(MesosProbeTags.CHRONOS_ENDPOINT);
-   String username = PropertiesManager.getProperty(MesosProbeTags.CHRONOS_USERNAME);
-   String password = PropertiesManager.getProperty(MesosProbeTags.CHRONOS_PASSWORD);
+    String url = PropertiesManager.getProperty(MesosProbeTags.CHRONOS_ENDPOINT);
+    String username = PropertiesManager.getProperty(MesosProbeTags.CHRONOS_USERNAME);
+    String password = PropertiesManager.getProperty(MesosProbeTags.CHRONOS_PASSWORD);
 
-   Chronos chronos = it.infn.ba.indigo.chronos.client.ChronosClient.getInstanceWithBasicAuth(
-     url, username, password
-   );
+    Chronos chronos = it.infn.ba.indigo.chronos.client.ChronosClient.getInstanceWithBasicAuth(
+        url, username, password
+    );
 
-   try {
-     createJob(chronos, new Date(), JOB_NAME);
+    try {
+      createJob(chronos, new Date(), JOB_NAME);
 
-     Collection<Job> jobStatus = chronos.getJob(JOB_NAME);
-     if (!jobStatus.isEmpty()) {
-       chronos.deleteJob(JOB_NAME);
+      Collection<Job> jobStatus = chronos.getJob(JOB_NAME);
+      if (!jobStatus.isEmpty()) {
+        chronos.deleteJob(JOB_NAME);
 
-       jobStatus = chronos.getJob(JOB_NAME);
+        jobStatus = chronos.getJob(JOB_NAME);
 
-       result = jobStatus.isEmpty();
-     } else {
-       logger.error("Error starting test job "+JOB_NAME);
-     }
+        result = jobStatus.isEmpty();
+      } else {
+        logger.error("Error starting test job " + JOB_NAME);
+      }
 
-   } catch (ChronosException e) {
-     logger.error("Error creating test job "+JOB_NAME, e);
-   }
+    } catch (ChronosException e) {
+      logger.error("Error creating test job " + JOB_NAME, e);
+    }
 
-   return result;
+    return result;
 
- }
+  }
 
- private Job createJob(Chronos client, Date when, String name) throws ChronosException {
-   Job job = new Job();
-   job.setSchedule("R/"+ DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(when)+"/PT5M");
-   job.setName(name);
-   Container container = new Container();
-   container.setType("DOCKER");
-   container.setImage("busybox");
-   job.setContainer(container);
-   job.setCpus(0.5);
-   job.setMem(512.0);
-   job.setCommand("echo hi; sleep 10; echo bye;");
+  private Job createJob(Chronos client, Date when, String name) throws ChronosException {
+    Job job = new Job();
+    job.setSchedule("R/" + DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(when) + "/PT5M");
+    job.setName(name);
+    Container container = new Container();
+    container.setType("DOCKER");
+    container.setImage("busybox");
+    job.setContainer(container);
+    job.setCpus(0.5);
+    job.setMem(512.0);
+    job.setCommand("echo hi; sleep 10; echo bye;");
 
-   client.createJob(job);
+    client.createJob(job);
 
-   return job;
- }
+    return job;
+  }
 
 }
