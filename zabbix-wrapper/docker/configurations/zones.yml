@@ -1,6 +1,3 @@
-#######################
-# INDIGO ZONE or SITE
-######################
 zones:
   - name: indigo
     distributedArchitecture: false
@@ -8,13 +5,14 @@ zones:
     servers:
     # Omit not used servers
     
-    - type: service
+    - type: infrastructure
       url: {$url}
       username: {$usr}
       password: {$password}
+
+      # Only if proxy-architecture is enabled
       proxy:
+        # Omit not used proxies
+        # If using distributed-architecture, the nameTemplate will be used to generate the tenant's proxy name replace the placeholder %s
         name: 
         nameTemplate: proxy-%s
-
-
-
