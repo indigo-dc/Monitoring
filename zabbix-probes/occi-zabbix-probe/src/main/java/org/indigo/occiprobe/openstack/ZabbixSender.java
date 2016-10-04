@@ -346,4 +346,25 @@ public class ZabbixSender {
     
     return result;
   }
+  
+  /**
+   * Typical main for testing.
+   * @param args Typical args
+   */
+  public static void main(String[] args) {
+    // Create a monitoring element and send it
+    CreateVmResult create = new CreateVmResult(1, 200, 1429, "testVM");
+    InspectVmResult inspect = new InspectVmResult(1, 200, 426);
+    DeleteVmResult delete = new DeleteVmResult(1, 204, 612);
+    OcciProbeResult global = new OcciProbeResult(1, 204, 2467, "PruHost");
+    global.addCreateVmInfo(create);
+    global.addInspectVmInfo(inspect);
+    global.addDeleteVmInfo(delete);
+
+    // Send metrics and check the result
+    ZabbixSender mySender = ZabbixSender.instance();
+    mySender.addMetricToQueue(global);
+    boolean result = mySender.sendMetrics();
+    System.out.println("Result: " + result);
+  }
 }

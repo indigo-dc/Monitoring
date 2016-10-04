@@ -30,10 +30,10 @@ import java.io.Serializable;
 public class ZabbixHost implements Serializable {
   
   private static final long serialVersionUID = 1L;
-  private String ip;
-  private String uuid;
+  private String ip;  
   private String serviceCategory;
   private String serviceId;
+  private String uuid;
   private String[] atomicServices;
   private boolean activeMode;
   
@@ -45,7 +45,7 @@ public class ZabbixHost implements Serializable {
     ip = "127.0.0.1";    
     uuid = hostName;
     serviceCategory = "IaaS";
-    serviceId = "serviceId";
+    serviceId = "id";
     atomicServices = new String[]{"OCCI"};
     activeMode = false;
   }

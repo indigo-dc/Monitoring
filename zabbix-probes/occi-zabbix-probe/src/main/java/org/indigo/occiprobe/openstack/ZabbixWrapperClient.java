@@ -52,7 +52,8 @@ public class ZabbixWrapperClient {
     // Retrieve location of the Zabbix Server and the Zabbix sender (local)
     PropertiesManager myProp = new PropertiesManager();
     String location = myProp.getProperty(PropertiesManager.ZABBIX_WRAPPER);
-    wrapperBaseUrl = location + "/monitoring/adapters/zabbix/zones/indigo/types/service/groups/";
+    wrapperBaseUrl = location 
+        + "/monitoring/adapters/zabbix/zones/indigo/types/infrastructure/groups/";
     
     // Disable issue with SSL Handshake in Java 7 and indicate certificates keystore
     System.setProperty("jsse.enableSNIExtension", "false");
@@ -95,13 +96,14 @@ public class ZabbixWrapperClient {
     // Send the new host data
     Response response = null;
     try {
-      response = invocationBuilder.put(Entity.entity(jsonHost, MediaType.APPLICATION_JSON));
+      response = invocationBuilder.post(Entity.entity(jsonHost, MediaType.APPLICATION_JSON));
     } catch (Exception ex) {
       System.out.println("Invocation failed! " + ex.getMessage());
       return false;
     }
+    System.out.println("Response: " + response.readEntity(String.class));
     
-    // Indicate whether the response wans't atisfactory
+    // Indicate whether the response wasn't satisfactory
     if (response.getStatus() > 300) {
       return false;
     }
@@ -142,8 +144,8 @@ public class ZabbixWrapperClient {
    */
   public static void main(String[] args) {
     ZabbixWrapperClient myClient = new ZabbixWrapperClient();
-    boolean hostExists = myClient.isHostRegistered("PruHost");
+    boolean hostExists = myClient.isHostRegistered("PruHost2");
     System.out.println(hostExists);
-    myClient.registerHost("PruHost");
+    myClient.registerHost("PruHost2");
   }
 }
