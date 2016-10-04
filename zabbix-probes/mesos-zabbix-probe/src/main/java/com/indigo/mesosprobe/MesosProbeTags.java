@@ -10,6 +10,8 @@ public interface MesosProbeTags {
   String MARATHON_ENDPOINT = "marathon.endpoint";
 
   String ZABBIX_WRAPPER_ENDPOINT = "zabbix.wrapper.location";
+  String ZABBIX_HOST = "zabbix.ip";
+  String ZABBIX_PORT = "zabbix.port";
 
   String CHRONOS_USERNAME = "chronos.username";
   String CHRONOS_PASSWORD = "chronos.password";

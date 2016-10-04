@@ -3,13 +3,13 @@ package com.indigo.mesosprobe;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import com.indigo.mesosprobe.mesos.MesosClient;
+
 import org.junit.Before;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
-
-import javax.ws.rs.core.Response;
 
 /**
  * Created by jose on 16/08/16.
@@ -24,6 +24,7 @@ public class MesosClientTest {
         .getResourceAsStream(MesosProbeTags.CONFIG_FILE))
     );
   }
+
 
   //@Test
   public void testClient() {
@@ -66,14 +67,5 @@ public class MesosClientTest {
     assert client.testMarathon();
   }
 
-  //@Test
-  public void testZabbixClient() {
-    ZabbixClient client = ProbeClient.getZabbixClient(
-      PropertiesManager.getProperty(MesosProbeTags.ZABBIX_WRAPPER_ENDPOINT)
-    );
-
-    Response response = client.isContainerRegistered("PruHost");
-    assert response.getStatus() == 200;
-  }
 
 }
