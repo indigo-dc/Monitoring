@@ -19,7 +19,7 @@
  * @email francisco.nieto@atos.net
  **/
 
-package com.indigo.mesosprobe;
+package com.indigo.zabbix.utils;
 
 import java.io.Serializable;
 
@@ -39,15 +39,25 @@ public class ZabbixHost implements Serializable {
   private boolean activeMode;
 
   /**
+   * Default constructor that will read the information from the configuration properties.
+   * @param hostName The hostname to use.
+   */
+  public ZabbixHost(String hostName) {
+    this(hostName,
+        PropertiesManager.getProperty(ProbesTags.ZABBIX_CATEGORY),
+        PropertiesManager.getProperty(ProbesTags.ZABBIX_GROUP));
+  }
+
+  /**
    * This is the constructor of the class, setting by default most of the properties.
    * @param hostName Identifier of the host
    */
-  public ZabbixHost(String hostName) {
+  public ZabbixHost(String hostName, String category, String group) {
     ip = "127.0.0.1";
     uuid = hostName;
-    serviceCategory = "IaaS";
+    serviceCategory = category;
     serviceId = "serviceId";
-    atomicServices = new String[]{"Mesos"};
+    atomicServices = new String[]{group};
     activeMode = false;
   }
 
