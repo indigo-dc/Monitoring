@@ -18,6 +18,7 @@ public class PropertiesManager {
 
   /**
    * Loads the configuration file from the default location.
+   *
    * @throws IOException Exception in case of fail.
    */
   public static void loadProperties() throws IOException {
@@ -38,6 +39,7 @@ public class PropertiesManager {
 
   /**
    * Load a configuration file into properties.
+   *
    * @param confFile Configuration file reader.
    * @throws IOException Exception if some I/O error occurs.
    */
@@ -45,16 +47,41 @@ public class PropertiesManager {
     try {
       props.read(confFile);
     } catch (ConfigurationException e) {
-      throw new IOException("Error reading configuration file",e);
+      throw new IOException("Error reading configuration file", e);
     }
   }
 
+  /**
+   * Get an individual property value.
+   * @param property The property name.
+   * @return The property value.
+   */
   public static String getProperty(String property) {
     return props.getString(property);
   }
 
+  /**
+   * Get a property value providing a default in case it's not found.
+   * @param property The property name.
+   * @param defaultValue The property default value.
+   * @return The property value.
+   */
+  public static String getProperty(String property, String defaultValue) {
+    String value = getProperty(property);
+    if (value != null) {
+      return value;
+    } else {
+      return defaultValue;
+    }
+  }
+
+  /**
+   * Get a property list value.
+   * @param property The property name.
+   * @return The property value.
+   */
   public static List<String> getListProperty(String property) {
-    return props.getList(String .class, property);
+    return props.getList(String.class, property);
   }
 
 }

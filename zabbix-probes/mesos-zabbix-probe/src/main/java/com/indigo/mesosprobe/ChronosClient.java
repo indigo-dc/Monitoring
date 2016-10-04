@@ -20,6 +20,7 @@ public class ChronosClient {
 
   /**
    * Test that chronos is running ok.
+   *
    * @return the chronos status.
    */
 

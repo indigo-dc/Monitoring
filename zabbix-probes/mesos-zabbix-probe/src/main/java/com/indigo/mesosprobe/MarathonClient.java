@@ -13,7 +13,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 
-
 public class MarathonClient {
 
   private static final Log logger = LogFactory.getLog(MarathonClient.class);
@@ -21,6 +20,7 @@ public class MarathonClient {
 
   /**
    * Test that Marathon installation is working.
+   *
    * @return result of the test.
    */
   public boolean testMarathon() {
@@ -47,7 +47,7 @@ public class MarathonClient {
       }
 
     } catch (MarathonException e) {
-      logger.error("Error creating app " + APP_NAME,e);
+      logger.error("Error creating app " + APP_NAME, e);
     }
 
 
