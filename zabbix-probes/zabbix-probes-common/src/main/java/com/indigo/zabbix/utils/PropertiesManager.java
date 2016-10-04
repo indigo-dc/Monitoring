@@ -1,4 +1,4 @@
-package com.indigo.mesosprobe;
+package com.indigo.zabbix.utils;
 
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
@@ -21,7 +21,7 @@ public class PropertiesManager {
    *
    * @throws IOException Exception in case of fail.
    */
-  public static void loadProperties() throws IOException {
+  public static void loadProperties(String configFileName) throws IOException {
 
     String location = "";
     String opSystem = System.getProperty("os.name").toLowerCase();
@@ -31,7 +31,7 @@ public class PropertiesManager {
       location = "/etc/zabbix/";
     }
 
-    File configFile = new File(location + "/" + MesosProbeTags.CONFIG_FILE);
+    File configFile = new File(location + "/" + configFileName);
 
     loadProperties(new FileReader(configFile));
 

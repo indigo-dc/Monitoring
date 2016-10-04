@@ -1,6 +1,8 @@
 package com.indigo.mesosprobe;
 
 
+import com.indigo.zabbix.utils.PropertiesManager;
+
 import mesosphere.marathon.client.Marathon;
 import mesosphere.marathon.client.model.v2.App;
 import mesosphere.marathon.client.model.v2.Container;

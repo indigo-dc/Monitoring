@@ -26,6 +26,7 @@
     </developers>
 
     <modules>
+        <module>zabbix-probes-common</module>
         <module>zabbix-probes-base</module>
         <module>heapster-zabbix-probe</module>
         <module>occi-zabbix-probe</module>
