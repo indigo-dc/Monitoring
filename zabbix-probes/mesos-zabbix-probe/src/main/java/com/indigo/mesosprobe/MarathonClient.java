@@ -1,6 +1,8 @@
 package com.indigo.mesosprobe;
 
 
+import com.indigo.zabbix.utils.PropertiesManager;
+
 import mesosphere.marathon.client.Marathon;
 import mesosphere.marathon.client.model.v2.App;
 import mesosphere.marathon.client.model.v2.Container;
@@ -13,7 +15,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 
-
 public class MarathonClient {
 
   private static final Log logger = LogFactory.getLog(MarathonClient.class);
@@ -21,6 +22,7 @@ public class MarathonClient {
 
   /**
    * Test that Marathon installation is working.
+   *
    * @return result of the test.
    */
   public boolean testMarathon() {
@@ -47,7 +49,7 @@ public class MarathonClient {
       }
 
     } catch (MarathonException e) {
-      logger.error("Error creating app " + APP_NAME,e);
+      logger.error("Error creating app " + APP_NAME, e);
     }
 
 

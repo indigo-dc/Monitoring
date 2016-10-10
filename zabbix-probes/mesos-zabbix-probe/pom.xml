@@ -7,7 +7,7 @@
 		<groupId>org.indigo</groupId>
 		<artifactId>zabbix-probes-base</artifactId>
 		<relativePath>../zabbix-probes-base</relativePath>
-		<version>0.95</version>
+		<version>1.01</version>
 	</parent>
 
   
@@ -50,12 +50,6 @@
             <groupId>com.mesosphere</groupId>
             <artifactId>marathon-client</artifactId>
             <version>0.3.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-configuration2</artifactId>
-            <version>2.0</version>
         </dependency>
 
 		<dependency>
@@ -151,7 +145,15 @@
 				</mappings>
 			</configuration>
 		</plugin>
-    </plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
   </build>
   
 </project>

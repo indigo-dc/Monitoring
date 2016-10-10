@@ -1,5 +1,7 @@
 package com.indigo.mesosprobe;
 
+import com.indigo.zabbix.utils.PropertiesManager;
+
 import it.infn.ba.indigo.chronos.client.Chronos;
 import it.infn.ba.indigo.chronos.client.model.v1.Container;
 import it.infn.ba.indigo.chronos.client.model.v1.Job;
@@ -20,6 +22,7 @@ public class ChronosClient {
 
   /**
    * Test that chronos is running ok.
+   *
    * @return the chronos status.
    */
 
