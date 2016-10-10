@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.indigo</groupId>
     <artifactId>zabbix-probes</artifactId>
-    <version>0.95</version>
+    <version>1.01</version>
     <name>Zabbix Probe base project</name>
     <packaging>pom</packaging>
 

@@ -8,7 +8,7 @@
 		<groupId>org.indigo</groupId>
 		<artifactId>zabbix-probes-base</artifactId>
 		<relativePath>../zabbix-probes-base</relativePath>
-		<version>0.95</version>
+		<version>1.01</version>
 	</parent>
 
 	<inceptionYear>2016</inceptionYear>
