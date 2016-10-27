@@ -11,15 +11,15 @@ import java.io.IOException;
 /**
  * Created by jose on 22/09/16.
  */
-public class ProbeThread {
+public class MesosThread {
 
-  private static final Log logger = LogFactory.getLog(ProbeThread.class);
+  private static final Log logger = LogFactory.getLog(MesosThread.class);
 
-  private ZabbixClient zabbixClient = new ZabbixClient();
+  private ZabbixClient zabbixMesosClient = new ZabbixClient("IaaS", "Mesos");
 
   private void startMonitoring() {
     MesosCollector collector = new MesosCollector();
-    zabbixClient.sendMetrics(collector.getMetrics());
+    zabbixMesosClient.sendMetrics(collector.getMetrics());
   }
 
 
@@ -32,7 +32,7 @@ public class ProbeThread {
 
     try {
       PropertiesManager.loadProperties(MesosProbeTags.CONFIG_FILE);
-      ProbeThread thread = new ProbeThread();
+      MesosThread thread = new MesosThread();
       thread.startMonitoring();
     } catch (IOException e) {
       logger.error("Error reading configuration file", e);

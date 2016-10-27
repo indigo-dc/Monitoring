@@ -31,10 +31,10 @@ public class ZabbixClient {
   /**
    * Default constructor that will read the information from the configuration properties.
    */
-  public ZabbixClient() {
+  public ZabbixClient(String category, String group) {
     this(PropertiesManager.getProperty(ProbesTags.ZABBIX_WRAPPER_ENDPOINT),
-        PropertiesManager.getProperty(ProbesTags.ZABBIX_CATEGORY),
-        PropertiesManager.getProperty(ProbesTags.ZABBIX_GROUP),
+        category,
+        group,
         PropertiesManager.getProperty(ProbesTags.ZABBIX_HOST),
         new Integer(PropertiesManager.getProperty(ProbesTags.ZABBIX_PORT,
             ZABBIX_DEFAULT_PORT.toString())));

@@ -39,16 +39,6 @@ public class ZabbixHost implements Serializable {
   private boolean activeMode;
 
   /**
-   * Default constructor that will read the information from the configuration properties.
-   * @param hostName The hostname to use.
-   */
-  public ZabbixHost(String hostName) {
-    this(hostName,
-        PropertiesManager.getProperty(ProbesTags.ZABBIX_CATEGORY),
-        PropertiesManager.getProperty(ProbesTags.ZABBIX_GROUP));
-  }
-
-  /**
    * This is the constructor of the class, setting by default most of the properties.
    * @param hostName Identifier of the host
    */
