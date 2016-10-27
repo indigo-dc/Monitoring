@@ -65,7 +65,7 @@ Hosts information based on associated service id belonging to service
 GET:http://localhost:8082/monitoring/adapters/{zabbix}/types/{serverType*}/groups/{groupName}/hosts?serviceid={822}
 ```
 
-Information on shot triggers and associated to host’s metrics
+Information on shot triggers and associated to hostâ€™s metrics
 ```
 GET:http://{url}/monitoring/adapters/{zabbix}/types/{serverType*}/groups/{groupName}/hosts?thresholds=true
 ```
@@ -133,8 +133,8 @@ In case the installation instructions were followed correctly, the provided Zabb
 
 If this is not the case, it is possible to run manually the probes by using the following commands:
 ```
-java -jar /usr/share/java/zabbix/occi-zabbix-probe-0.95-jar-with-dependencies.jar
-java -jar /usr/share/java/zabbix/heapster-zabbix-probe-0.95-jar-with-dependencies.jar
+java -jar /usr/share/java/zabbix/occi-zabbix-probe-1.01-jar-with-dependencies.jar > occi.log
+java -jar /usr/share/java/zabbix/heapster-zabbix-probe-1.01-jar-with-dependencies.jar > heapster.log
 ```
 
 These commands will run just once the monitoring probes, feeding the Zabbix Server with updated information, but be aware that those values will not be updated, unless they are programmed as Cron jobs.
