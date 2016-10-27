@@ -3,10 +3,7 @@
 INDIGO monitoring-wrapper
 ============================
 
-This is the monitoring wrapper of the PaaS layer, a component of the INDIGO project. It exposes REST API wrapping the zabbix ones.
-To make it properly work it should point to a zabbix server
-
-You can find the REST APIs at [INDIGO OpenProject] (https://project.indigo-datacloud.eu/projects/wp5/wiki/Orchestrator_REST_APIs).
+This is the monitoring wrapper of the PaaS layer, a component of the INDIGO project. It exposes REST API wrapping the zabbix ones. To make it properly work it should point to a zabbix server
 
 
 1. INSTALLATION
@@ -15,8 +12,7 @@ You can find the REST APIs at [INDIGO OpenProject] (https://project.indigo-datac
 1.1 REQUISITES
 --------------
 
-This project has been created with maven 3.3.3 and Java 1.8. Maven will take care of downloading the extra dependencies needed for the project but this project dependes on [im-java-api](https://github.com/indigo-dc/im-java-api) also.
-To run the Orchestrator you need docker and a MySQL Server on your machine. See next section to have details.
+This project has been created with maven 3.3.3 and Java 1.8. Maven will take care of downloading the extra dependencies needed for the project.
 
 1.2 INSTALLING
 --------------
@@ -34,10 +30,10 @@ sudo wget -qO- https://get.docker.com/ | sh
 
 Install the application server (Wildfly 9.x) right from directory into which there is the docker file for giving the proper instructions and deploy the webapp
 ```
-docker build -t indigodatacloud/zabbixwrapper .
+docker build -t indigodatacloud/zabbix-wrapper .
 ```
 ```
-docker logs -f `sudo docker run --name zabbixwrapper -h zabbixwrapper -p 80:8080 -d indigodatacloud/zabbixwrapper`
+docker logs -f `sudo docker run --name zabbixwrapper -e ZABBIX_URL=<endpoint_of_zabbix> -e ZABBIX_USERNAME=<zabbix-usrn> -e ZABBIX_PASSWORD=<zabbix_pwd>  -h zabbixwrapper -p 80:8080 -d indigodatacloud/zabbixwrapper`
 ```
 
 The deploy will be successfull if the endpoints written in the property file are correct and the wrapper can reach the server itself
@@ -60,7 +56,7 @@ The generated war must then be placed in the docker folder.
 
 You can build the docker image with the command
 ```
-docker build -t indigodatacloud/zabbixwrapper /path/to/the/docker/folder
+docker build -t indigodatacloud/zabbix-wrapper /path/to/the/docker/folder
 ```
 
 
