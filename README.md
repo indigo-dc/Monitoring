@@ -146,7 +146,7 @@ Then, it is necessary to install the corresponding packages generated for the pr
 ```
 wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/occi-zabbix-probe-1.01.deb
 wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/heapster-zabbix-probe/heapster-zabbix-probe-1.01.deb
-``` <br>
+```
 ```
 dpkg --install occi-zabbix-probe-1.01.deb
 dpkg --install heapster-zabbix-probe-1.01.deb
@@ -197,7 +197,7 @@ If a previous version of the packages is already installed, it is necessary to u
 ```
 wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/occi-zabbix-probe-1.01.deb
 wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/heapster-zabbix-probe/heapster-zabbix-probe-1.01.deb
-``` <br>
+```
 ```
 dpkg -i occi-zabbix-probe-1.01.deb
 dpkg -i heapster-zabbix-probe-1.01.deb
