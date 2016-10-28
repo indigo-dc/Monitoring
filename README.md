@@ -1,6 +1,6 @@
 # Indigo Monitoring Framework
 
-The Monitoring Framewor is a set of tools which allow performing several monitoring operations in the platform resulting from the INDIGO-Datacloud project (https://www.indigo-datacloud.eu/). The Monitoring Framework is based on Zabbix, as the collector of the monitoring information coming from different sources, due to its maturity, its community support and its flexibility for different environments.
+The Monitoring Framework is a set of tools which allow performing several monitoring operations in the platform resulting from the INDIGO-Datacloud project (https://www.indigo-datacloud.eu/). The Monitoring Framework is based on Zabbix, as the collector of the monitoring information coming from different sources, due to its maturity, its community support and its flexibility for different environments.
 
 The Monitoring Framework is divided in several main parts:
 * The Zabbix server (with the corresponding configuration and some support scripts);
@@ -146,7 +146,8 @@ Then, it is necessary to install the corresponding packages generated for the pr
 ```
 wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/occi-zabbix-probe-1.01.deb
 wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/heapster-zabbix-probe/heapster-zabbix-probe-1.01.deb
-
+```<br>
+```
 dpkg --install occi-zabbix-probe-1.01.deb
 dpkg --install heapster-zabbix-probe-1.01.deb
 ```
@@ -164,8 +165,8 @@ crontab -e
 
 Then, add the following lines:
 ```
-0 * * * * java -jar /usr/share/java/zabbix/occi-zabbix-probe-0.95-jar-with-dependencies.jar
-30 * * * * java -jar /usr/share/java/zabbix/heapster-zabbix-probe-0.95-jar-with-dependencies.jar
+0 * * * * java -jar /usr/share/java/zabbix/occi-zabbix-probe-1.01-jar-with-dependencies.jar
+30 * * * * java -jar /usr/share/java/zabbix/heapster-zabbix-probe-1.01-jar-with-dependencies.jar
 ```
 
 This means that the probes will run every hour, one at xx:00 and the other one at xx:30 (avoiding potential issues when both probes aim at using the Zabbix Agent at the same time). Modify this configuration according to your needs, so the probes will run when required, but bear in mind that running them in parallel may create issues with the Zabbix Agent, since it is not ready to work with concurrent tasks.
@@ -196,7 +197,8 @@ If a previous version of the packages is already installed, it is necessary to u
 ```
 wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/occi-zabbix-probe-1.01.deb
 wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/heapster-zabbix-probe/heapster-zabbix-probe-1.01.deb
-
+```<br>
+```
 dpkg -i occi-zabbix-probe-1.01.deb
 dpkg -i heapster-zabbix-probe-1.01.deb
 ```
