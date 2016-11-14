@@ -43,6 +43,7 @@ public class GroupCheck extends MonitoringAdapteeZabbix {
       String tagService) throws MonitoringException {
 
     try {
+      // check the existance of group regardless conditions
       boolean groupFound = false;
       List<ZabbixHostGroupResponse> workgroups = zabAdapClientSetter.getHostGroupsService(zone,
           serverType, ZabbixMethods.HOSTGROUP.getzabbixMethod(), null, null, null);
@@ -52,34 +53,32 @@ public class GroupCheck extends MonitoringAdapteeZabbix {
           break;
         }
       }
+      if (groupFound) {
+        List<ZabbixMonitoredHostResponseV24> hosts = null;
+        if (host != null && tagService == null) {
+          hosts = zabAdapClientSetter.getMonitoredHostsZabbixV24(zone, serverType,
+              ZabbixMethods.HOST.getzabbixMethod(), null, null, host, null);
 
-      if (host != null && tagService == null) {
-        List<ZabbixMonitoredHostResponseV24> hosts = zabAdapClientSetter.getMonitoredHostsZabbixV24(
-            zone, serverType, ZabbixMethods.HOST.getzabbixMethod(), null, null, host, null);
-        if (hosts.isEmpty()) {
-          throw new NotFoundMonitoringException(
-              "Wrong Parameters: " + host + "inserted or NO host avalaible for such parameters");
+        } else if (tagService != null) {
+          hosts = zabAdapClientSetter.getMonitoredHostsZabbixV24(zone, serverType,
+              ZabbixMethods.HOST.getzabbixMethod(), null, null, null, tagService);
         }
-        for (ZabbixGroup group : hosts.get(0).getGroups()) {
-          if (group.getName().equalsIgnoreCase(hostGroup)) {
-            groupFound = true;
-            break;
+        if (hosts != null) {
+          groupFound = false;
+          if (hosts.isEmpty()) {
+            throw new NotFoundMonitoringException(
+                "Wrong Parameters: " + host + "inserted or NO host avalaible for such parameters");
           }
-        }
-        if (!groupFound) {
-          throw new NotFoundMonitoringException("Host Selected does not belong to selected group");
-        }
-      } else if (tagService != null) {
-        List<ZabbixMonitoredHostResponseV24> hosts = zabAdapClientSetter.getMonitoredHostsZabbixV24(
-            zone, serverType, ZabbixMethods.HOST.getzabbixMethod(), null, null, null, tagService);
-        if (hosts.isEmpty()) {
-          throw new NotFoundMonitoringException("Wrong Parameters inserted or any host like: "
-              + host + " avalaible for such parameters");
-        }
-
-        if (!hosts.get(0).getGroups().get(0).getName().equalsIgnoreCase(hostGroup)) {
-          throw new NotFoundMonitoringException("Host Selected: "
-              + hosts.get(0).getGroups().get(0).getName() + " does not belong to selected group");
+          for (ZabbixGroup group : hosts.get(0).getGroups()) {
+            if (group.getName().equalsIgnoreCase(hostGroup)) {
+              groupFound = true;
+              break;
+            }
+          }
+          if (!groupFound) {
+            throw new NotFoundMonitoringException(
+                "Host Selected " + host + " does not belong to selected group " + hostGroup);
+          }
         }
       }
 
