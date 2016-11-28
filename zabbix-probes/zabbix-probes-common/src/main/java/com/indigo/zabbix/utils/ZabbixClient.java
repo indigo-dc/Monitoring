@@ -22,6 +22,7 @@ public class ZabbixClient {
 
   private String zabbixCategory;
   private String zabbixGroup;
+  private String zabbixTemplate;
 
   private static final Log logger = LogFactory.getLog(ZabbixClient.class);
 
@@ -31,10 +32,11 @@ public class ZabbixClient {
   /**
    * Default constructor that will read the information from the configuration properties.
    */
-  public ZabbixClient(String category, String group) {
+  public ZabbixClient(String category, String group, String template) {
     this(PropertiesManager.getProperty(ProbesTags.ZABBIX_WRAPPER_ENDPOINT),
         category,
         group,
+        template,
         PropertiesManager.getProperty(ProbesTags.ZABBIX_HOST),
         new Integer(PropertiesManager.getProperty(ProbesTags.ZABBIX_PORT,
             ZABBIX_DEFAULT_PORT.toString())));
@@ -43,7 +45,7 @@ public class ZabbixClient {
   /**
    * Default constructor.
    */
-  public ZabbixClient(String wrapperEndpoint, String category, String group,
+  public ZabbixClient(String wrapperEndpoint, String category, String group, String template,
                       String zabbixHost, Integer zabbixPort) {
 
     wrapperClient = ProbeClientFactory.getZabbixWrapperClient(wrapperEndpoint);
@@ -54,6 +56,7 @@ public class ZabbixClient {
 
     zabbixCategory = category;
     zabbixGroup = group;
+    zabbixTemplate = template;
   }
 
   /**
@@ -68,7 +71,7 @@ public class ZabbixClient {
       return true;
     } else {
       Response registrationResult = wrapperClient.registerHost(host, zabbixGroup,
-          new ZabbixHost(host, zabbixCategory, zabbixGroup));
+          new ZabbixHost(host, zabbixCategory, zabbixGroup, zabbixTemplate));
       if (registrationResult.status() < 300 && registrationResult.status() >= 200) {
         return true;
       } else {
