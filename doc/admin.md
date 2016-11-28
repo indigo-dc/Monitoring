@@ -91,17 +91,18 @@ Then, it is necessary to install the corresponding packages generated for the pr
 
 * Ubuntu:
 ```
-wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/occi-zabbix-probe-0.95.deb
-wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/heapster-zabbix-probe/heapster-zabbix-probe-0.95.deb
-
-dpkg --install occi-zabbix-probe-0.95.deb
-dpkg --install heapster-zabbix-probe-0.95.deb
+wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/occi-zabbix-probe-1.01.deb
+wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/heapster-zabbix-probe/heapster-zabbix-probe-1.01.deb
+```
+```
+dpkg --install occi-zabbix-probe-1.01.deb
+dpkg --install heapster-zabbix-probe-1.01.deb
 ```
 
 * CentOS
 ```
-sudo yum install https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/OCCIZabbixProbe-0.95-R1.noarch.rpm
-sudo yum install https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/heapster-zabbix-probe/HeapsterZabbixProbe-0.95-R1.noarch.rpm
+sudo yum install https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/OCCIZabbixProbe-1.01.rpm
+sudo yum install https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/heapster-zabbix-probe/HeapsterZabbixProbe-1.01.rpm
 ```
 
 Installing the packages will deploy the corresponding jar files in the '/usr/share/java/zabbix/' folder, where it will be possible to run them with the corresponding 'java' command.
@@ -113,8 +114,8 @@ crontab -e
 
 Then, add the following lines:
 ```
-0 * * * * java -jar /usr/share/java/zabbix/occi-zabbix-probe-0.95-jar-with-dependencies.jar
-30 * * * * java -jar /usr/share/java/zabbix/heapster-zabbix-probe-0.95-jar-with-dependencies.jar
+0 * * * * java -jar /usr/share/java/zabbix/occi-zabbix-probe-1.01-jar-with-dependencies.jar
+30 * * * * java -jar /usr/share/java/zabbix/heapster-zabbix-probe-1.01-jar-with-dependencies.jar
 ```
 
 This means that the probes will run every hour, one at xx:00 and the other one at xx:30 (avoiding potential issues when both probes aim at using the Zabbix Agent at the same time). Modify this configuration according to your needs, so the probes will run when required, but bear in mind that running them in parallel may create issues with the Zabbix Agent, since it is not ready to work with concurrent tasks.
@@ -137,7 +138,27 @@ The Heapster probe, on the other hand, requires the heapsterprobe.properties fil
 * zabbix.ip - Provide the IP address of the Zabbix server where metrics will be sent
 * zabbix.sender.location - Configure the location where the Zabbix agent was installed, indicating the zabbix sender path
 
-2.3 Accepted Certificates
+2.3 Packages Update
+-------------------
+If a previous version of the packages is already installed, it is necessary to update them to the new version. That can be done through the following commands.
+
+* Ubuntu:
+```
+wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/occi-zabbix-probe-1.01.deb
+wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/heapster-zabbix-probe/heapster-zabbix-probe-1.01.deb
+```
+```
+dpkg -i occi-zabbix-probe-1.01.deb
+dpkg -i heapster-zabbix-probe-1.01.deb
+```
+
+* CentOS
+```
+sudo rpm -Uvh https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/OCCIZabbixProbe-1.01.rpm
+sudo rpm -Uvh https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/heapster-zabbix-probe/HeapsterZabbixProbe-1.01.rpm
+```
+
+2.4 Accepted Certificates
 -------------------------
 In the case of providers requiring some communication using SSL (because of HTTPS communication), if the provider certificate is not signed by a known entity, the JVM may throw exceptions. In such case, it is necessary to register the corresponding certificate with the following command:
 ```
