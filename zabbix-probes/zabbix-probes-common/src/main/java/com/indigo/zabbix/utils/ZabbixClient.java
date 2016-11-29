@@ -65,15 +65,19 @@ public class ZabbixClient {
    * @param host The host name.
    * @return The registration status.
    */
-  public boolean ensureRegistration(String host) {
+  public boolean ensureRegistration(String host, boolean register) {
     Response hostInfo = wrapperClient.getHostInfo(host, zabbixGroup);
     if (hostInfo.status() < 300 && hostInfo.status() >= 200) {
       return true;
     } else {
-      Response registrationResult = wrapperClient.registerHost(host, zabbixGroup,
-          new ZabbixHost(host, zabbixCategory, zabbixGroup, zabbixTemplate));
-      if (registrationResult.status() < 300 && registrationResult.status() >= 200) {
-        return true;
+      if (register) {
+        Response registrationResult = wrapperClient.registerHost(host, zabbixGroup,
+            new ZabbixHost(host, zabbixCategory, zabbixGroup, zabbixTemplate));
+        if (registrationResult.status() < 300 && registrationResult.status() >= 200) {
+          return ensureRegistration(host, false);
+        } else {
+          return false;
+        }
       } else {
         return false;
       }
@@ -86,7 +90,7 @@ public class ZabbixClient {
    * @param metrics   The metrics to send.
    */
   public void sendMetrics(ZabbixMetrics metrics) {
-    if (ensureRegistration(metrics.getHostName())) {
+    if (ensureRegistration(metrics.getHostName(), true)) {
       long timeSecs = metrics.getTimestamp() / 1000;
       String zabbixHost = PropertiesManager.getProperty(ProbesTags.ZABBIX_HOST);
       if (zabbixHost != null) {
@@ -106,10 +110,17 @@ public class ZabbixClient {
         try {
           SenderResult sendResult = sender.send(toSend);
           if (!sendResult.success()) {
-            logger.error("Error sending values: "
-                + "\nTotal: " + sendResult.getTotal()
-                + "\nProcessed: " + sendResult.getProcessed()
-                + "\nFailed: " + sendResult.getFailed());
+            /* Sometimes zabbix fails to process data the first time it's sent. Specially when the
+             * host is first registered. The reason why? It's a mystery and given the huge amount
+             * of data we have to debug the situation, let's just try to send it once again before
+             * failing. */
+            sendResult = sender.send(toSend);
+            if (!sendResult.success()) {
+              logger.error("Error sending values: "
+                  + "\nTotal: " + sendResult.getTotal()
+                  + "\nProcessed: " + sendResult.getProcessed()
+                  + "\nFailed: " + sendResult.getFailed());
+            }
           }
         } catch (IOException e) {
           logger.error("Error sending values", e);
