@@ -13,6 +13,16 @@ public class ZabbixMetrics {
   private Map<String, String> metrics = new HashMap<>();
   private long timestamp = new Date().getTime();
 
+  public ZabbixMetrics(){
+
+  }
+
+  public ZabbixMetrics(String hostName, Map<String, String> metrics, long timestamp) {
+    this.hostName = hostName;
+    this.metrics = metrics;
+    this.timestamp = timestamp;
+  }
+
   public String getHostName() {
     return hostName;
   }

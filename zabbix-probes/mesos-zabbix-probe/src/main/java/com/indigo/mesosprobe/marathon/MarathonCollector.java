@@ -33,6 +33,9 @@ public class MarathonCollector extends CrudCollector {
 
   Marathon client;
 
+  /**
+   * Default constructor.
+   */
   public MarathonCollector() {
 
     String url = PropertiesManager.getProperty(MesosProbeTags.MARATHON_ENDPOINT);

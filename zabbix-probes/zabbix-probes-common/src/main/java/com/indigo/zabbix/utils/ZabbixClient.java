@@ -30,6 +30,20 @@ public class ZabbixClient {
   private ZabbixSender sender;
 
   /**
+   * Constructor used for testing
+   * @param wrapperClient mock wrapper client
+   * @param sender mock wrapper sender
+   */
+  public ZabbixClient(String category, String group, String template,
+                      ZabbixWrapperClient wrapperClient, ZabbixSender sender) {
+    this.zabbixCategory = category;
+    this.zabbixGroup = group;
+    this.zabbixTemplate = template;
+    this.wrapperClient = wrapperClient;
+    this.sender = sender;
+  }
+
+  /**
    * Default constructor that will read the information from the configuration properties.
    */
   public ZabbixClient(String category, String group, String template) {
@@ -89,7 +103,7 @@ public class ZabbixClient {
    *
    * @param metrics   The metrics to send.
    */
-  public void sendMetrics(ZabbixMetrics metrics) {
+  public SenderResult sendMetrics(ZabbixMetrics metrics) {
     if (ensureRegistration(metrics.getHostName(), true)) {
       long timeSecs = metrics.getTimestamp() / 1000;
       String zabbixHost = PropertiesManager.getProperty(ProbesTags.ZABBIX_HOST);
@@ -122,11 +136,13 @@ public class ZabbixClient {
                   + "\nFailed: " + sendResult.getFailed());
             }
           }
+          return sendResult;
         } catch (IOException e) {
           logger.error("Error sending values", e);
         }
       }
     }
+    return null;
   }
 
 }

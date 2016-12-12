@@ -35,6 +35,9 @@ public class ChronosCollector extends CrudCollector {
 
   private Chronos client;
 
+  /**
+   * Default constructor.
+   */
   public ChronosCollector() {
     String url = PropertiesManager.getProperty(MesosProbeTags.CHRONOS_ENDPOINT);
     String username = PropertiesManager.getProperty(MesosProbeTags.CHRONOS_USERNAME);
@@ -83,8 +86,8 @@ public class ChronosCollector extends CrudCollector {
 
     Date start = new Date();
     Job job = new Job();
-    job.setSchedule("R/" +
-        DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(new Date()) + "/PT5M");
+    job.setSchedule("R/"
+        + DateFormatUtils.ISO_DATETIME_TIME_ZONE_FORMAT.format(new Date()) + "/PT5M");
     job.setName(JOB_NAME);
     Container container = new Container();
     container.setType("DOCKER");

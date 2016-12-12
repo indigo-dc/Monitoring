@@ -1,5 +1,7 @@
 package com.indigo.zabbix.utils;
 
+import io.github.hengyunabc.zabbix.sender.SenderResult;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -12,9 +14,19 @@ public abstract class CollectorThread<T extends MetricsCollector> {
 
   private static final Log logger = LogFactory.getLog(CollectorThread.class);
 
+  protected ZabbixClient client;
+
   protected String category;
   protected String group;
   protected String template;
+
+  /**
+   * Constructor used for testing.
+   * @param client client zabbix object.
+   */
+  protected CollectorThread(ZabbixClient client) {
+    this.client = client;
+  }
 
   protected CollectorThread(String category, String group, String template) {
     this.category = category;
@@ -22,17 +34,21 @@ public abstract class CollectorThread<T extends MetricsCollector> {
     this.template = template;
   }
 
-  protected void run(String propertiesFile) {
+  protected void loadConfiguration(String propertiesFile) throws IOException {
+    PropertiesManager.loadProperties(propertiesFile);
+  }
+
+  protected SenderResult run(String propertiesFile) {
 
     try {
-      PropertiesManager.loadProperties(propertiesFile);
+      loadConfiguration(propertiesFile);
 
+      this.client = new ZabbixClient(category, group, template);
 
       ZabbixMetrics metrics = createCollector().getMetrics();
 
       if (metrics != null) {
-        ZabbixClient client = new ZabbixClient(category, group, template);
-        client.sendMetrics(metrics);
+        return client.sendMetrics(metrics);
       }
 
     } catch (IOException e) {
@@ -40,7 +56,7 @@ public abstract class CollectorThread<T extends MetricsCollector> {
     }
 
 
-
+    return null;
   }
 
   protected abstract T createCollector();
