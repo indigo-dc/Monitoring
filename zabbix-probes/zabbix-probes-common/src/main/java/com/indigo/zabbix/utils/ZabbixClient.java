@@ -30,9 +30,9 @@ public class ZabbixClient {
   private ZabbixSender sender;
 
   /**
-   * Constructor used for testing
-   * @param wrapperClient mock wrapper client
-   * @param sender mock wrapper sender
+   * Constructor used for testing.
+   * @param wrapperClient mock wrapper client.
+   * @param sender mock wrapper sender.
    */
   public ZabbixClient(String category, String group, String template,
                       ZabbixWrapperClient wrapperClient, ZabbixSender sender) {
