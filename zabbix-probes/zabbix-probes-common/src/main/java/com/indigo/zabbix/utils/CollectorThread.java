@@ -43,7 +43,9 @@ public abstract class CollectorThread<T extends MetricsCollector> {
     try {
       loadConfiguration(propertiesFile);
 
-      this.client = new ZabbixClient(category, group, template);
+      if (this.client == null) {
+        this.client = new ZabbixClient(category, group, template);
+      }
 
       ZabbixMetrics metrics = createCollector().getMetrics();
 
