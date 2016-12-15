@@ -109,6 +109,15 @@
                                 <conffile>true</conffile>
                 			</data>
 							<data>
+								<src>src/main/resources/mesosprobe-log.properties</src>
+								<type>file</type>
+								<mapper>
+									<type>perm</type>
+									<prefix>/etc/zabbix/</prefix>
+								</mapper>
+								<conffile>true</conffile>
+							</data>
+							<data>
 								<src>src/mesosprobe.sh</src>
 								<type>file</type>
 								<mapper>
@@ -153,6 +162,18 @@
 						<sources>
 							<source>
 								<location>src/main/resources/mesosprobe.properties</location>
+							</source>
+						</sources>
+					</mapping>
+					<mapping>
+						<directory>/etc/zabbix/</directory>
+						<filemode>644</filemode>
+						<username>root</username>
+						<groupname>root</groupname>
+						<configuration>true</configuration>
+						<sources>
+							<source>
+								<location>src/main/resources/mesosprobe-log.properties</location>
 							</source>
 						</sources>
 					</mapping>
