@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 COMMAND=$1
-BASE=java -cp /usr/share/java/zabbix/mesos-zabbix-probe.jar
+LOG_CONF="-Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.Jdk14Logger -Djava.util.logging.config.file=/etc/zabbix/mesosprobe-log.properties"
+BASE="java $LOG_CONF -cp /usr/share/java/zabbix/mesos-zabbix-probe.jar"
 
 case $COMMAND in
   mesos)

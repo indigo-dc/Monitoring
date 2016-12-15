@@ -130,15 +130,21 @@ public class ZabbixClient {
              * failing. */
             sendResult = sender.send(toSend);
             if (!sendResult.success()) {
-              logger.error("Error sending values: "
+              logger.error("Error sending values for host " + metrics.getHostName() + ": "
                   + "\nTotal: " + sendResult.getTotal()
                   + "\nProcessed: " + sendResult.getProcessed()
                   + "\nFailed: " + sendResult.getFailed());
+            } else {
+              logger.info("Successfully sent " + sendResult.getProcessed()
+                  + " metrics for host " + metrics.getHostName());
             }
+          } else {
+            logger.info("Successfully sent " + sendResult.getProcessed()
+                + " metrics for host " + metrics.getHostName());
           }
           return sendResult;
         } catch (IOException e) {
-          logger.error("Error sending values", e);
+          logger.error("Error sending values for host " + metrics.getHostName(), e);
         }
       }
     }
