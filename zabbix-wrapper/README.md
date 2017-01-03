@@ -241,24 +241,12 @@ DELETE: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{server
  	RESPONSE Status 204 No Content
 ```
 
-#### Get trigger
-```
-GET: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType}/groups/{groupName}/hosts?thresholds=true
-RESPONSE Status 200 OK:
-  {
-    "result": {
-    "hostGroup" : "<hostNameEnabledOrDisabled>",
-    "hostAffected":[]
-  }
-}
-```
-
 #### Get host info
 ```
 GET: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverTyp}/groups/{groupName}/hosts/{hostName}
 RESPONSE Status 200 OK:
   {
-    ** Same as hostGroup Response
+    ** Same as hostGroup Response with one host description shown
   }
 ```
 
@@ -267,6 +255,6 @@ RESPONSE Status 200 OK:
 GET: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType}/groups/{groupName}/hosts/{hostName}/metrics/{metricName}
 RESPONSE Status 200 OK:
   {
-    ** Same as hostGroup Response
+    ** Same as hostGroup Response with one metric details shown
   }
 ```
