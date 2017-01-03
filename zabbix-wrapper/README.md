@@ -166,6 +166,32 @@ RESPONSE Status 200 OK:
               }
             ]
           },...}
+
+```
+#### List of metrics
+```
+GET: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType}/groups/{groupName}/hosts/{hostName}/metrics
+RESPONSE Status 200 OK
+{
+ "result":
+    {"groups": [
+      {
+        "groupName": "Workgroup-2",
+        "paasMachines": [
+          {
+            "machineName": "<host>",
+            "ip": "localhost",
+            "enabled": true,
+            "metrics": [
+              {
+                "metricName": "itemName",
+                "metricValue": "0",
+                "metricUnit": <unit>,
+                "metricTime": "0"
+              },..
+    ]
+}	  
+	  
 ```    
 #### Group creation
 ```
@@ -179,41 +205,11 @@ RESPONSE Status 201 Created:
   }
 ```
 
-#### Update group name
-```
-PUT: http://{ip:port}/monitoring/adapters/zabbix/zones/{zone}/types/{serverType}/groups/{groupName}/
-  {
-    	"newHostGroupName":"newGroupNameTobeSet"
-  }
-RESPONSE Status 202 Accepted: 
-  {
-    "result": "<newGroupNameSet>",
-  }
-```
-
 #### Delete group
 ```
 DELETE: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType}/groups/{groupName}
  RESPONSE Status 204 No Content
 ```
-
-#### Proxy creation
-```
-POST: http://{ip:port}/monitoring/adapters/zabbix/zones/{zone}/types/{serverType}/groups/{groupName}/proxies
-  {
-    	"proxyName":"<proxyTobeSet>"
-  }
-RESPONSE Status 201 Created: 
-  {
-    "result": "<proxyNameSet>",
-  }
-```
-
-#### Proxy cancellation
-```
-DELETE: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType}/groups/{groupName}/proxies{proxyName}
- 	RESPONSE Status 204 No Content
-``` 
 
 #### Host creation
 ```
@@ -245,46 +241,6 @@ DELETE: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{server
  	RESPONSE Status 204 No Content
 ```
 
-#### List of Hosts
-```
-GET: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType}/groups/{groupName}/hosts
-RESPONSE Status 200 OK:
-"result": {
-    "groups": [
-      {
-        "groupName": "<groupName>",
-        "paasMachines": [
-          {
-            "machineName": "hostName",
-            "ip": "<ip>",
-            "serviceCategory": "",
-            "serviceId": "<id>",
-            "enabled": true
-          }....
-        ]
-      }
-    ]
-  }
-```
-
-#### Host info by id (Inventory tag)
-```
-GET: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType}/groups/{groupName}/hosts?service-id={822}
-RESPONSE Status 200 OK:
-  {
-    ** Same as hostGroup Response
-  }
-```
-
-#### Enable or disable a host
-```
-PUT: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType}/groups/{groupName}/hosts/{host}?update=enable
-RESPONSE Status 200 OK:
-  {
-    "result": "<hostNameEnabledOrDisabled>",
-  }
-```
-
 #### Get trigger
 ```
 GET: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType}/groups/{groupName}/hosts?thresholds=true
@@ -305,15 +261,6 @@ RESPONSE Status 200 OK:
     ** Same as hostGroup Response
   }
 ```
- 
-#### Enable or disable a metric
-```
-PUT: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType}/groups/{groupName}/hosts/{hostName}/metrics/{metricName}?update=enable
- 	RESPONSE Status 200 OK:
-  {
-    "result": "<MetricEnabledOrDisabled>",
-  }
-```
 
 #### Get metric info
 ```
@@ -321,107 +268,5 @@ GET: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverTyp
 RESPONSE Status 200 OK:
   {
     ** Same as hostGroup Response
-  }
-```
-
-#### List of metrics
-```
-GET: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType}/groups/{groupName}/hosts/{hostName}/metrics
-RESPONSE Status 200 OK
-{
- "result":
-    {"groups": [
-      {
-        "groupName": "Workgroup-2",
-        "paasMachines": [
-          {
-            "machineName": "<host>",
-            "ip": "localhost",
-            "enabled": true,
-            "metrics": [
-              {
-                "metricName": "itemName",
-                "metricValue": "0",
-                "metricUnit": <unit>,
-                "metricTime": "0"
-              },..
-    ]
-}
-```
-
-#### Events without tiem filter
-```
-GET: http://{ip:port}/monitoring/adapters/{zabbix}/types/{serverType}/groups/{groupName}/hosts/{hostName}/events
-RESPONSE Status 200 OK:
-{
-****"result": {
-    "events": [
-      {
-        "key": "APACHEPortListening.vm-stack-dbaas-1-20-mkdbtest8.Workgroup-1",
-        "clock": "26-02-2016 11:43:30",
-        "descriptionEvent": {
-          "gruopName": "Workgroup-1",
-          "hostName": "vm-stack-dbaas-1-20-mkdbtest8",
-          "metricName": "APACHEPortListening"
-        }
-      },...
-}
-```
-
-#### Events with filter of time
-```
-GET: http://{ip:port}/monitoring/adapters/{zabbix}/types/{serverType}/groups/{groupName}/hosts/{hostName}/events-filetered?from=<timeFrom>&to=<timeTo>
-RESPONSE Status 200 OK:
- {
-   ****result same as events response
- }
-```
-
-#### History with time filter
-```
-GET: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType}/groups/{groupName}/hosts/{hostName}/metrics/{metricsName}/history?from=<timeFrom>&to=<timeTo>
-RESPONSE Status 200 OK
-{
-***"result": {
-    "groups": [
-      {
-        "groupName": "Workgroup-1",
-        "paasMachines": [
-          {
-            "machineName": "vm-stack-dbaas-1-20-mkdbtest8",
-            "ip": "172.30.19.250",
-            "serviceCategory": "dbaas",
-            "serviceId": "20",
-            "services": [
-              {
-                "serviceName": "Apache",
-                "paasMetrics": [
-                  {
-                    "metricName": null,
-                    "metricKey": "Workgroup-1.vm-stack-dbaas-1-20-mkdbtest8.Apache.null",
-                    "metricValue": 1,
-                    "metricTime": null,
-                    "metricUnit": null,
-                    "paasThresholds": [],
-                    "historyClocks": [
-                      "22-02-2016 19:49:17",
-                      "22-02-2016 19:49:20",
-                      "22-02-2016 19:49:20",
-			……..
-			 ],
-                    "historyValues": [
-                      1,
-                      3,
-                      6,.....
-	]
-}]}
-```
-
-#### History without filter time
-```
-GET: http://{ip:port}/monitoring/adapters/{zabbix}/types/{serverType}/groups/{groupName}/hosts/{hostName}/metrics/{metricName}/history
-RESPONSE Status 200 OK
- {
-  ***Same as History with filter time but starting from last values returned from zabbix
   }
 ```
