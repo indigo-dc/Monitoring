@@ -189,15 +189,9 @@ PUT: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverTyp
   "serviceId":"serviceId",
   "atomicServices": ["apache"],
   "uuid":"<uuid_to_insert>",
-  "activeMode": true,
-  "port":[
-    {
-     "portName":"APACHEPORT", 
-           "value":"80"
-    }
-      ]
+  "activeMode": true
 }
-(activeMode e port  are optional parameters, if not mentioned in the body, default values will be associated)
+(activeMode are optional parameters, if not mentioned in the body, default values will be associated; atomicService field maps the templates in zabbix server)
  RESPONSE Status 201 Created: 
   {
    "result": "<hostNameSet>",
