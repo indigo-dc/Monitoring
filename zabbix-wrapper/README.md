@@ -5,8 +5,8 @@ This software layer has been written in order to expose Zabbix RESTful API and t
 INDIGO zabbix-wrapper
 ============================
 
-This is the monitoring wrapper of the PaaS layer, a component of the INDIGO project. It exposes REST API wrapping the zabbix ones.
-To make it properly work it should point to a zabbix server
+This is the monitoring wrapper of the PaaS layer, a component of the INDIGO project. It exposes REST API which wrap zabbix's JSON-RPC 2.0 API.
+To make it properly work it should point to a zabbix server.
 
 
 
@@ -21,7 +21,7 @@ This project has been created with maven 3.3.3 and Java 1.8. Maven will take car
 1.2 INSTALLING
 --------------
 
-When having the war at disposal starting from a clean VM with Ubuntu install the docker manager:
+When having the war at disposal, starting from a clean VM with Ubuntu, install the docker manager:
 ```
 sudo apt-get update
 ```
@@ -116,7 +116,7 @@ RESPONSE Status 200 OK:
  }
 ```
  
-#### List of groups
+#### Groups list 
 ```
 GET:http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType}/groups
  RESPONSE Status 200 OK:
@@ -133,7 +133,7 @@ GET:http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType
 }
 ```
 
-#### List of hosts
+#### Hosts list 
 ```
 GET: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType}/groups/{groupName}/hosts
 RESPONSE Status 200 OK:
@@ -167,32 +167,7 @@ RESPONSE Status 200 OK:
             ]
           },...}
 
-```
-#### List of metrics
-```
-GET: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType}/groups/{groupName}/hosts/{hostName}/metrics
-RESPONSE Status 200 OK
-{
- "result":
-    {"groups": [
-      {
-        "groupName": "Workgroup-2",
-        "paasMachines": [
-          {
-            "machineName": "<host>",
-            "ip": "localhost",
-            "enabled": true,
-            "metrics": [
-              {
-                "metricName": "itemName",
-                "metricValue": "0",
-                "metricUnit": <unit>,
-                "metricTime": "0"
-              },..
-    ]
-}	  
-	  
-```    
+```   
 #### Group creation
 ```
 POST: http://{ip:port}/monitoring/adapters/zabbix/zones/{zone}/types/{serverType}/groups/{groupName}/
@@ -203,12 +178,6 @@ RESPONSE Status 201 Created:
   {
     "result": "<groupNameSet>",
   }
-```
-
-#### Delete group
-```
-DELETE: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType}/groups/{groupName}
- RESPONSE Status 204 No Content
 ```
 
 #### Host creation
@@ -235,26 +204,11 @@ PUT: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverTyp
   }
 ```
 
-#### Host cancellation
-```
-DELETE: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverTyp}/groups/{groupName}/hosts/{hostname}
- 	RESPONSE Status 204 No Content
-```
-
 #### Get host info
 ```
 GET: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverTyp}/groups/{groupName}/hosts/{hostName}
 RESPONSE Status 200 OK:
   {
     ** Same as hostGroup Response with one host description shown
-  }
-```
-
-#### Get metric info
-```
-GET: http://{ip:port}/monitoring/adapters/{zabbix}/zones/{zone}/types/{serverType}/groups/{groupName}/hosts/{hostName}/metrics/{metricName}
-RESPONSE Status 200 OK:
-  {
-    ** Same as hostGroup Response with one metric details shown
   }
 ```
