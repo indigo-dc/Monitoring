@@ -37,8 +37,8 @@ import java.util.Properties;
 public class PropertiesManager {
   public static final String KEYSTONE_LOCATION = "openstack.keystoneurl";
   public static final String KEYSTONE_PORT = "openstack.keystoneport";
-  public static final String OCCI_LOCATION = "openstack.occiurl";
-  public static final String OCCI_PORT = "openstack.occiport";
+  public static final String COMPUTE_LOCATION = "openstack.novaurl";
+  public static final String COMPUTE_PORT = "openstack.novaport";
   public static final String OPENSTACK_USER = "openstack.user";
   public static final String OPENSTACK_PASSWORD = "openstack.password";
   public static final String JAVA_KEYSTORE = "java.keystore";
@@ -67,7 +67,7 @@ public class PropertiesManager {
     if (loader == null) {
       loader = ClassLoader.getSystemClassLoader();
     }
-    String fileName = "occiprobe.properties";
+    String fileName = "openstackprobe.properties";
     
     try {
       // We want to load file located in /resources      

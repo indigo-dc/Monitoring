@@ -37,7 +37,7 @@
 		<module>zabbix-probes-base</module>
 		<module>heapster-zabbix-probe</module>
 		<module>occi-zabbix-probe</module>
-		<module>openstack-zabbix-probes</module>
+		<module>openstack-zabbix-probe</module>
 	</modules>
 
 </project>

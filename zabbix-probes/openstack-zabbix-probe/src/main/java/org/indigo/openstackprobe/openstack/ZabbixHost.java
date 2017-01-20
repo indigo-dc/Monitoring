@@ -46,7 +46,7 @@ public class ZabbixHost implements Serializable {
     uuid = hostName;
     serviceCategory = "IaaS";
     serviceId = "id";
-    atomicServices = new String[]{"OCCI"};
+    atomicServices = new String[]{"Openstack"};
     activeMode = false;
   }
   
@@ -84,7 +84,7 @@ public class ZabbixHost implements Serializable {
   
   /**
    * It retrieves the list of atomic services.
-   * @return Set to OCCI by default.
+   * @return Set to Openstack by default.
    */
   public String[] getAtomicServices() {
     return atomicServices;

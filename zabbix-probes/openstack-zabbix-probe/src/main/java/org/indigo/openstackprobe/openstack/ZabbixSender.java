@@ -44,7 +44,7 @@ public class ZabbixSender {
   private String zabbixSender;
   private Runtime rt;
   private ZabbixWrapperClient myClient;
-  private ArrayList<OcciProbeResult> metricsQueue;
+  private ArrayList<OpenstackProbeResult> metricsQueue;
   
   /**
    * It provides the current ZabbixSender instance and, in case it does not exist,
@@ -69,7 +69,7 @@ public class ZabbixSender {
     PropertiesManager myProp = new PropertiesManager();
     zabbixLocation = myProp.getProperty(PropertiesManager.ZABBIX_IP);
     zabbixSender = myProp.getProperty(PropertiesManager.ZABBIX_SENDER);
-    metricsQueue = new ArrayList<OcciProbeResult>();
+    metricsQueue = new ArrayList<OpenstackProbeResult>();
     
     // Create standard Runtime and Wrapper Client
     rt = Runtime.getRuntime();
@@ -96,7 +96,7 @@ public class ZabbixSender {
   private ZabbixSender(Runtime mockRuntime, ZabbixWrapperClient wrapperMock) {
     rt = mockRuntime;
     myClient = wrapperMock;
-    metricsQueue = new ArrayList<OcciProbeResult>();
+    metricsQueue = new ArrayList<OpenstackProbeResult>();
   }
   
   /**
@@ -105,7 +105,7 @@ public class ZabbixSender {
    * @param metrics An object containing all the gathered metrics
    * @return True if the operation succeed.
    */
-  public synchronized boolean addMetricToQueue(OcciProbeResult metrics) {
+  public synchronized boolean addMetricToQueue(OpenstackProbeResult metrics) {
     if (metrics == null) {
       return false;
     }
@@ -124,9 +124,9 @@ public class ZabbixSender {
       return false;
     }
     boolean result = true;
-    Iterator<OcciProbeResult> metricsIterator = metricsQueue.iterator();
+    Iterator<OpenstackProbeResult> metricsIterator = metricsQueue.iterator();
     while (metricsIterator.hasNext()) {
-      OcciProbeResult currentMetric = metricsIterator.next();
+      OpenstackProbeResult currentMetric = metricsIterator.next();
       System.out.println("Pushing metrics from: " + currentMetric.getProviderName());
       result = result & sendMetrics(currentMetric);
     }
@@ -139,7 +139,7 @@ public class ZabbixSender {
    * @param metrics An object containing all the gathered metrics
    * @return It indicates operation successful (true) or failed (false).
    */
-  private boolean sendMetrics(OcciProbeResult metrics) {
+  private boolean sendMetrics(OpenstackProbeResult metrics) {
     // Check the input is not null
     if (metrics == null || metrics.getCreateVmElement() == null) {
       return false;
@@ -153,23 +153,23 @@ public class ZabbixSender {
     int failures = 0;
     
     String globalAvailability = "-z " + zabbixLocation + " -s \"" 
-        + provider + "\" -k occi.global[availability] -o " 
+        + provider + "\" -k openstack.global[availability] -o " 
         + metrics.getGlobalAvailability();
     String globalResult = "-z " + zabbixLocation + " -s \"" 
-        + provider + "\" -k occi.global[result] -o " 
+        + provider + "\" -k openstack.global[result] -o " 
         + metrics.getGlobalResult();
     String globalResponseTime = "-z " + zabbixLocation + " -s \"" 
-        + provider + "\" -k occi.global[responseTime] -o " 
+        + provider + "\" -k openstack.global[responseTime] -o " 
         + metrics.getGlobalResponseTime();
     
     String createVmAvailability = "-z " + zabbixLocation + " -s \"" 
-        + provider + "\" -k occi.createvm[availability] -o " 
+        + provider + "\" -k openstack.createvm[availability] -o " 
         + metrics.getCreateVmElement().getCreateVmAvailability();
     String createVmResult = "-z " + zabbixLocation + " -s \"" 
-        + provider + "\" -k occi.createvm[result] -o " 
+        + provider + "\" -k openstack.createvm[result] -o " 
         + metrics.getCreateVmElement().getCreateVmResult();
     String createVmResponseTime = "-z " + zabbixLocation + " -s \"" 
-        + provider + "\" -k occi.createvm[responseTime] -o " 
+        + provider + "\" -k openstack.createvm[responseTime] -o " 
         + metrics.getCreateVmElement().getCreateVmResponseTime();
     
     String inspectVmAvailability = "";
@@ -177,13 +177,13 @@ public class ZabbixSender {
     String inspectVmResponseTime = "";
     if (metrics.getInspectVmElement() != null) {
       inspectVmAvailability = "-z " + zabbixLocation + " -s \"" 
-          + provider + "\" -k occi.inspectvm[availability] -o " 
+          + provider + "\" -k openstack.inspectvm[availability] -o " 
           + metrics.getInspectVmElement().getInspectVmAvailability();
       inspectVmResult = "-z " + zabbixLocation + " -s \"" 
-          + provider + "\" -k occi.inspectvm[result] -o " 
+          + provider + "\" -k openstack.inspectvm[result] -o " 
           + metrics.getInspectVmElement().getInspectVmResult();
       inspectVmResponseTime = "-z " + zabbixLocation + " -s \"" 
-          + provider + "\" -k occi.inspectvm[responseTime] -o " 
+          + provider + "\" -k openstack.inspectvm[responseTime] -o " 
           + metrics.getInspectVmElement().getInspectVmResponseTime();
     }
     
@@ -192,13 +192,13 @@ public class ZabbixSender {
     String deleteVmResponseTime = "";
     if (metrics.getDeleteVmElement() != null) {
       deleteVmAvailability = "-z " + zabbixLocation + " -s \"" 
-          + provider + "\" -k occi.deletevm[availability] -o " 
+          + provider + "\" -k openstack.deletevm[availability] -o " 
           + metrics.getDeleteVmElement().getDeleteVmAvailability();
       deleteVmResult = "-z " + zabbixLocation + " -s \"" 
-          + provider + "\" -k occi.deletevm[result] -o " 
+          + provider + "\" -k openstack.deletevm[result] -o " 
           + metrics.getDeleteVmElement().getDeleteVmResult();
       deleteVmResponseTime = "-z " + zabbixLocation + " -s \"" 
-          + provider + "\" -k occi.deletevm[responseTime] -o " 
+          + provider + "\" -k openstack.deletevm[responseTime] -o " 
           + metrics.getDeleteVmElement().getDeleteVmResponseTime();
     }
     
@@ -356,7 +356,7 @@ public class ZabbixSender {
     CreateVmResult create = new CreateVmResult(1, 200, 1429, "testVM");
     InspectVmResult inspect = new InspectVmResult(1, 200, 426);
     DeleteVmResult delete = new DeleteVmResult(1, 204, 612);
-    OcciProbeResult global = new OcciProbeResult(1, 204, 2467, "PruHost");
+    OpenstackProbeResult global = new OpenstackProbeResult(1, 204, 2467, "PruHost");
     global.addCreateVmInfo(create);
     global.addInspectVmInfo(inspect);
     global.addDeleteVmInfo(delete);

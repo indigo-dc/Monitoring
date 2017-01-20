@@ -144,8 +144,8 @@ public class ZabbixWrapperClient {
    */
   public static void main(String[] args) {
     ZabbixWrapperClient myClient = new ZabbixWrapperClient();
-    boolean hostExists = myClient.isHostRegistered("PruHost2");
+    boolean hostExists = myClient.isHostRegistered("PruHost3");
     System.out.println(hostExists);
-    myClient.registerHost("PruHost2");
+    myClient.registerHost("PruHost3");
   }
 }

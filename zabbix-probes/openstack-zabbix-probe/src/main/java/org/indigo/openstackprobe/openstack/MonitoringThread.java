@@ -13,7 +13,7 @@ package org.indigo.openstackprobe.openstack;
 public class MonitoringThread extends Thread {
   private String provider;
   private ZabbixSender mySender;
-  private OpenStackOcciClient myClient;
+  private OpenStackClient myClient;
   
   /**
    * This is the main constructor of the class, in order to retrieve the
@@ -25,9 +25,9 @@ public class MonitoringThread extends Thread {
   protected MonitoringThread(String providerId, String providerUrl, String keystoneUrl) {
     provider = providerId;
     mySender = ZabbixSender.instance();  
-    myClient = new OpenStackOcciClient(keystoneUrl, providerUrl, providerId);
+    myClient = new OpenStackClient(keystoneUrl, providerUrl, providerId);
     
-    System.out.println("OCCI Endpoint: " + providerUrl);
+    System.out.println("Nova Endpoint: " + providerUrl);
     System.out.println("Keystone Endpoint: " + keystoneUrl);
   }
   
@@ -37,10 +37,10 @@ public class MonitoringThread extends Thread {
    * @param occiMock Mock for the OCCI client
    * @param providerId Provider identifier
    */
-  public MonitoringThread(ZabbixSender senderMock, OpenStackOcciClient occiMock, 
+  public MonitoringThread(ZabbixSender senderMock, OpenStackClient openstackMock, 
       String providerId) {
     mySender = senderMock;
-    myClient = occiMock;
+    myClient = openstackMock;
     provider = providerId;
   }
   
@@ -53,7 +53,7 @@ public class MonitoringThread extends Thread {
     try {
       System.out.println("Retrieving monitoring information about " + provider + "...");      
       // Run the OCCI monitoring process and retrieve the result      
-      OcciProbeResult result = myClient.getOcciMonitoringInfo();
+      OpenstackProbeResult result = myClient.getOpenstackMonitoringInfo();
       
       // Send the metrics to Zabbix collector 
       System.out.println("Sending the metrics to Zabbix Sender...");

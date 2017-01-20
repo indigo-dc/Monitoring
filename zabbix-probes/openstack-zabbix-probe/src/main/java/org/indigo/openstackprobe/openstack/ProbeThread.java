@@ -22,6 +22,7 @@ package org.indigo.openstackprobe.openstack;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
@@ -93,20 +94,22 @@ public class ProbeThread {
   public boolean startMonitoringProcess() {
     // Retrieve the list of providers with their info   
     System.out.println("Looking for providers and their info...");
-    ArrayList<CloudProviderInfo> providersList = myClient.getFeasibleProvidersInfo();
+    List<CloudProviderInfo> providersList = myClient.getFeasibleProvidersInfo();
     
     // Prepare the list of monitoring threads
     System.out.println("Done! Now starting monitoring tasks...");
-    ArrayList<MonitoringThread> myTaskList = new ArrayList<MonitoringThread>();
+    List<MonitoringThread> myTaskList = new ArrayList<>();
     Iterator<CloudProviderInfo> providersIterator = providersList.iterator();
     while (providersIterator.hasNext()) {
       CloudProviderInfo currentProvider = providersIterator.next();
+      if(currentProvider.getNovaEndpoint()!=null && currentProvider.getKeystoneEndpoint()!=null){
       String providerId = currentProvider.getProviderId();
-      String occiEndpoint = currentProvider.getOcciEndpoint();
+      String openstackEndpoint = currentProvider.getNovaEndpoint();
       String keystoneEndpoint = currentProvider.getKeystoneEndpoint();
       
-      MonitoringThread myTask = new MonitoringThread(providerId, occiEndpoint, keystoneEndpoint);
+      MonitoringThread myTask = new MonitoringThread(providerId, openstackEndpoint, keystoneEndpoint);
       myTaskList.add(myTask);
+      }
     }
     /*
     MonitoringThread myTask1 = new MonitoringThread("provider-RECAS-BARI", "http://cloud.recas.ba.infn.it:8787", "https://cloud.recas.ba.infn.it:5000");
@@ -154,7 +157,7 @@ public class ProbeThread {
       System.out.println("Some metrics could not be sent correctly!");
     }
     
-    System.out.println("OCCI Monitoring Probe finished!");
+    System.out.println("Openstack Monitoring Probe finished!");
     return result;
   }
   

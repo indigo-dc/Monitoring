@@ -31,7 +31,7 @@ public class ProviderInfo {
   private String providerId;
   private boolean isOpenStack;
   private String keystoneUrl;
-  private String occiUrl;
+  private String novaUrl;
   
   /**
    * This constructor applies to those Cloud Providers who are providing services
@@ -40,11 +40,11 @@ public class ProviderInfo {
    * @param keystoneLocation Base URL for Keystone [IP:Port]
    * @param occiLocation Base URL for OCCI API [IP:Port]
    */
-  public ProviderInfo(String identifier, String keystoneLocation, String occiLocation) {
+  public ProviderInfo(String identifier, String keystoneLocation, String novaLocation) {
     isOpenStack = true;
     providerId = identifier;
     keystoneUrl = keystoneLocation;
-    occiUrl = occiLocation;
+    novaUrl = novaLocation;
   }
   
   /**
@@ -53,10 +53,10 @@ public class ProviderInfo {
    * @param identifier String identifying the Cloud provider
    * @param occiLocation Base URL for OCCI API [IP:Port]
    */
-  public ProviderInfo(String identifier, String occiLocation) {
+  public ProviderInfo(String identifier, String novaLocation) {
     isOpenStack = false;
     providerId = identifier;
-    occiUrl = occiLocation;
+    novaUrl = novaLocation;
   }
   
   /**
@@ -79,8 +79,8 @@ public class ProviderInfo {
    * It provides the base URL of the REST OCCI API.
    * @return String with the base URL in the form [IP:Port]
    */
-  public String getOcciUrl() {
-    return occiUrl;
+  public String getNovaUrl() {
+    return novaUrl;
   }
   
   /**

@@ -28,7 +28,7 @@ package org.indigo.openstackprobe.openstack;
  * @author ATOS
  *
  */
-public class OcciProbeResult {
+public class OpenstackProbeResult {
   private String providerName;
   private int globalAvailability;
   private int globalResult;
@@ -41,7 +41,7 @@ public class OcciProbeResult {
   /**
    * This is an empty constructor for the class.
    */
-  public OcciProbeResult(String provider) {
+  public OpenstackProbeResult(String provider) {
     providerName = provider;
   }
   
@@ -52,7 +52,7 @@ public class OcciProbeResult {
    * @param result It is a global HTTP response code, the most problematic one.
    * @param responseTime Sum of the response time of all calls, in milliseconds.
    */
-  public OcciProbeResult(int availability, int result, long responseTime, String provider) {
+  public OpenstackProbeResult(int availability, int result, long responseTime, String provider) {
     globalAvailability = availability;
     globalResult = result;
     globalResponseTime = responseTime;

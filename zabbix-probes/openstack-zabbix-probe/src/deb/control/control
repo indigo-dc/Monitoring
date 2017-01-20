@@ -1,4 +1,5 @@
 Package: [ZabbixOpenstackProbe]
+#zabbixOopenstackprobe
 Version: [0.95]
 Section: misc
 Priority: low
