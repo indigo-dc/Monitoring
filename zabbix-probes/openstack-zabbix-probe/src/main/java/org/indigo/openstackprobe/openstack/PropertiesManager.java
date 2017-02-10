@@ -29,9 +29,8 @@ import java.util.Properties;
 
 /**
  * This class is focused on retrieving configuration parameters, serving them to other classes
- * which may need them in an easy way. It loads the configuration set in the occiprobe.properties
+ * which may need them in an easy way. It loads the configuration set in the openstackprobe.properties
  * file.
- * @author ATOS
  *
  */
 public class PropertiesManager {
@@ -46,6 +45,7 @@ public class PropertiesManager {
   public static final String ZABBIX_SENDER = "zabbix.sender.location";
   public static final String ZABBIX_WRAPPER = "zabbix.wrapper.location";
   public static final String CMDB_URL = "cmdb.location";
+  public static final String TENANT_NAME = "openstack.tenant.name";
   
   private HashMap<String, String> propertiesList;
   
@@ -71,13 +71,11 @@ public class PropertiesManager {
     
     try {
       // We want to load file located in /resources      
-      String location = "";
+      String location;
       String opSystem = System.getProperty("os.name").toLowerCase();
-      if (opSystem.indexOf("win") >= 0) {
-        location = "C://zabbixconfig//";
-      } else {
-        location = "/etc/zabbix/";
-      }
+       location = (opSystem.indexOf("win") >= 0) ? 
+        "C://zabbixconfig//" : "/etc/zabbix/";
+      
       InputStream is = new FileInputStream(location + fileName);
       prop.load(is);
       is.close();

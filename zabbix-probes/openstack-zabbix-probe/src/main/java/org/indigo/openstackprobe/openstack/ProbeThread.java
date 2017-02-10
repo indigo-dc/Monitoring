@@ -1,5 +1,4 @@
 /**
-Copyright 2016 ATOS SPAIN S.A.
 
 Licensed under the Apache License, Version 2.0 (the License);
 you may not use this file except in compliance with the License.
@@ -13,9 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Authors Contact:
-Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
-@email francisco.nieto@atos.net
 **/
 
 package org.indigo.openstackprobe.openstack;
@@ -28,6 +24,10 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Logger;
+
+
 /**
  * This class aims at implementing the management of the threads to be used for 
  * the monitoring operations. It follows a singleton pattern, so only one instance
@@ -38,13 +38,13 @@ import java.util.concurrent.TimeUnit;
 public class ProbeThread {
   // A handle to the unique Singleton instance.
   private final ScheduledExecutorService scheduler;
-  private static ProbeThread _instance = null;
-  private long interval = 200;
+  private static ProbeThread _instance;
   private long initialDelay = 10;
   private int numThreads = 2;
-  private boolean termination = true;
   private CmdbClient myClient;
   private ZabbixSender mySender;
+  
+  private static final org.apache.logging.log4j.Logger log = LogManager.getLogger(ProbeThread.class);
   
   private ProbeThread() {
     // Build element for thread and tasks scheduling
@@ -68,7 +68,7 @@ public class ProbeThread {
   public static synchronized ProbeThread instance() {
     if (null == _instance) {
       _instance = new ProbeThread();
-      System.out.println("A new instance of the Monitoring Probe thread was created!");
+      log.info("A new instance of the Monitoring Probe thread was created!");
     }
     return _instance;
   }
@@ -82,7 +82,7 @@ public class ProbeThread {
   public static synchronized ProbeThread instance(ScheduledExecutorService mock,
       ZabbixSender senderMock, CmdbClient cmdbMock) {
     _instance = new ProbeThread(mock, senderMock, cmdbMock);
-    System.out.println("A new instance of the testing Monitoring Probe thread was created!");
+    log.info("A new instance of the testing Monitoring Probe thread was created!");
     
     return _instance;
   }
@@ -93,11 +93,11 @@ public class ProbeThread {
    */
   public boolean startMonitoringProcess() {
     // Retrieve the list of providers with their info   
-    System.out.println("Looking for providers and their info...");
+    log.info("Looking for providers and their info...");
     List<CloudProviderInfo> providersList = myClient.getFeasibleProvidersInfo();
     
     // Prepare the list of monitoring threads
-    System.out.println("Done! Now starting monitoring tasks...");
+    log.info("Done! Now starting monitoring tasks...");
     List<MonitoringThread> myTaskList = new ArrayList<>();
     Iterator<CloudProviderInfo> providersIterator = providersList.iterator();
     while (providersIterator.hasNext()) {
@@ -130,13 +130,13 @@ public class ProbeThread {
       try {
         scheduler.schedule(currentTask, initialDelay, TimeUnit.SECONDS);
       } catch (RejectedExecutionException ex) {
-        System.out.println("Issue detected when scheduling a new thread!" + ex.getMessage());
+        log.info("Issue detected when scheduling a new thread!" + ex.getMessage());
         schedulingFailures ++;
       }      
     }
             
     // Terminate thread manager
-    boolean result = true;
+    boolean result;
     if (schedulingFailures > 0) {
       result = false;
     } else {
@@ -145,19 +145,19 @@ public class ProbeThread {
     }
     scheduler.shutdown();
     try {
-      termination = scheduler.awaitTermination(30, TimeUnit.MINUTES);
+      boolean termination = scheduler.awaitTermination(30, TimeUnit.MINUTES);
     } catch (InterruptedException ex) {
-      System.out.println("The scheduler was interrupted because of unexpected reasons!");
+      log.info("The scheduler was interrupted because of unexpected reasons!");
       result = false;
     }
     
     // Send all the metrics    
     result = mySender.sendMetrics();
     if (!result) {
-      System.out.println("Some metrics could not be sent correctly!");
+      log.info("Some metrics could not be sent correctly!");
     }
     
-    System.out.println("Openstack Monitoring Probe finished!");
+    log.info("Openstack Monitoring Probe finished!");
     return result;
   }
   
@@ -166,7 +166,7 @@ public class ProbeThread {
    * are finished.
    */
   public void stopThread() {
-    System.out.println("Destroying the monitoring thread...");
+    log.info("Destroying the monitoring thread...");
     scheduler.shutdownNow();
   }
   
@@ -180,6 +180,6 @@ public class ProbeThread {
     // Start the monitoring process
     ProbeThread probeManager = ProbeThread.instance();
     boolean result = probeManager.startMonitoringProcess();
-    System.out.println("Result: " + result);
+    log.info("Result: " + result);
   }
 }

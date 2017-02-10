@@ -13,7 +13,7 @@ limitations under the License.
 
 **/
 
-package org.indigo.openstackprobe.openstack.test;
+package org.indigo.openstackprobe.openstack;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

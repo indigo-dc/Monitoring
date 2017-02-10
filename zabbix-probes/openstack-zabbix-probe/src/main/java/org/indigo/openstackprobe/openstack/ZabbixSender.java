@@ -27,6 +27,9 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * The ZabbixSender class receives the monitored metrics for a Cloud Provider and it executes
  * the corresponding commands of the Zabbix agent in order to send all the metrics to the Zabbix
@@ -41,10 +44,12 @@ public class ZabbixSender {
   
   private static ZabbixSender _instance = null;
   private String zabbixLocation;
-  private String zabbixSender;
+  private String zabbixSenderPath;
   private Runtime rt;
   private ZabbixWrapperClient myClient;
   private ArrayList<OpenstackProbeResult> metricsQueue;
+  
+  private static final Logger log = LogManager.getLogger(ZabbixSender.class);
   
   /**
    * It provides the current ZabbixSender instance and, in case it does not exist,
@@ -52,9 +57,9 @@ public class ZabbixSender {
    * @return The current single instance of the ZabbixSender 
    */
   public static synchronized ZabbixSender instance() {
-    if (null == _instance) {
+    if (null == _instance) { 
       _instance = new ZabbixSender();
-      System.out.println("A new instance of the Zabbix Sender was created!");
+      log.info("A new instance of the Zabbix Sender was created!");
     }
     return _instance;
   }
@@ -68,7 +73,7 @@ public class ZabbixSender {
     // Retrieve location of the Zabbix Server and the Zabbix sender (local)
     PropertiesManager myProp = new PropertiesManager();
     zabbixLocation = myProp.getProperty(PropertiesManager.ZABBIX_IP);
-    zabbixSender = myProp.getProperty(PropertiesManager.ZABBIX_SENDER);
+    zabbixSenderPath = myProp.getProperty(PropertiesManager.ZABBIX_SENDER);
     metricsQueue = new ArrayList<OpenstackProbeResult>();
     
     // Create standard Runtime and Wrapper Client
@@ -84,7 +89,7 @@ public class ZabbixSender {
    */
   public static synchronized ZabbixSender instance(Runtime mockRuntime, ZabbixWrapperClient mock) {
     _instance = new ZabbixSender(mockRuntime, mock);
-    System.out.println("A new testing instance of the Zabbix sender for testing was created!");
+    log.info("A new testing instance of the Zabbix sender for testing was created!");
     
     return _instance;
   }
@@ -127,7 +132,7 @@ public class ZabbixSender {
     Iterator<OpenstackProbeResult> metricsIterator = metricsQueue.iterator();
     while (metricsIterator.hasNext()) {
       OpenstackProbeResult currentMetric = metricsIterator.next();
-      System.out.println("Pushing metrics from: " + currentMetric.getProviderName());
+      log.info("Pushing metrics from: " + currentMetric.getProviderName());
       result = result & sendMetrics(currentMetric);
     }
     return result;  
@@ -206,37 +211,37 @@ public class ZabbixSender {
       // Determine execution context
       String opSystem = System.getProperty("os.name").toLowerCase();
       if (opSystem.indexOf("win") >= 0) {
-        globalAvailability = zabbixSender + "/zabbix_sender.exe " + globalAvailability;
-        globalResult = zabbixSender + "/zabbix_sender.exe " + globalResult;
-        globalResponseTime = zabbixSender + "/zabbix_sender.exe " + globalResponseTime;
+        globalAvailability = zabbixSenderPath + "/zabbix_sender.exe " + globalAvailability;
+        globalResult = zabbixSenderPath + "/zabbix_sender.exe " + globalResult;
+        globalResponseTime = zabbixSenderPath + "/zabbix_sender.exe " + globalResponseTime;
         
-        createVmAvailability = zabbixSender + "/zabbix_sender.exe " + createVmAvailability;
-        createVmResult = zabbixSender + "/zabbix_sender.exe " + createVmResult;
-        createVmResponseTime = zabbixSender + "/zabbix_sender.exe " + createVmResponseTime;
+        createVmAvailability = zabbixSenderPath + "/zabbix_sender.exe " + createVmAvailability;
+        createVmResult = zabbixSenderPath + "/zabbix_sender.exe " + createVmResult;
+        createVmResponseTime = zabbixSenderPath + "/zabbix_sender.exe " + createVmResponseTime;
         
-        inspectVmAvailability = zabbixSender + "/zabbix_sender.exe " + inspectVmAvailability;
-        inspectVmResult = zabbixSender + "/zabbix_sender.exe " + inspectVmResult;
-        inspectVmResponseTime = zabbixSender + "/zabbix_sender.exe " + inspectVmResponseTime;
+        inspectVmAvailability = zabbixSenderPath + "/zabbix_sender.exe " + inspectVmAvailability;
+        inspectVmResult = zabbixSenderPath + "/zabbix_sender.exe " + inspectVmResult;
+        inspectVmResponseTime = zabbixSenderPath + "/zabbix_sender.exe " + inspectVmResponseTime;
         
-        deleteVmAvailability = zabbixSender + "/zabbix_sender.exe " + deleteVmAvailability;
-        deleteVmResult = zabbixSender + "/zabbix_sender.exe " + deleteVmResult;
-        deleteVmResponseTime = zabbixSender + "/zabbix_sender.exe " + deleteVmResponseTime;
+        deleteVmAvailability = zabbixSenderPath + "/zabbix_sender.exe " + deleteVmAvailability;
+        deleteVmResult = zabbixSenderPath + "/zabbix_sender.exe " + deleteVmResult;
+        deleteVmResponseTime = zabbixSenderPath + "/zabbix_sender.exe " + deleteVmResponseTime;
       } else {
-        globalAvailability = zabbixSender + "/zabbix_sender " + globalAvailability;
-        globalResult = zabbixSender + "/zabbix_sender " + globalResult;
-        globalResponseTime = zabbixSender + "/zabbix_sender " + globalResponseTime;
+        globalAvailability = zabbixSenderPath + "/zabbix_sender " + globalAvailability;
+        globalResult = zabbixSenderPath + "/zabbix_sender " + globalResult;
+        globalResponseTime = zabbixSenderPath + "/zabbix_sender " + globalResponseTime;
         
-        createVmAvailability = zabbixSender + "/zabbix_sender " + createVmAvailability;
-        createVmResult = zabbixSender + "/zabbix_sender " + createVmResult;
-        createVmResponseTime = zabbixSender + "/zabbix_sender " + createVmResponseTime;
+        createVmAvailability = zabbixSenderPath + "/zabbix_sender " + createVmAvailability;
+        createVmResult = zabbixSenderPath + "/zabbix_sender " + createVmResult;
+        createVmResponseTime = zabbixSenderPath + "/zabbix_sender " + createVmResponseTime;
         
-        inspectVmAvailability = zabbixSender + "/zabbix_sender " + inspectVmAvailability;
-        inspectVmResult = zabbixSender + "/zabbix_sender " + inspectVmResult;
-        inspectVmResponseTime = zabbixSender + "/zabbix_sender " + inspectVmResponseTime;
+        inspectVmAvailability = zabbixSenderPath + "/zabbix_sender " + inspectVmAvailability;
+        inspectVmResult = zabbixSenderPath + "/zabbix_sender " + inspectVmResult;
+        inspectVmResponseTime = zabbixSenderPath + "/zabbix_sender " + inspectVmResponseTime;
         
-        deleteVmAvailability = zabbixSender + "/zabbix_sender " + deleteVmAvailability;
-        deleteVmResult = zabbixSender + "/zabbix_sender " + deleteVmResult;
-        deleteVmResponseTime = zabbixSender + "/zabbix_sender " + deleteVmResponseTime;
+        deleteVmAvailability = zabbixSenderPath + "/zabbix_sender " + deleteVmAvailability;
+        deleteVmResult = zabbixSenderPath + "/zabbix_sender " + deleteVmResult;
+        deleteVmResponseTime = zabbixSenderPath + "/zabbix_sender " + deleteVmResponseTime;
       }
       
       // Run calls to Zabbix Sender
@@ -244,71 +249,71 @@ public class ZabbixSender {
       Process pr = rt.exec(globalAvailability);
       readExecResponse(pr.getInputStream());
       failures = failures + pr.waitFor();
-      System.out.println("Failures: " + failures);
+      log.info("Failures: " + failures);
       
       pr = rt.exec(globalResult);
       readExecResponse(pr.getInputStream());
       failures = failures + pr.waitFor();
-      System.out.println("Failures: " + failures);
+      log.info("Failures: " + failures);
       
       pr = rt.exec(globalResponseTime);
       readExecResponse(pr.getInputStream());
       failures = failures + pr.waitFor();
-      System.out.println("Failures: " + failures);
+      log.info("Failures: " + failures);
       
       pr = rt.exec(createVmAvailability);
       readExecResponse(pr.getInputStream());
       failures = failures + pr.waitFor();
-      System.out.println("Failures: " + failures);
+      log.info("Failures: " + failures);
       
       pr = rt.exec(createVmResult);
       readExecResponse(pr.getInputStream());
       failures = failures + pr.waitFor();
-      System.out.println("Failures: " + failures);
+      log.info("Failures: " + failures);
       
       pr = rt.exec(createVmResponseTime);
       readExecResponse(pr.getInputStream());
       failures = failures + pr.waitFor();
-      System.out.println("Failures: " + failures);
+      log.info("Failures: " + failures);
       
       if (metrics.getInspectVmElement() != null) {
         pr = rt.exec(inspectVmAvailability);
         readExecResponse(pr.getInputStream());
         failures = failures + pr.waitFor();
-        System.out.println("Failures: " + failures);
+        log.info("Failures: " + failures);
         
         pr = rt.exec(inspectVmResult);
         readExecResponse(pr.getInputStream());
         failures = failures + pr.waitFor();
-        System.out.println("Failures: " + failures);
+        log.info("Failures: " + failures);
         
         pr = rt.exec(inspectVmResponseTime);
         readExecResponse(pr.getInputStream());
         failures = failures + pr.waitFor();
-        System.out.println("Failures: " + failures);
+        log.info("Failures: " + failures);
       }
       
       if (metrics.getDeleteVmElement() != null) {
         pr = rt.exec(deleteVmAvailability);
         readExecResponse(pr.getInputStream());
         failures = failures + pr.waitFor();
-        System.out.println("Failures: " + failures);
+        log.info("Failures: " + failures);
         
         pr = rt.exec(deleteVmResult);
         readExecResponse(pr.getInputStream());
         failures = failures + pr.waitFor();
-        System.out.println("Failures: " + failures);
+        log.info("Failures: " + failures);
         
         pr = rt.exec(deleteVmResponseTime);
         readExecResponse(pr.getInputStream());
         failures = failures + pr.waitFor();
-        System.out.println("Failures: " + failures);
+        log.info("Failures: " + failures);
       }
     } catch (IOException ex) {
-      System.out.println("Error: " + ex.getMessage());
+      log.info("Error: " + ex.getMessage());
       return false;
     } catch (InterruptedException iex) {
-      System.out.println("Error: " + iex.getMessage());
+      log.info("Error: " + iex.getMessage());
       return false;
     }
     
@@ -326,10 +331,10 @@ public class ZabbixSender {
     try {
       String line = null;
       while ((line = input.readLine()) != null) {
-        System.out.println(line);
+        log.info(line);
       }
     } catch (Exception ex) {
-      System.out.println("Error: " + ex.getMessage());
+      log.info("Error: " + ex.getMessage());
     }
   }
   
@@ -341,7 +346,7 @@ public class ZabbixSender {
     // If it is not available, register it
     if (result == false) {
       result = myClient.registerHost(hostName);
-      System.out.println("It was not possible to register the Host. Try anyway...");
+      log.info("It was not possible to register the Host. Try anyway...");
     }
     
     return result;
@@ -356,7 +361,7 @@ public class ZabbixSender {
     CreateVmResult create = new CreateVmResult(1, 200, 1429, "testVM");
     InspectVmResult inspect = new InspectVmResult(1, 200, 426);
     DeleteVmResult delete = new DeleteVmResult(1, 204, 612);
-    OpenstackProbeResult global = new OpenstackProbeResult(1, 204, 2467, "PruHost");
+    OpenstackProbeResult global = new OpenstackProbeResult(1, 204, 2467, "PruHostTESTNEW");
     global.addCreateVmInfo(create);
     global.addInspectVmInfo(inspect);
     global.addDeleteVmInfo(delete);
@@ -365,6 +370,6 @@ public class ZabbixSender {
     ZabbixSender mySender = ZabbixSender.instance();
     mySender.addMetricToQueue(global);
     boolean result = mySender.sendMetrics();
-    System.out.println("Result: " + result);
+    log.info("Result: " + result);
   }
 }

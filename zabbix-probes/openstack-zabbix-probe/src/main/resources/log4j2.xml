@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug" monitorInterval="30">
+
+<!--     <Properties> -->
+<!--         <Property name="log-path">${jboss.server.log.dir}"</Property> -->
+<!--         <Property name="log-path">/${sys:jboss.server.log.dir}</Property>  -->
+<!--     </Properties> -->
+
+    <CustomLevels>
+        <CustomLevel name="CUSTOM_LOG" intLevel="350" />
+    </CustomLevels>
+
+    <Appenders>
+        <Console name="Console">
+             <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Root level="DEBUG">
+            <!-- Only events at CUSTOM_LOG level or more specific are sent to the console and the pillarLog File. -->
+            <AppenderRef ref="RollingFile" level="custom_log" />
+            <AppenderRef ref="Console" />
+            <!-- <AppenderRef ref="Console" level="custom_log"/> -->
+       </Root>
+   </Loggers>
+</Configuration>

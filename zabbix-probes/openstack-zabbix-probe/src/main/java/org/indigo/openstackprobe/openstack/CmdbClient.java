@@ -20,21 +20,22 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.openstackprobe.openstack;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.JerseyClientBuilder;
-
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
+
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.JerseyClientBuilder;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 /**
  * The CmdbClient class is in charge of the interactions between the probe and the CMDB component.
@@ -109,6 +110,37 @@ public class CmdbClient {
     providersList.trimToSize();
     String[] resultList = new String[providersList.size()];
     providersList.toArray(resultList);
+
+    return resultList;
+  }
+  
+  public String[] getImageList() {
+    // Call to CMDB API
+    WebTarget target = client.target(cmdbUrl + "/image/list");
+    Invocation.Builder invocationBuilder = target.request();
+    Response response = invocationBuilder.get();
+    String message = response.readEntity(String.class);
+
+    // Retrieve the providers list
+    JsonElement jelement = new JsonParser().parse(message);
+    JsonObject parsedRes = jelement.getAsJsonObject();
+    JsonArray listArray = parsedRes.getAsJsonArray("rows");
+
+    ArrayList<String> imageList = new ArrayList<>();
+    Iterator<JsonElement> myIter = listArray.iterator();
+    while (myIter.hasNext()) {
+      JsonObject currentResource = myIter.next().getAsJsonObject();
+      JsonObject valueObject = currentResource.getAsJsonObject("value");
+      String imageJsonId = valueObject.get("image_id").getAsString();
+      
+      String imageId = imageJsonId!=null ? imageJsonId : currentResource.get("id").getAsString();
+      imageList.add(imageId);
+    }
+
+    // Prepare the result
+    imageList.trimToSize();
+    String[] resultList = new String[imageList.size()];
+    imageList.toArray(resultList);
 
     return resultList;
   }

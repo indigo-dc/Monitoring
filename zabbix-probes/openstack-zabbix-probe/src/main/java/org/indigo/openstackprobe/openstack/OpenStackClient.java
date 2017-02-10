@@ -18,17 +18,24 @@ package org.indigo.openstackprobe.openstack;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;
 
+import org.apache.commons.logging.impl.Log4JLogger;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.openstack4j.api.Builders;
@@ -41,6 +48,8 @@ import org.openstack4j.model.compute.ServerCreate;
 import org.openstack4j.model.image.Image;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.openstack.OSFactory;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 /**
  * It takes care of the interactions to be performed with Cloud Providers whose base platform is
@@ -53,14 +62,27 @@ import org.openstack4j.openstack.OSFactory;
  */
 public class OpenStackClient {
   private Client client = null;
-  private String baseNovaUrl = "";
-  private String baseKeystoneUrl = "";
-  private String openStackUser = "";
-  private String openStackPwd = "";
-  private String currentToken = "";
+  private String baseNovaUrl;
+  private String baseKeystoneUrl;
+  private String openStackUser;
+  private String openStackPwd;
+  private String currentToken;
   private String providerId;
   private V2 myKeystoneClient = null;
   private static final String POWER_STATE_ACTIVE = "1";
+  private String flavorId;
+  private String imageId;
+  private final String INSTANCE_NAME = "vMOpenstackZabbixProbe_";
+  private String tenantName;
+  private static final String HTTP_RESPONSE_CODE = "httpCode";
+  private static final String AVAILABILITY_STATUS = "availability";
+  private static final String TIME_MS = " time in milliseconds: ";
+  private static final String TOTAL_CREATION_TIME =
+      "Total elapsed http request/response for creating the instance: ";
+  private static final String DELETE_OPTION = "delete";
+  private static final String INSPECT_OPTION = "inspect";
+
+  private static final Logger log = LogManager.getLogger(OpenStackClient.class);
 
   /**
    * Main constructor of the OpenStackOcciClient class. It retrieves some information from the
@@ -75,10 +97,12 @@ public class OpenStackClient {
    *          String with the identifier of the Cloud Provider
    */
   public OpenStackClient(String keystoneLocation, String providerUrl, String providerName) {
+
     // Retrieve properties
     PropertiesManager myProp = new PropertiesManager();
     openStackUser = myProp.getProperty(PropertiesManager.OPENSTACK_USER);
     openStackPwd = myProp.getProperty(PropertiesManager.OPENSTACK_PASSWORD);
+    tenantName = myProp.getProperty(PropertiesManager.TENANT_NAME);
     providerId = providerName;
 
     // Disable issue with SSL Handshake in Java 7 and indicate certificates keystore
@@ -103,125 +127,138 @@ public class OpenStackClient {
    * @param mockClient
    *          Mock of the Jersey Client class, for simulating.
    */
-  public OpenStackClient(Client mockClient, V2 mockKeystone) {
+  public OpenStackClient(Client mockClient, V2 mockKeystone, String mockFlavor, String mockImage) {
     client = mockClient;
     myKeystoneClient = mockKeystone;
+    flavorId = mockFlavor;
+    imageId = mockImage;
   }
 
-  private String getToken() {
-    /*
-     * // Build JSON input TokenRequest tRequest= new TokenRequest("INDIGO", openStackUser,
-     * openStackPwd); Gson gson = new Gson(); String input = gson.toJson(tRequest);
-     * System.out.println (input);
-     * 
-     * // Call to Keystone WebTarget target = client.target(baseKeystoneUrl + "/tokens");
-     * System.out.println (target.toString()); Response response =
-     * target.request(MediaType.APPLICATION_JSON) .post(Entity.entity(input,
-     * MediaType.APPLICATION_JSON), Response.class);
-     * 
-     * //String result = r.accept(MediaType.APPLICATION_JSON_TYPE).get(String.class);
-     * 
-     * //JsonElement jelement = new JsonParser().parse(response.);
-     * //System.out.println(jelement.toString());
-     *
-     */
-
+  private String getTokenId() {
     // Authenticate
     OSClient os = myKeystoneClient.endpoint(baseKeystoneUrl)
-        .credentials(openStackUser, openStackPwd).tenantName("INDIGO_DEMO").authenticate();
-
-    // System.out.println(os.getToken().toString());
-
+        .credentials(openStackUser, openStackPwd).tenantName(tenantName).authenticate();
     return os.getToken().getId();
   }
 
   private OSClient getOSAuth() {
     // More general Authentication
-    OSClient os = myKeystoneClient.endpoint(baseKeystoneUrl)
-        .credentials(openStackUser, openStackPwd).tenantName("INDIGO_DEMO").authenticate();
+    return myKeystoneClient.endpoint(baseKeystoneUrl).credentials(openStackUser, openStackPwd)
+        .tenantName(tenantName).authenticate();
 
-    System.out.println(os.getToken().toString());
-
-    return os;
   }
 
-  private String getFlavor() {
-    List<? extends Flavor> flavors = getOSAuth().compute().flavors().list();
-    boolean smallFlavorFound = false;
+  protected List<? extends Flavor> getInternalFlavor() {
+    return getOSAuth().compute().flavors().list();
+  }
+
+  public String getFlavor() {
+    List<? extends Flavor> flavors = getInternalFlavor();
+
     for (Flavor flavor : flavors) {
       if (flavor.getName().toLowerCase().contains("small")) {
-        smallFlavorFound = true;
         return flavor.getId();
       }
     }
-    if (!smallFlavorFound) {
+    if (!flavors.isEmpty()) {
       return flavors.get(0).getId();
     }
     throw new NotFoundException("Unable to find any flavor in Openstack");
   }
 
-  private String getOsImage() {
-    List<? extends Image> images = getOSAuth().images().list();
-    boolean imageFound = false;
+  protected List<? extends Image> getInternalOsImage() {
+    return getOSAuth().images().list();
+  }
+
+  public String getOsImage() {
+    List<? extends Image> images = getInternalOsImage();
     for (Image image : images) {
-      if (image.getName().toLowerCase().contains("ubuntu") && image.getName().contains("14")) {
-        imageFound = true;
-        return image.getId();
-      }
-    }
-    if (!imageFound) {
-      for (Image image : images) {
-        if (image.getName().toLowerCase().contains("ubuntu")) {
-          imageFound = true;
+      for (String imageIdCmdb : getImagesFromCmdb()) {
+        if (image.getId().equals(imageIdCmdb)) {
           return image.getId();
         }
       }
     }
-    if (!imageFound && images.get(0) != null) {
+    while (!images.isEmpty()) {
       return images.get(0).getId();
     }
     throw new NotFoundException("Unable to find any image in Openstack");
-
   }
 
-  private CreateVmResult createVm() throws InterruptedException, TimeoutException {
+  protected List<String> getImagesFromCmdb() {
+    CmdbClient cmdbClient = new CmdbClient();
+    return Arrays.asList(cmdbClient.getImageList());
+  }
 
+  protected ServerCreate createOsServer(String instanceName) {
     // Create the instance by using openstack4J rather than plain APIs
-    SecureRandom random = new SecureRandom();
-    String instanceName = "vMOpenstackZabbixProbe_" + new BigInteger(37, random).toString(16);
-    ServerCreate sc =
-        Builders.server().name(instanceName).flavor(getFlavor()).image(getOsImage()).build();
+    flavorId = getFlavor();
+    imageId = getOsImage();
+    return Builders.server().name(instanceName).flavor(flavorId).image(imageId).build();
+  }
+
+  protected void bootOsServer(ServerCreate sc) {
+    getOSAuth().compute().servers().boot(sc);
+  }
+
+  /**
+   * Create the virtual machine in Openstack by polling the result coming from openstack4j.
+   * 
+   * @return
+   * @throws InterruptedException
+   * @throws TimeoutException
+   */
+  public CreateVmResult createVm() {
+
+    String instanceName = INSTANCE_NAME + new BigInteger(37, new SecureRandom()).toString(16);
+
+    ServerCreate sc = createOsServer(instanceName);
 
     // Boot the Server
     long startTime = System.currentTimeMillis();
+
     // Create the machine
-    getOSAuth().compute().servers().boot(sc);
+    bootOsServer(sc);
+
     Map<String, Integer> resultMap = new HashMap<>();
-    long responseTime;
-    String vmId = null; 
+    long responseTime = 0;
 
     // Wait for the process to be done
-    Map<Server.Status, Server> serverCreation = poller(instanceName);
+    Map<Server.Status, Server> serverCreation = new HashMap<>();
+    String vmId = null;
+
+    try {
+      serverCreation = poller(instanceName);
+    } catch (TimeoutException | InterruptedException e) {
+
+      log.debug(e.getMessage());
+    }
+
     if (serverCreation.get(Server.Status.ACTIVE) == null) {
-      resultMap = manageResponseStatus(Server.Status.UNKNOWN);
+      for (Entry<Server.Status, Server> entry : serverCreation.entrySet()) {
+        vmId = serverCreation.get(entry.getKey()).getId() != null
+            ? serverCreation.get(entry.getKey()).getId() : "";
+        resultMap = manageResponseStatus(entry.getKey());
+      }
       responseTime = System.currentTimeMillis();
     } else {
       long creationTime = serverCreation.get(Server.Status.ACTIVE).getCreated().getTime();
       responseTime = startTime - creationTime;
-
-      System.out
-          .println("Total elapsed http request/response time in milliseconds: " + responseTime);
+      log.info(TOTAL_CREATION_TIME + serverCreation.get(Server.Status.ACTIVE).getId() + TIME_MS
+          + responseTime);
+      log.info(TOTAL_CREATION_TIME + serverCreation.get(Server.Status.ACTIVE).getId() + TIME_MS
+          + responseTime);
 
       resultMap = manageResponseStatus(Server.Status.ACTIVE);
       vmId = serverCreation.get(Server.Status.ACTIVE).getId();
-      System.out.println("Created VM: " + vmId);
+      log.info("Created VM id: " + vmId + " name: "
+          + serverCreation.get(Server.Status.ACTIVE).getName());
     }
 
     // Feed monitoring info
-    CreateVmResult monitoredInfo = new CreateVmResult(resultMap.get("availability"),
-        resultMap.get("httpCode"), responseTime, vmId);
+    return new CreateVmResult(resultMap.get(AVAILABILITY_STATUS), resultMap.get(HTTP_RESPONSE_CODE),
+        responseTime, vmId);
 
-    return monitoredInfo;
   }
 
   /**
@@ -241,6 +278,10 @@ public class OpenStackClient {
     return manageResult(resultServerStatus);
   }
 
+  protected List<? extends Server> getServerOsList() {
+    return getOSAuth().compute().servers().list();
+  }
+
   /**
    * It polls the result instance Server until is really returned.
    * 
@@ -254,32 +295,22 @@ public class OpenStackClient {
       throws TimeoutException, InterruptedException {
 
     Calendar calendar = Calendar.getInstance();
-    calendar.add(Calendar.SECOND, 9 * 10); //42
+    calendar.add(Calendar.SECOND, 1); // * 10); // 42 --> 7minutes
     long stopPollingTime = calendar.getTimeInMillis();
 
     boolean created = false;
-    String vmId = null;
-    Server server = null;
     Map<Server.Status, Server> serverResultMap = new HashMap<>();
-    List<? extends Server> servers = getOSAuth().compute().servers().list();
+    List<? extends Server> servers = getServerOsList();
     for (Server serverInstance : servers) {
       if (serverInstance.getName().equalsIgnoreCase(instanceName)) {
-        while (System.currentTimeMillis() < stopPollingTime && !serverInstance.getStatus().equals(Server.Status.ERROR)) {
-          Thread.sleep(3000);
-          Server serverDiagnosed = getOSAuth().compute().servers().get(serverInstance.getId());
-          // polling
-          System.out.println("Polling..");
-          if (serverDiagnosed.getPowerState().equals(POWER_STATE_ACTIVE)) {
-            System.out.println("created..");
-            vmId = serverDiagnosed.getUuid();
-            server = serverDiagnosed;
-            created = true;
-            serverResultMap.put(Server.Status.ACTIVE, server);
-            return serverResultMap;
-          }
+        while (System.currentTimeMillis() < stopPollingTime
+            && !serverInstance.getStatus().equals(Server.Status.ERROR)) {
+          getDiagnosedServer(serverInstance);
+
         }
-        if(serverInstance.getStatus().equals(Server.Status.ERROR)){
-          serverResultMap.put(Server.Status.ERROR, serverInstance);
+        if (serverInstance.getStatus().equals(Server.Status.ERROR)
+            || serverInstance.getStatus().equals(Server.Status.BUILD)) {
+          serverResultMap.put(serverInstance.getStatus(), serverInstance);
           return serverResultMap;
         }
         Iterator<? extends Server> itr = servers.iterator();
@@ -299,8 +330,24 @@ public class OpenStackClient {
     return serverResultMap;
   }
 
+  protected Map<Server.Status, Server> getDiagnosedServer(Server serverInstance)
+      throws InterruptedException {
+
+    Thread.sleep(3000);
+    Server serverDiagnosed = getOSAuth().compute().servers().get(serverInstance.getId());
+    // poll until the result is mappable...
+    log.info("Polling..");
+    Map<Server.Status, Server> serverResultMap = new HashMap<>();
+    if (serverDiagnosed.getPowerState().equals(POWER_STATE_ACTIVE)) {
+      log.info("created..");
+      Server server = serverDiagnosed;
+      serverResultMap.put(Server.Status.ACTIVE, server);
+    }
+    return serverResultMap;
+  }
+
   /**
-   * Method used for testing openstack4J API
+   * Method used for testing openstack4J API.
    */
   private void getVmsList() {
 
@@ -311,14 +358,16 @@ public class OpenStackClient {
     long startTime = System.currentTimeMillis();
     while (servers.isEmpty()) {
       try {
-        servers.wait(3000);
+        synchronized (servers) {
+          servers.wait(3000);
+        }
+
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
     }
-    // Response response = invocationBuilder.get();
     long elapsedTime = System.currentTimeMillis() - startTime;
-    System.out.println("Total elapsed http request/response time in milliseconds: " + elapsedTime);
+    log.info("Total elapsed http request/response time in milliseconds: " + elapsedTime);
 
   }
 
@@ -338,24 +387,23 @@ public class OpenStackClient {
 
     // Measure response time
     while (server.getCreated() == null) {
-      wait(3000);
+      synchronized (server) {
+        wait(3000);
+      }
     }
-
-    // Response response = invocationBuilder.get();
     long responseTime = System.currentTimeMillis() - startTime;
-    System.out.println("Total elapsed http request/response time in milliseconds: " + responseTime);
+    log.info("Total elapsed http request/response time after inspection of instance: " + vmId
+        + TIME_MS + responseTime);
 
     Map<String, Integer> resultMap = manageResponseStatus(server.getStatus());
 
     // Feed monitoring info
-    InspectVmResult monitoredInfo =
-        new InspectVmResult(resultMap.get("availability"), resultMap.get("httpCode"), responseTime);
-
-    return monitoredInfo;
+    return new InspectVmResult(resultMap.get(AVAILABILITY_STATUS),
+        resultMap.get(HTTP_RESPONSE_CODE), responseTime);
   }
 
   /**
-   * Delete the the instance in Openstack by using Openstack4j.
+   * Delete the instance in Openstack by using Openstack4j.
    * 
    * @param vmI
    *          VM uuid
@@ -367,7 +415,6 @@ public class OpenStackClient {
 
     // Measure response time
     long startTime = System.currentTimeMillis();
-    // Response response = invocationBuilder.delete();
 
     ActionResponse result = getOSAuth().compute().servers().delete(vmId);
     while (!result.isSuccess()) {
@@ -377,15 +424,14 @@ public class OpenStackClient {
       result.getCode();
     }
     long responseTime = System.currentTimeMillis() - startTime;
-    System.out.println("Total elapsed http request/response time in milliseconds: " + responseTime);
+    log.info("Total elapsed http request/response for deleting the instance: " + vmId + TIME_MS
+        + responseTime);
 
     Map<String, Integer> resultMap = manageDeleteResult(result);
 
     // Feed monitoring info
-    DeleteVmResult monitoredInfo =
-        new DeleteVmResult(resultMap.get("availability"), resultMap.get("httpCode"), responseTime);
-
-    return monitoredInfo;
+    return new DeleteVmResult(resultMap.get(AVAILABILITY_STATUS), resultMap.get(HTTP_RESPONSE_CODE),
+        responseTime);
   }
 
   /**
@@ -393,7 +439,7 @@ public class OpenStackClient {
    * classic http jersey client results (wrapped in the library).
    * 
    * @param result
-   *          boolean (true in case of success)
+   *          boolean (true in case of successful result in terms of availability status)
    * @return Map for accessing to values of results
    */
   private Map<String, Integer> manageResult(boolean result) {
@@ -401,13 +447,13 @@ public class OpenStackClient {
     Map<String, Integer> resultMap = new HashMap<>();
 
     if (result) {
-      resultMap.put("httpCode", 200);
-      resultMap.put("availability", 1);
+      resultMap.put(HTTP_RESPONSE_CODE, 200);
+      resultMap.put(AVAILABILITY_STATUS, 1);
     } else {
       int httpCodeRandom = getRandomCode((400 - 600) + 400);
 
-      resultMap.put("httpCode", httpCodeRandom);
-      resultMap.put("availability", 0);
+      resultMap.put(HTTP_RESPONSE_CODE, httpCodeRandom);
+      resultMap.put(AVAILABILITY_STATUS, 0);
     }
     return resultMap;
   }
@@ -423,12 +469,12 @@ public class OpenStackClient {
     Map<String, Integer> resultMap = new HashMap<>();
 
     if (code.isSuccess()) {
-      resultMap.put("httpCode", 200);
-      resultMap.put("availability", 1);
+      resultMap.put(HTTP_RESPONSE_CODE, 200);
+      resultMap.put(AVAILABILITY_STATUS, 1);
     } else {
 
-      resultMap.put("httpCode", code.getCode());
-      resultMap.put("availability", 0);
+      resultMap.put(HTTP_RESPONSE_CODE, code.getCode());
+      resultMap.put(AVAILABILITY_STATUS, 0);
     }
     return resultMap;
   }
@@ -439,7 +485,7 @@ public class OpenStackClient {
   public void getNetworksList() {
 
     List<? extends Network> networks = getOSAuth().networking().network().list();
-    System.out.println(networks.toString());
+    log.info(networks.toString());
   }
 
   /**
@@ -454,28 +500,30 @@ public class OpenStackClient {
       throws TimeoutException, InterruptedException {
     // Follow the full lifecycle for a VM
     // Retrieve the operation token
-    currentToken = getToken();
+    currentToken = getTokenId();
     if (currentToken == null) {
       return null;
     }
 
-    // getVmsList();
-
-    System.out.println("Token is valid. Continue monitoring operation...");
+    log.info("Token is valid. Continue monitoring operation...");
 
     CreateVmResult createVmInfo = createVm();
+    Map<String, Object> resultTryMap = new HashMap<>();
     if (createVmInfo.getCreateVmAvailability() == 0) {
       // Send failure result, since we cannot go on with the process
       OpenstackProbeResult failureResult = new OpenstackProbeResult(providerId);
       failureResult.addCreateVmInfo(createVmInfo);
       failureResult.addGlobalInfo(0, createVmInfo.getCreateVmResult(), -1);
-      return failureResult;
+      log.info("Instantiation failed with time: " + failureResult.getGlobalResponseTime());
 
+      tryToDeleteInstance(createVmInfo);
+      return failureResult;
     }
 
-    InspectVmResult inspectVmInfo = inspectVm(createVmInfo.getVmId());
-    DeleteVmResult deleteVmInfo = deleteVm(createVmInfo.getVmId());
-
+    InspectVmResult inspectVmInfo =
+        (InspectVmResult) InspectAndDeleteInstance(createVmInfo).get(INSPECT_OPTION);
+    DeleteVmResult deleteVmInfo =
+        (DeleteVmResult) InspectAndDeleteInstance(createVmInfo).get(DELETE_OPTION);
     // Determine Global Availability
     int globalAvailability = 1;
     if (createVmInfo.getCreateVmAvailability() == 0 || inspectVmInfo.getInspectVmAvailability() == 0
@@ -501,7 +549,6 @@ public class OpenStackClient {
         globalResult = deleteVmResult;
       }
     }
-
     // Determine Global ResponseTime
     long globalResponseTime = createVmInfo.getCreateVmResponseTime()
         + inspectVmInfo.getInspectVmResponseTime() + deleteVmInfo.getDeleteVmResponseTime();
@@ -512,8 +559,36 @@ public class OpenStackClient {
     finalResult.addInspectVmInfo(inspectVmInfo);
     finalResult.addDeleteVmInfo(deleteVmInfo);
     finalResult.addGlobalInfo(globalAvailability, globalResult, globalResponseTime);
+    log.info(finalResult);
 
     return finalResult;
+  }
+
+  private Map<String, ?> InspectAndDeleteInstance(CreateVmResult createVmInfo) {
+
+    Map<String, Object> resultTryMap = new HashMap<>();
+    try {
+      DeleteVmResult deleteVmInfo = deleteVm(createVmInfo.getVmId());
+      InspectVmResult inspectVmInfo = inspectVm(createVmInfo.getVmId());
+
+      resultTryMap.put(DELETE_OPTION, deleteVmInfo);
+      resultTryMap.put(INSPECT_OPTION, inspectVmInfo);
+
+    } catch (TimeoutException | InterruptedException e) {
+      log.debug(e.getMessage());
+    }
+    return resultTryMap;
+  }
+
+  private void tryToDeleteInstance(CreateVmResult createVmInfo) {
+
+    try {
+      if(createVmInfo.getVmId()!=null)
+      deleteVm(createVmInfo.getVmId());
+
+    } catch (TimeoutException | InterruptedException e) {
+      log.debug(e.getMessage());
+    }
   }
 
   /**
