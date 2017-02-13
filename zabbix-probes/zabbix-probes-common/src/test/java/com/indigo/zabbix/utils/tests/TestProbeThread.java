@@ -1,6 +1,6 @@
 package com.indigo.zabbix.utils.tests;
 
-import com.indigo.zabbix.utils.CollectorThread;
+import com.indigo.zabbix.utils.ProbeThread;
 import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.ZabbixClient;
 
@@ -12,7 +12,7 @@ import java.io.InputStreamReader;
 /**
  * Created by jose on 9/12/16.
  */
-public class TestCollectorThread extends CollectorThread<TestCollector> {
+public class TestProbeThread extends ProbeThread<TestCollector> {
 
   private String hostname;
 
@@ -21,9 +21,9 @@ public class TestCollectorThread extends CollectorThread<TestCollector> {
   private boolean retrieveResult;
   private boolean deleteResult;
 
-  public TestCollectorThread(String category, String group, String template, String hostname,
-                                boolean clearResult, boolean createResult, boolean retrieveResult,
-                                boolean deleteResult, ZabbixClient client ) {
+  public TestProbeThread(String category, String group, String template, String hostname,
+                         boolean clearResult, boolean createResult, boolean retrieveResult,
+                         boolean deleteResult, ZabbixClient client ) {
     super(client);
     this.hostname = hostname;
     this.clearResult = clearResult;

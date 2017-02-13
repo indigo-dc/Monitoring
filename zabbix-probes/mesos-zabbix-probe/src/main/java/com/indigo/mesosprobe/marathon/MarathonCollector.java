@@ -1,7 +1,7 @@
 package com.indigo.mesosprobe.marathon;
 
 import com.indigo.mesosprobe.MesosProbeTags;
-import com.indigo.zabbix.utils.CrudCollector;
+import com.indigo.zabbix.utils.LifecycleCollector;
 import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.beans.AppOperation;
 
@@ -23,7 +23,7 @@ import java.util.Date;
 /**
  * Created by jose on 25/10/16.
  */
-public class MarathonCollector extends CrudCollector {
+public class MarathonCollector extends LifecycleCollector {
 
   private static final String PREFIX = "Marathon_";
 

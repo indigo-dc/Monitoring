@@ -1,12 +1,12 @@
 package com.indigo.zabbix.utils.tests;
 
-import com.indigo.zabbix.utils.CrudCollector;
+import com.indigo.zabbix.utils.LifecycleCollector;
 import com.indigo.zabbix.utils.beans.AppOperation;
 
 /**
  * Created by jose on 9/12/16.
  */
-public class TestCollector extends CrudCollector {
+public class TestCollector extends LifecycleCollector {
 
   private String hostname;
 

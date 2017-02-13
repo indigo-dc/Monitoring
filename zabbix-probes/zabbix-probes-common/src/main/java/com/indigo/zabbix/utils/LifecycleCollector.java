@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * Created by jose on 11/17/16.
  */
-public abstract class CrudCollector implements MetricsCollector {
+public abstract class LifecycleCollector implements MetricsCollector {
 
   @Override
   public ZabbixMetrics getMetrics() {
