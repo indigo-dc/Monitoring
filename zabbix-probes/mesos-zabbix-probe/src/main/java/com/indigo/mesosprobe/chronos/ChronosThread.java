@@ -1,12 +1,12 @@
 package com.indigo.mesosprobe.chronos;
 
 import com.indigo.mesosprobe.MesosProbeTags;
-import com.indigo.zabbix.utils.CollectorThread;
+import com.indigo.zabbix.utils.ProbeThread;
 
 /**
  * Created by jose on 11/21/16.
  */
-public class ChronosThread extends CollectorThread<ChronosCollector> {
+public class ChronosThread extends ProbeThread<ChronosCollector> {
 
   public ChronosThread() {
     super("IaaS", "Chronos", "RuntimeTestTemplate");
