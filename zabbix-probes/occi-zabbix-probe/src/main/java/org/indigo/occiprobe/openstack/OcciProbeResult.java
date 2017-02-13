@@ -20,6 +20,12 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
+import com.indigo.zabbix.utils.ZabbixMetrics;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * This class represents the whole result of a monitoring action which has 
  * followed the full VM lifecycle by using the OCCI API exposed by a 
@@ -157,5 +163,43 @@ public class OcciProbeResult {
    */
   public DeleteVmResult getDeleteVmElement() {
     return deleteVmElement;
+  }
+
+  public ZabbixMetrics getMetrics() {
+    ZabbixMetrics metrics = new ZabbixMetrics();
+    metrics.setHostName(providerName);
+
+    Map<String, String> values = new HashMap<>();
+
+    values.put("occi.global[availability]", Integer.toString(globalAvailability));
+    values.put("occi.global[result]", Integer.toString(globalResult));
+    values.put("occi.global[responseTime]", Long.toString(globalResponseTime));
+
+    values.put("occi.createvm[availability]",
+        Integer.toString(createVmElement.getCreateVmAvailability()));
+    values.put("occi.createvm[result]",
+        Integer.toString(createVmElement.getCreateVmResult()));
+    values.put("occi.createvm[responseTime]",
+        Long.toString(createVmElement.getCreateVmResponseTime()));
+
+    values.put("occi.inspectvm[availability]",
+        Integer.toString(inspectVmElement.getInspectVmAvailability()));
+    values.put("occi.inspectvm[result]",
+        Integer.toString(inspectVmElement.getInspectVmResult()));
+    values.put("occi.inspectvm[responseTime]",
+        Long.toString(inspectVmElement.getInspectVmResponseTime()));
+
+    values.put("occi.deletevm[availability]",
+        Integer.toString(deleteVmElement.getDeleteVmAvailability()));
+    values.put("occi.deletevm[result]",
+        Integer.toString(deleteVmElement.getDeleteVmResult()));
+    values.put("occi.deletevm[responseTime]",
+        Long.toString(deleteVmElement.getDeleteVmResponseTime()));
+
+    metrics.setMetrics(values);
+
+    metrics.setTimestamp(new Date().getTime());
+
+    return metrics;
   }
 }

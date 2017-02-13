@@ -41,7 +41,9 @@ public abstract class CollectorThread<T extends MetricsCollector> {
   protected SenderResult run(String propertiesFile) {
 
     try {
-      loadConfiguration(propertiesFile);
+      if (propertiesFile != null) {
+        loadConfiguration(propertiesFile);
+      }
 
       if (this.client == null) {
         this.client = new ZabbixClient(category, group, template);

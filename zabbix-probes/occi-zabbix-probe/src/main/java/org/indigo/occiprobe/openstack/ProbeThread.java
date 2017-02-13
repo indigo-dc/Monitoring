@@ -20,12 +20,16 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
+import com.indigo.zabbix.utils.PropertiesManager;
+
+import io.github.hengyunabc.zabbix.sender.SenderResult;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This class aims at implementing the management of the threads to be used for 
@@ -43,19 +47,18 @@ public class ProbeThread {
   private int numThreads = 2;
   private boolean termination = true;
   private CmdbClient myClient;
-  private ZabbixSender mySender;
   
   private ProbeThread() {
     // Build element for thread and tasks scheduling
     scheduler = Executors.newScheduledThreadPool(numThreads);
     myClient = new CmdbClient();
-    mySender = ZabbixSender.instance();
+    //mySender = ZabbixSender.instance();
   }
   
   private ProbeThread(ScheduledExecutorService mock, ZabbixSender senderMock, CmdbClient cmdbMock) {
     // Build element for thread and tasks scheduling
     scheduler = mock;
-    mySender = senderMock;
+    //mySender = senderMock;
     myClient = cmdbMock;
   }
   
@@ -90,10 +93,10 @@ public class ProbeThread {
    * It manages the process of retrieving Cloud providers' information, preparing 
    * the treads pool and launching monitoring operations per each provider.
    */
-  public boolean startMonitoringProcess() {
+  public void startMonitoringProcess() {
     // Retrieve the list of providers with their info   
     System.out.println("Looking for providers and their info...");
-    ArrayList<CloudProviderInfo> providersList = myClient.getFeasibleProvidersInfo();
+    List<CloudProviderInfo> providersList = myClient.getFeasibleProvidersInfo();
     
     // Prepare the list of monitoring threads
     System.out.println("Done! Now starting monitoring tasks...");
@@ -106,7 +109,21 @@ public class ProbeThread {
       String keystoneEndpoint = currentProvider.getKeystoneEndpoint();
       
       MonitoringThread myTask = new MonitoringThread(providerId, occiEndpoint, keystoneEndpoint);
-      myTaskList.add(myTask);
+      try {
+        SenderResult result = myTask.run();
+        if (result.success()) {
+          System.out.println("Successfully sent metrics for host " + providerId);
+        } else {
+          System.out.println("Error sending metrics for host "+ providerId);
+        }
+      } catch (Exception e) {
+        System.out.println("Error while getting OCCI metrics from provider");
+        e.printStackTrace();
+      }
+
+
+
+      //myTaskList.add(myTask);
     }
     /*
     MonitoringThread myTask1 = new MonitoringThread("provider-RECAS-BARI", "http://cloud.recas.ba.infn.it:8787", "https://cloud.recas.ba.infn.it:5000");
@@ -120,7 +137,7 @@ public class ProbeThread {
     */
     
     // Create threads and run the monitoring actions
-    Iterator<MonitoringThread> myTaskIterator = myTaskList.iterator();
+    /*Iterator<MonitoringThread> myTaskIterator = myTaskList.iterator();
     int schedulingFailures = 0;
     while (myTaskIterator.hasNext()) {
       MonitoringThread currentTask = myTaskIterator.next();
@@ -152,10 +169,9 @@ public class ProbeThread {
     result = mySender.sendMetrics();
     if (!result) {
       System.out.println("Some metrics could not be sent correctly!");
-    }
+    }*/
     
     System.out.println("OCCI Monitoring Probe finished!");
-    return result;
   }
   
   /**
@@ -175,8 +191,13 @@ public class ProbeThread {
     // Retrieve input arguments
      
     // Start the monitoring process
-    ProbeThread probeManager = ProbeThread.instance();
-    boolean result = probeManager.startMonitoringProcess();
-    System.out.println("Result: " + result);
+    try {
+      PropertiesManager.loadProperties("occiprobe.properties");
+      ProbeThread probeManager = ProbeThread.instance();
+      probeManager.startMonitoringProcess();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
   }
 }

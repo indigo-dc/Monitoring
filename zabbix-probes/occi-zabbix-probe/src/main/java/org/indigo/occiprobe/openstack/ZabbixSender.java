@@ -20,6 +20,8 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
+import com.indigo.zabbix.utils.PropertiesManager;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,7 +55,7 @@ public class ZabbixSender {
    */
   public static synchronized ZabbixSender instance() {
     if (null == _instance) {
-      _instance = new ZabbixSender();
+      //_instance = new ZabbixSender();
       System.out.println("A new instance of the Zabbix Sender was created!");
     }
     return _instance;
@@ -66,9 +68,8 @@ public class ZabbixSender {
    */
   private ZabbixSender() {
     // Retrieve location of the Zabbix Server and the Zabbix sender (local)
-    PropertiesManager myProp = new PropertiesManager();
-    zabbixLocation = myProp.getProperty(PropertiesManager.ZABBIX_IP);
-    zabbixSender = myProp.getProperty(PropertiesManager.ZABBIX_SENDER);
+    zabbixLocation = PropertiesManager.getProperty(OcciProbeTags.ZABBIX_IP);
+    zabbixSender = PropertiesManager.getProperty(OcciProbeTags.ZABBIX_SENDER);
     metricsQueue = new ArrayList<OcciProbeResult>();
     
     // Create standard Runtime and Wrapper Client

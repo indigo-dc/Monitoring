@@ -20,11 +20,15 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
+import com.indigo.zabbix.utils.MetricsCollector;
+import com.indigo.zabbix.utils.PropertiesManager;
+import com.indigo.zabbix.utils.ZabbixMetrics;
+
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.JerseyClientBuilder;
-
 import org.openstack4j.api.OSClient;
-import org.openstack4j.api.client.IOSClientBuilder.V2;
+import org.openstack4j.api.client.IOSClientBuilder;
+import org.openstack4j.model.common.Identifier;
 import org.openstack4j.openstack.OSFactory;
 
 import javax.ws.rs.client.Client;
@@ -39,7 +43,7 @@ import javax.ws.rs.core.Response;
  * @author ATOS
  *
  */
-public class OpenStackOcciClient {
+public class OpenStackOcciClient implements MetricsCollector{
   private Client client = null;
   private String baseOcciUrl = "";
   private String baseKeystoneUrl = "";
@@ -47,7 +51,7 @@ public class OpenStackOcciClient {
   private String openStackPwd = "";
   private String currentToken = "";
   private String providerId;
-  private V2 myKeystoneClient = null;
+  //private IOSClientBuilder.V3 myKeystoneClient = null;
   
   /**
    * Main constructor of the OpenStackOcciClient class. It retrieves some information
@@ -59,23 +63,29 @@ public class OpenStackOcciClient {
    */
   public OpenStackOcciClient(String keystoneLocation, String occiLocation, String providerName) {
     // Retrieve properties
-    PropertiesManager myProp = new PropertiesManager();
-    openStackUser = myProp.getProperty(PropertiesManager.OPENSTACK_USER);
-    openStackPwd = myProp.getProperty(PropertiesManager.OPENSTACK_PASSWORD);
+    openStackUser = PropertiesManager.getProperty(OcciProbeTags.OPENSTACK_USER);
+    openStackPwd = PropertiesManager.getProperty(OcciProbeTags.OPENSTACK_PASSWORD);
     providerId = providerName;
     
     // Disable issue with SSL Handshake in Java 7 and indicate certificates keystore
     System.setProperty("jsse.enableSNIExtension", "false");
-    String certificatesTrustStorePath = myProp.getProperty(PropertiesManager.JAVA_KEYSTORE);
+    String certificatesTrustStorePath = PropertiesManager.getProperty(OcciProbeTags.JAVA_KEYSTORE);
     System.setProperty("javax.net.ssl.trustStore", certificatesTrustStorePath);
     
     // Create the Clients
     ClientConfig cc = new ClientConfig();
     client = JerseyClientBuilder.newClient(cc);
-    myKeystoneClient = OSFactory.builder();
+    //myKeystoneClient = OSFactory.builderV3();
     
-    // Prepare access URLs
-    baseKeystoneUrl = keystoneLocation.replace("http", "https");
+    // Force use of HTTPS
+    if (keystoneLocation.startsWith("http://")) {
+      baseKeystoneUrl = keystoneLocation.replace("http://", "https://");
+    } else {
+      baseKeystoneUrl = keystoneLocation;
+    }
+
+    //baseKeystoneUrl = keystoneLocation;
+
     baseOcciUrl = occiLocation;                     
   }
   
@@ -83,9 +93,9 @@ public class OpenStackOcciClient {
    * Constructor to be used for automatic testing purposes only.
    * @param mockClient Mock of the Jersey Client class, for simulating.
    */
-  public OpenStackOcciClient(Client mockClient, V2 mockKeystone) {
+  public OpenStackOcciClient(Client mockClient, IOSClientBuilder.V3 mockKeystone) {
     client = mockClient;
-    myKeystoneClient = mockKeystone;
+    //myKeystoneClient = mockKeystone;
   }
   
   private String getToken() {
@@ -111,11 +121,13 @@ public class OpenStackOcciClient {
     
     
     // Authenticate 
-    OSClient os = myKeystoneClient
+    OSClient os = baseKeystoneUrl.endsWith("v3")?OSFactory.builderV3()
                 .endpoint(baseKeystoneUrl)
-                .credentials(openStackUser,openStackPwd)
-                .tenantName("INDIGO_DEMO")
-                .authenticate();
+                .credentials(openStackUser,openStackPwd, Identifier.byName("default"))
+                .scopeToProject(Identifier.byName("indigo"), Identifier.byName("default"))
+                .authenticate():
+        OSFactory.builder().endpoint(baseKeystoneUrl).credentials(openStackUser, openStackPwd)
+        .authenticate();
     
     //System.out.println(os.getToken().toString());
     
@@ -354,5 +366,10 @@ public class OpenStackOcciClient {
     myClient.getNetworksList();
     
     myClient.getOcciMonitoringInfo();
+  }
+
+  @Override
+  public ZabbixMetrics getMetrics() {
+    return getOcciMonitoringInfo().getMetrics();
   }
 }

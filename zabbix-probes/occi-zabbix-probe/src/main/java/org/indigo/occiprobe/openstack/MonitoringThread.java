@@ -1,5 +1,9 @@
 package org.indigo.occiprobe.openstack;
 
+import com.indigo.zabbix.utils.CollectorThread;
+
+import io.github.hengyunabc.zabbix.sender.SenderResult;
+
 /**
  * This class is in charge of carrying out the monitoring process for the OCCI
  * API of a concrete provider. It covers the whole lifecycle (create, inspect and
@@ -10,10 +14,10 @@ package org.indigo.occiprobe.openstack;
  * @author ATOS
  *
  */
-public class MonitoringThread extends Thread {
+public class MonitoringThread extends CollectorThread<OpenStackOcciClient> {
   private String provider;
-  private ZabbixSender mySender;
-  private OpenStackOcciClient myClient;
+  private String providerUrl;
+  private String keystoneUrl;
   
   /**
    * This is the main constructor of the class, in order to retrieve the
@@ -23,46 +27,49 @@ public class MonitoringThread extends Thread {
    * @param keystoneURL String representing the Keystone API URL
    */
   protected MonitoringThread(String providerId, String providerUrl, String keystoneUrl) {
+    super("IaaS", "Cloud_Providers", "OCCI");
+
     provider = providerId;
-    mySender = ZabbixSender.instance();  
-    myClient = new OpenStackOcciClient(keystoneUrl, providerUrl, providerId);
+    this.providerUrl = providerUrl;
+    this.keystoneUrl = keystoneUrl;
     
     System.out.println("OCCI Endpoint: " + providerUrl);
     System.out.println("Keystone Endpoint: " + keystoneUrl);
   }
-  
+
+  @Override
+  protected OpenStackOcciClient createCollector() {
+    return new OpenStackOcciClient(keystoneUrl, providerUrl, provider);
+  }
+
   /**
    * This is a constructor for testing purposes, which uses mocks.
    * @param senderMock Mock for the Zabbix sender
    * @param occiMock Mock for the OCCI client
    * @param providerId Provider identifier
    */
-  public MonitoringThread(ZabbixSender senderMock, OpenStackOcciClient occiMock, 
+  /*public MonitoringThread(ZabbixSender senderMock, OpenStackOcciClient occiMock,
       String providerId) {
     mySender = senderMock;
     myClient = occiMock;
     provider = providerId;
-  }
+  }*/
   
   /**
    * This method executes the actions required for the monitoring process (perform
    * the expected operations on the OCCI API and send the metrics gathered to 
    * Zabbix).
    */
-  public void run() {
-    try {
-      System.out.println("Retrieving monitoring information about " + provider + "...");      
+  public SenderResult run() {
+
+      return run(null);
+
+      /*System.out.println("Retrieving monitoring information about " + provider + "...");
       // Run the OCCI monitoring process and retrieve the result      
       OcciProbeResult result = myClient.getOcciMonitoringInfo();
       
       // Send the metrics to Zabbix collector 
       System.out.println("Sending the metrics to Zabbix Sender...");
-      mySender.addMetricToQueue(result);
-    } catch (Exception ex) {
-      System.out.println("Failure when monitoring the provider" + provider + "!");
-      System.out.println(ex.getMessage());
-    }
-    
-    System.out.println("Monitoring thread for provider " + provider + " finished!");
+      mySender.addMetricToQueue(result);*/
   }
 }

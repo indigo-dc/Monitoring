@@ -23,18 +23,19 @@ package org.indigo.occiprobe.openstack;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.JerseyClientBuilder;
+import com.indigo.zabbix.utils.ProbeClientFactory;
+import com.indigo.zabbix.utils.PropertiesManager;
+
+import org.indigo.occiprobe.openstack.beans.CmdbResponse;
+import org.indigo.occiprobe.openstack.beans.ServiceType;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
 
 /**
  * The CmdbClient class is in charge of the interactions between the probe and
@@ -45,7 +46,11 @@ import javax.ws.rs.core.Response;
  *
  */
 public class CmdbClient {
-  private Client client = null;
+  public static final String OPENSTACK_TYPE = "eu.egi.cloud.vm-management.openstack";
+  //private Client client = null;
+
+  private CmdbFeignClient cmdbClient = null;
+
   private String cmdbUrl;
   
   /**
@@ -54,12 +59,8 @@ public class CmdbClient {
    */
   public CmdbClient() {
     // Retrieve properties
-    PropertiesManager myProp = new PropertiesManager();
-    cmdbUrl = myProp.getProperty(PropertiesManager.CMDB_URL);
-    
-    // Create the Client
-    ClientConfig cc = new ClientConfig();
-    client = JerseyClientBuilder.newClient(cc);
+    cmdbUrl = PropertiesManager.getProperty(OcciProbeTags.CMDB_URL);
+    cmdbClient = ProbeClientFactory.getClient(CmdbFeignClient.class, cmdbUrl);
   }
   
   /**
@@ -67,43 +68,7 @@ public class CmdbClient {
    * @param mock Mock of the Jersey Client class
    */
   public CmdbClient(Client mock) {
-    client = mock;
-  }
-  
-  /**
-   * Using the created Jersey client, it invokes the CMDB REST API in 
-   * order to retrieve the full list of Cloud providers which are
-   * currently available.
-   * @return Strings array with the identifiers of the providers found.
-   */
-  public String[] getProvidersList() {
-    // Call to CMDB API
-    WebTarget target = client.target(cmdbUrl + "/provider/list");
-    Invocation.Builder invocationBuilder = target.request();
-    Response response = invocationBuilder.get();
-    String message = response.readEntity(String.class);    
-    
-    //System.out.println(message);
-    
-    // Retrieve the providers list
-    JsonElement jelement = new JsonParser().parse(message);
-    JsonObject parsedRes = jelement.getAsJsonObject();
-    JsonArray listArray = parsedRes.getAsJsonArray("rows");
-    
-    ArrayList<String> providersList = new ArrayList<String>();
-    Iterator<JsonElement> myIter = listArray.iterator();
-    while (myIter.hasNext()) {
-      JsonObject currentResource = myIter.next().getAsJsonObject();
-      String providerId = currentResource.get("id").getAsString();
-      providersList.add(providerId);
-    }
-    
-    // Prepare the result
-    providersList.trimToSize();
-    String[] resultList = new String[providersList.size()];
-    providersList.toArray(resultList);
-    
-    return resultList;
+    //client = mock;
   }
   
   /**
@@ -114,17 +79,11 @@ public class CmdbClient {
    */
   public CloudProviderInfo getProviderData(String providerId) {
     // Call to CMDB API
-    String providerUrl = cmdbUrl + "/provider/id/" + providerId 
-        + "/has_many/services?include_docs=true";
-    WebTarget target = client.target(providerUrl);
-    Invocation.Builder invocationBuilder = target.request();
-    Response response = invocationBuilder.get();
-    String message = response.readEntity(String.class);
     
     //System.out.println(message);
     
     // Retrieve the services list
-    JsonElement jelement = new JsonParser().parse(message);
+    JsonElement jelement = cmdbClient.providerInfo(providerId);
     JsonObject parsedRes = jelement.getAsJsonObject();
     JsonArray listArray = parsedRes.getAsJsonArray("rows");
     if (listArray.isJsonNull() || listArray.size() == 0) {
@@ -169,7 +128,7 @@ public class CmdbClient {
         if (currentProduction != null && currentProduction.getAsString().equalsIgnoreCase("Y")) {
           isProduction = true;
         }
-      } else if (currentServiceType.equalsIgnoreCase("eu.egi.cloud.vm-management.openstack")) {
+      } else if (currentServiceType.equalsIgnoreCase(OPENSTACK_TYPE)) {
         keystoneEndpoint = currentEndpoint;
         type = CloudProviderInfo.OPENSTACK;
       }
@@ -180,63 +139,32 @@ public class CmdbClient {
     
     return myProvider;
   }
-  
-  /**
-   * It makes use of the methods for listing providers and for getting individual information
-   * in order to perform a filtering of providers, selecting only those suitable for the probe
-   * at this stage: OpenStack providers, in production and with monitoring.
-   * @return An ArrayList including info about the selected providers.
-   */
-  public ArrayList<CloudProviderInfo> getFeasibleProvidersInfo() {
-    // Create the resulting list object
-    ArrayList<CloudProviderInfo> myResult = new ArrayList<CloudProviderInfo>();
-    
-    // First, retrieve the whole list of providers
-    String[] providersList = getProvidersList();
-    
-    // Then, iterate all the providers and select
-    for (int i = 0; i < providersList.length; i ++) {
-      // Retrieve all the info
-      CloudProviderInfo currentInfo = getProviderData(providersList[i]);
-      
-      // Now check it is compliant with our requirements
-      if (currentInfo != null) {
-        int cloudType = currentInfo.getCloudType();
-        boolean isMonitored = currentInfo.getIsMonitored();
-        boolean isProduction = currentInfo.getIsProduction();
-        if (cloudType == CloudProviderInfo.OPENSTACK) {
-          myResult.add(currentInfo);
-        }
-      }
+
+  public List<CloudProviderInfo> getFeasibleProvidersInfo() {
+
+    CmdbResponse response = cmdbClient.services();
+    if (response != null && response.getRows() != null) {
+
+      List<ServiceType> services = response.getRows();
+
+      return services.stream()
+
+          // First filter only services which are of type OpenStack
+          .filter(service ->
+         service.getDoc() != null && service.getDoc().getData() != null
+            && OPENSTACK_TYPE.equals(service.getDoc().getData().getService_type()))
+
+          // For any of such services, get the full information of the associated provider
+          .map(service -> getProviderData(service.getDoc().getData().getProvider_id()))
+
+          // Collect results
+          .collect(Collectors.toList());
+
+    } else {
+      return new ArrayList<>();
     }
-    
-    return myResult;
+
   }
-  
-  /**
-   * Temporary main for testing.
-   * @param args Typical arguments
-   */
-  public static void main(String[] args) {
-    CmdbClient myClient = new CmdbClient();
-    String[] providers = myClient.getProvidersList();
-  
-    CloudProviderInfo myInfo = myClient.getProviderData(providers[0]);
-    System.out.println("Provider: " + myInfo.getProviderId());
-    System.out.println("OCCI URL: " + myInfo.getOcciEndpoint());
-    System.out.println("Keystone URL: " + myInfo.getKeystoneEndpoint());
-    System.out.println("Provider Type: " + myInfo.getCloudType());
-    System.out.println("Is Monitored? " + myInfo.getIsMonitored());
-    System.out.println("Is Beta? " + myInfo.getIsBeta());
-    System.out.println("Is Production? " + myInfo.getIsProduction());
-    
-    /*
-    ArrayList<CloudProviderInfo> myList = myClient.getFeasibleProvidersInfo();
-    System.out.println("Number of providers: " + myList.size());
-    Iterator<CloudProviderInfo> myIter = myList.iterator();
-    while (myIter.hasNext()) {
-      System.out.println("Provider: " + myIter.next().getProviderId());
-    }
-    */
-  }
+
+
 }

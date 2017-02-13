@@ -22,6 +22,8 @@ package org.indigo.occiprobe.openstack;
 
 import com.google.gson.Gson;
 
+import com.indigo.zabbix.utils.PropertiesManager;
+
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 
@@ -50,14 +52,13 @@ public class ZabbixWrapperClient {
    */
   public ZabbixWrapperClient() {
     // Retrieve location of the Zabbix Server and the Zabbix sender (local)
-    PropertiesManager myProp = new PropertiesManager();
-    String location = myProp.getProperty(PropertiesManager.ZABBIX_WRAPPER);
+    String location = PropertiesManager.getProperty(OcciProbeTags.ZABBIX_WRAPPER);
     wrapperBaseUrl = location 
         + "/monitoring/adapters/zabbix/zones/indigo/types/infrastructure/groups/";
     
     // Disable issue with SSL Handshake in Java 7 and indicate certificates keystore
     System.setProperty("jsse.enableSNIExtension", "false");
-    String certificatesTrustStorePath = myProp.getProperty(PropertiesManager.JAVA_KEYSTORE);
+    String certificatesTrustStorePath = PropertiesManager.getProperty(OcciProbeTags.JAVA_KEYSTORE);
     System.setProperty("javax.net.ssl.trustStore", certificatesTrustStorePath);
     
     // Create the Client
