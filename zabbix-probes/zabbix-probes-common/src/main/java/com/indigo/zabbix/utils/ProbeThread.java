@@ -10,9 +10,9 @@ import java.io.IOException;
 /**
  * Created by jose on 11/21/16.
  */
-public abstract class CollectorThread<T extends MetricsCollector> {
+public abstract class ProbeThread<T extends MetricsCollector> {
 
-  private static final Log logger = LogFactory.getLog(CollectorThread.class);
+  private static final Log logger = LogFactory.getLog(ProbeThread.class);
 
   protected ZabbixClient client;
 
@@ -24,11 +24,11 @@ public abstract class CollectorThread<T extends MetricsCollector> {
    * Constructor used for testing.
    * @param client client zabbix object.
    */
-  protected CollectorThread(ZabbixClient client) {
+  protected ProbeThread(ZabbixClient client) {
     this.client = client;
   }
 
-  protected CollectorThread(String category, String group, String template) {
+  protected ProbeThread(String category, String group, String template) {
     this.category = category;
     this.group = group;
     this.template = template;

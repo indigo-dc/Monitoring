@@ -2,10 +2,10 @@ package com.indigo.mesosprobe.marathon;
 
 
 import com.indigo.mesosprobe.MesosProbeTags;
-import com.indigo.zabbix.utils.CollectorThread;
+import com.indigo.zabbix.utils.ProbeThread;
 
 
-public class MarathonThread extends CollectorThread<MarathonCollector> {
+public class MarathonThread extends ProbeThread<MarathonCollector> {
 
   protected MarathonThread() {
     super("IaaS", "Marathon", "RuntimeTestTemplate");

@@ -1,7 +1,7 @@
 package com.indigo.mesosprobe.chronos;
 
 import com.indigo.mesosprobe.MesosProbeTags;
-import com.indigo.zabbix.utils.CrudCollector;
+import com.indigo.zabbix.utils.LifecycleCollector;
 import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.beans.AppOperation;
 
@@ -25,7 +25,7 @@ import java.util.Date;
 /**
  * Created by jose on 11/17/16.
  */
-public class ChronosCollector extends CrudCollector {
+public class ChronosCollector extends LifecycleCollector {
 
   private static final String PREFIX = "Chronos_";
 

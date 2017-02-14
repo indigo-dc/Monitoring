@@ -31,7 +31,7 @@ In order to get information and successfully monitor a specific cloud provider i
 1.3 Installation
 ----------------
 
-When having the war at disposal starting from a clean VM with Ubuntu install the docker manager:
+When having the war and a clean VM with Ubuntu at disposal, install the docker manager:
 ```
 sudo apt-get update
 ```
@@ -52,15 +52,15 @@ docker logs -f `docker run -d --name=indigo-zabbix-wrapper -e ZABBIX_URL=http://
 
 The deploy will be successfull if the endpoints written in the property file are correct and the wrapper can reach the server itself
 
-#### In case wrapper is not a war --> Compile the code
+##### In case wrapper is not a war --> Compile the code
 
 To compile the project you need to be in the same folder as the `pom.xml` file and type:
 ```
-mvn clean install -DskipTests
+mvn clean install
 ```
 This command compiles the code and skip the tests. If you want to compile the code running the tests too you can use:
 ```
-mvn clean install
+mvn clean install -DskipTests
 ```
 
 At compilation completed, the `zabbix-wrapper.war` file will be inserted in the `target` folder.
@@ -92,4 +92,4 @@ The first release of the Monitoring Framework provides three probes for monitori
 * [A Heapster probe, which retrieves information about the containers and pods running in a Kubernetes cluster;](doc/heapster.md)
 * [A Mesos cluster probe which will check the status and working conditions of the general Mesos cluster as well as the health status of the Chronos and Marathon instances.](doc/mesos.md)
 
-The documentation for installation, configuration and running of each probe is described in their own page.
+The documentation for installation, configuration and running of each probe is described in their own page. To develop new probes, please see the [probe development guide](doc/probe_development.md).

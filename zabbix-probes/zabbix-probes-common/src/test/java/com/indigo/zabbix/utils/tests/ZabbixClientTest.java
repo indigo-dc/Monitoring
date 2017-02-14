@@ -191,7 +191,7 @@ public class ZabbixClientTest {
     ZabbixClient client = new ZabbixClient("testCategory", "testGroup",
         "testTemplate", wrapperClient, sender);
 
-    TestCollectorThread testCorrect = new TestCollectorThread(
+    TestProbeThread testCorrect = new TestProbeThread(
         "testCategory", "testGroup","testTemplate", "testHost",
         true, true, true, true, client);
 
