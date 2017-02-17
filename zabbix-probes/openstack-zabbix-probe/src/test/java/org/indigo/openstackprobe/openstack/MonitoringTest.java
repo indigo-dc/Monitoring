@@ -20,8 +20,12 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.openstackprobe.openstack;
 
+import java.awt.font.ImageGraphicAttribute;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import javax.ws.rs.NotFoundException;
@@ -48,6 +52,7 @@ import org.openstack4j.model.identity.Token;
 import org.openstack4j.model.image.Image;
 import org.openstack4j.openstack.compute.domain.NovaImage;
 
+import javassist.CtNewConstructor;
 import jersey.repackaged.com.google.common.collect.Lists;
 
 public class MonitoringTest {
@@ -187,7 +192,15 @@ public class MonitoringTest {
      Mockito.doReturn("ubuntu").when(centos).getName();
      ArrayList<Image> images = Lists.newArrayList(centos, ubuntu16);
      Mockito.doReturn(images).when(openstackClient).getInternalOsImage();
+     Mockito.doReturn(new ArrayList<>()).when(openstackClient).getImagesFromCmdb();
      openstackClient.getOsImage();
+   }
+   
+   @Test
+   public void testImagesFromCmdb(){
+//       List<Image> imagesFromCmdbmocked = new ArrayList<>();
+       OpenStackClient openstackClient = Mockito.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMock, imageMock));
+       Mockito.doReturn(new ArrayList<>()).when(openstackClient).getImagesFromCmdb();
    }
    
    @Test(expected=NotFoundException.class)
@@ -201,24 +214,36 @@ public class MonitoringTest {
    @Test
    public void createServerSuccessFully() throws InterruptedException, TimeoutException{
      OpenStackClient openstackClient = Mockito.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMock, imageMock));
+//     CreateVmResult createdVmResultmocked = Mockito.spy(new CreateVmResult(1, 200, 898097809, "idMocked"));
+     
      ServerCreate sc = Mockito.mock(ServerCreate.class);
      CreateVmResult cVmResult = Mockito.mock(CreateVmResult.class);
      Server server = Mockito.mock(Server.class);
      List<Server> servers = Lists.newArrayList(server);
      Mockito.doReturn(servers).when(openstackClient).getServerOsList();
-     Image centos = Mockito.mock(Image.class);
-     Image ubuntu16 = Mockito.mock(Image.class);
-     Mockito.doReturn("ubuntu").when(centos).getName();
-     ArrayList<Image> images = Lists.newArrayList(ubuntu16);
+     Image image = Mockito.mock(Image.class);
+     
+     ArrayList<Image> images = Lists.newArrayList(image);
      Mockito.doReturn(images).when(openstackClient).getInternalOsImage();
-     Flavor small = Mockito.mock(Flavor.class);
-     ArrayList<Flavor> flavors = Lists.newArrayList(small);
+     Mockito.doReturn(new ArrayList<>()).when(openstackClient).getInternalOsImage();
+     Flavor flavor = Mockito.mock(Flavor.class);
+     ArrayList<Flavor> flavors = Lists.newArrayList(flavor);
      Mockito.doReturn(flavors).when(openstackClient).getInternalFlavor();
-     Mockito.when(openstackClient.createOsServer(Mockito.anyString())).thenReturn(sc);
-//     Mockito.doReturn(sc).when(openstackClient).bootOsServer(sc);
+     Mockito.doReturn(sc).when(openstackClient).createOsServer(Mockito.anyString());
+//     Mockito.when(openstackClient.createOsServer(Mockito.anyString())).thenReturn(sc);
      Mockito.doNothing().when(openstackClient).bootOsServer(sc);
      Mockito.doReturn(sc).when(openstackClient).createOsServer(Mockito.anyString());
-     openstackClient.createVm();
+     Mockito.doReturn(new ArrayList<>()).when(openstackClient).getServerOsList();
+     Mockito.doReturn(200).when(cVmResult).getCreateVmResult();
+//     Mockito.doReturn(Mockito.anyLong()).when(cVmResult).getCreateVmResponseTime();
+     Mockito.doReturn(1).when(cVmResult).getCreateVmAvailability();
+     Mockito.doReturn("idMocked").when(cVmResult).getVmId();
+     Map<String, Integer> manageResponseStatusresult = new HashMap<>();  
+     manageResponseStatusresult.put("codeMocked", 200);
+     manageResponseStatusresult.put("availabityMocked", 1);
+     Mockito.doReturn(manageResponseStatusresult).when(openstackClient).manageResponseStatus(Server.Status.ACTIVE);
+     Mockito.doReturn(sc).when(openstackClient).createOsServer(Mockito.anyString());
+//     openstackClient.createVm();
    }
    
 	@Test

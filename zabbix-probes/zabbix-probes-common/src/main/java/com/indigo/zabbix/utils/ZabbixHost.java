@@ -42,12 +42,12 @@ public class ZabbixHost implements Serializable {
    * This is the constructor of the class, setting by default most of the properties.
    * @param hostName Identifier of the host
    */
-  public ZabbixHost(String hostName, String category, String group) {
+  public ZabbixHost(String hostName, String category, String group, String template) {
     ip = "127.0.0.1";
     uuid = hostName;
     serviceCategory = category;
-    serviceId = "serviceId";
-    atomicServices = new String[]{group};
+    serviceId = category + "_" + group + "_" + hostName;
+    atomicServices = new String[]{template};
     activeMode = false;
   }
 

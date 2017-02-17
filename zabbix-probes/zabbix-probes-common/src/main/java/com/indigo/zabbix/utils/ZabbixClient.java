@@ -22,6 +22,7 @@ public class ZabbixClient {
 
   private String zabbixCategory;
   private String zabbixGroup;
+  private String zabbixTemplate;
 
   private static final Log logger = LogFactory.getLog(ZabbixClient.class);
 
@@ -29,12 +30,27 @@ public class ZabbixClient {
   private ZabbixSender sender;
 
   /**
+   * Constructor used for testing.
+   * @param wrapperClient mock wrapper client.
+   * @param sender mock wrapper sender.
+   */
+  public ZabbixClient(String category, String group, String template,
+                      ZabbixWrapperClient wrapperClient, ZabbixSender sender) {
+    this.zabbixCategory = category;
+    this.zabbixGroup = group;
+    this.zabbixTemplate = template;
+    this.wrapperClient = wrapperClient;
+    this.sender = sender;
+  }
+
+  /**
    * Default constructor that will read the information from the configuration properties.
    */
-  public ZabbixClient(String category, String group) {
+  public ZabbixClient(String category, String group, String template) {
     this(PropertiesManager.getProperty(ProbesTags.ZABBIX_WRAPPER_ENDPOINT),
         category,
         group,
+        template,
         PropertiesManager.getProperty(ProbesTags.ZABBIX_HOST),
         new Integer(PropertiesManager.getProperty(ProbesTags.ZABBIX_PORT,
             ZABBIX_DEFAULT_PORT.toString())));
@@ -43,7 +59,7 @@ public class ZabbixClient {
   /**
    * Default constructor.
    */
-  public ZabbixClient(String wrapperEndpoint, String category, String group,
+  public ZabbixClient(String wrapperEndpoint, String category, String group, String template,
                       String zabbixHost, Integer zabbixPort) {
 
     wrapperClient = ProbeClientFactory.getZabbixWrapperClient(wrapperEndpoint);
@@ -54,6 +70,7 @@ public class ZabbixClient {
 
     zabbixCategory = category;
     zabbixGroup = group;
+    zabbixTemplate = template;
   }
 
   /**
@@ -62,15 +79,19 @@ public class ZabbixClient {
    * @param host The host name.
    * @return The registration status.
    */
-  public boolean ensureRegistration(String host) {
+  public boolean ensureRegistration(String host, boolean register) {
     Response hostInfo = wrapperClient.getHostInfo(host, zabbixGroup);
     if (hostInfo.status() < 300 && hostInfo.status() >= 200) {
       return true;
     } else {
-      Response registrationResult = wrapperClient.registerHost(host, zabbixGroup,
-          new ZabbixHost(host, zabbixCategory, zabbixGroup));
-      if (registrationResult.status() < 300 && registrationResult.status() >= 200) {
-        return true;
+      if (register) {
+        Response registrationResult = wrapperClient.registerHost(host, zabbixGroup,
+            new ZabbixHost(host, zabbixCategory, zabbixGroup, zabbixTemplate));
+        if (registrationResult.status() < 300 && registrationResult.status() >= 200) {
+          return ensureRegistration(host, false);
+        } else {
+          return false;
+        }
       } else {
         return false;
       }
@@ -82,8 +103,8 @@ public class ZabbixClient {
    *
    * @param metrics   The metrics to send.
    */
-  public void sendMetrics(ZabbixMetrics metrics) {
-    if (ensureRegistration(metrics.getHostName())) {
+  public SenderResult sendMetrics(ZabbixMetrics metrics) {
+    if (ensureRegistration(metrics.getHostName(), true)) {
       long timeSecs = metrics.getTimestamp() / 1000;
       String zabbixHost = PropertiesManager.getProperty(ProbesTags.ZABBIX_HOST);
       if (zabbixHost != null) {
@@ -103,16 +124,31 @@ public class ZabbixClient {
         try {
           SenderResult sendResult = sender.send(toSend);
           if (!sendResult.success()) {
-            logger.error("Error sending values: "
-                + "\nTotal: " + sendResult.getTotal()
-                + "\nProcessed: " + sendResult.getProcessed()
-                + "\nFailed: " + sendResult.getFailed());
+            /* Sometimes zabbix fails to process data the first time it's sent. Specially when the
+             * host is first registered. The reason why? It's a mystery and given the huge amount
+             * of data we have to debug the situation, let's just try to send it once again before
+             * failing. */
+            sendResult = sender.send(toSend);
+            if (!sendResult.success()) {
+              logger.error("Error sending values for host " + metrics.getHostName() + ": "
+                  + "\nTotal: " + sendResult.getTotal()
+                  + "\nProcessed: " + sendResult.getProcessed()
+                  + "\nFailed: " + sendResult.getFailed());
+            } else {
+              logger.info("Successfully sent " + sendResult.getProcessed()
+                  + " metrics for host " + metrics.getHostName());
+            }
+          } else {
+            logger.info("Successfully sent " + sendResult.getProcessed()
+                + " metrics for host " + metrics.getHostName());
           }
+          return sendResult;
         } catch (IOException e) {
-          logger.error("Error sending values", e);
+          logger.error("Error sending values for host " + metrics.getHostName(), e);
         }
       }
     }
+    return null;
   }
 
 }

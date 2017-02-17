@@ -16,13 +16,9 @@ public class PropertiesManager {
 
   private static PropertiesConfiguration props = new PropertiesConfiguration();
 
-  /**
-   * Loads the configuration file from the default location.
-   *
-   * @throws IOException Exception in case of fail.
-   */
-  public static void loadProperties(String configFileName) throws IOException {
+  private static final String DEFAULT_LOG_FILE = "probes-log.properties";
 
+  private static File getConfigFile(String file) {
     String location = "";
     String opSystem = System.getProperty("os.name").toLowerCase();
     if (opSystem.indexOf("win") >= 0) {
@@ -31,10 +27,17 @@ public class PropertiesManager {
       location = "/etc/zabbix/";
     }
 
-    File configFile = new File(location + "/" + configFileName);
+    return new File(location + "/" + file);
+  }
 
+  /**
+   * Loads the configuration file from the default location.
+   *
+   * @throws IOException Exception in case of fail.
+   */
+  public static void loadProperties(String configFileName) throws IOException {
+    File configFile = getConfigFile(configFileName);
     loadProperties(new FileReader(configFile));
-
   }
 
   /**

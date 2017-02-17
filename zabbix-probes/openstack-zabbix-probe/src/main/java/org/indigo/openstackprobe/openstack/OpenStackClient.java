@@ -18,7 +18,6 @@ package org.indigo.openstackprobe.openstack;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -26,16 +25,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;
 
-import org.apache.commons.logging.impl.Log4JLogger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.openstack4j.api.Builders;
@@ -48,8 +45,11 @@ import org.openstack4j.model.compute.ServerCreate;
 import org.openstack4j.model.image.Image;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.openstack.OSFactory;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+
+import com.google.gson.JsonObject;
+import com.indigo.zabbix.utils.PropertiesManager;
+
+import feign.RequestLine;
 
 /**
  * It takes care of the interactions to be performed with Cloud Providers whose base platform is
@@ -79,10 +79,9 @@ public class OpenStackClient {
   private static final String TIME_MS = " time in milliseconds: ";
   private static final String TOTAL_CREATION_TIME =
       "Total elapsed http request/response for creating the instance: ";
-  private static final String DELETE_OPTION = "delete";
-  private static final String INSPECT_OPTION = "inspect";
 
   private static final Logger log = LogManager.getLogger(OpenStackClient.class);
+  
 
   /**
    * Main constructor of the OpenStackOcciClient class. It retrieves some information from the
@@ -99,15 +98,15 @@ public class OpenStackClient {
   public OpenStackClient(String keystoneLocation, String providerUrl, String providerName) {
 
     // Retrieve properties
-    PropertiesManager myProp = new PropertiesManager();
-    openStackUser = myProp.getProperty(PropertiesManager.OPENSTACK_USER);
-    openStackPwd = myProp.getProperty(PropertiesManager.OPENSTACK_PASSWORD);
-    tenantName = myProp.getProperty(PropertiesManager.TENANT_NAME);
+//    PropertiesManager myProp = new PropertiesManager();
+    openStackUser = PropertiesManager.getProperty(OpenstackProbeTags.OPENSTACK_USER);
+    openStackPwd = PropertiesManager.getProperty(OpenstackProbeTags.OPENSTACK_PASSWORD);
+    tenantName = PropertiesManager.getProperty(OpenstackProbeTags.TENANT_NAME);
     providerId = providerName;
 
     // Disable issue with SSL Handshake in Java 7 and indicate certificates keystore
     System.setProperty("jsse.enableSNIExtension", "false");
-    String certificatesTrustStorePath = myProp.getProperty(PropertiesManager.JAVA_KEYSTORE);
+    String certificatesTrustStorePath = PropertiesManager.getProperty(OpenstackProbeTags.JAVA_KEYSTORE);
     System.setProperty("javax.net.ssl.trustStore", certificatesTrustStorePath);
 
     // Create the Clients
@@ -152,6 +151,12 @@ public class OpenStackClient {
     return getOSAuth().compute().flavors().list();
   }
 
+  /**
+   * Retrieves the flavors from the providers. It checks weheter there is any flavor called small,
+   * otherwise gets the first.
+   * 
+   * @return the Id of the flavor
+   */
   public String getFlavor() {
     List<? extends Flavor> flavors = getInternalFlavor();
 
@@ -170,6 +175,12 @@ public class OpenStackClient {
     return getOSAuth().images().list();
   }
 
+  /**
+   * Checks inside CMDB for all the images IDs and checks whether it belongs to the examined
+   * provider or not in order to use the correct one.
+   * 
+   * @return id of the Image used for creating the instance.
+   */
   public String getOsImage() {
     List<? extends Image> images = getInternalOsImage();
     for (Image image : images) {
@@ -179,7 +190,7 @@ public class OpenStackClient {
         }
       }
     }
-    while (!images.isEmpty()) {
+    if (!images.isEmpty()) {
       return images.get(0).getId();
     }
     throw new NotFoundException("Unable to find any image in Openstack");
@@ -226,11 +237,9 @@ public class OpenStackClient {
     // Wait for the process to be done
     Map<Server.Status, Server> serverCreation = new HashMap<>();
     String vmId = null;
-
     try {
       serverCreation = poller(instanceName);
     } catch (TimeoutException | InterruptedException e) {
-
       log.debug(e.getMessage());
     }
 
@@ -244,8 +253,6 @@ public class OpenStackClient {
     } else {
       long creationTime = serverCreation.get(Server.Status.ACTIVE).getCreated().getTime();
       responseTime = startTime - creationTime;
-      log.info(TOTAL_CREATION_TIME + serverCreation.get(Server.Status.ACTIVE).getId() + TIME_MS
-          + responseTime);
       log.info(TOTAL_CREATION_TIME + serverCreation.get(Server.Status.ACTIVE).getId() + TIME_MS
           + responseTime);
 
@@ -268,7 +275,7 @@ public class OpenStackClient {
    * @see Server
    * @return the map for managing the values
    */
-  private Map<String, Integer> manageResponseStatus(Server.Status serverStatus) {
+  protected Map<String, Integer> manageResponseStatus(Server.Status serverStatus) {
     boolean resultServerStatus;
     if (serverStatus.equals(Server.Status.ACTIVE)) {
       resultServerStatus = true;
@@ -295,7 +302,7 @@ public class OpenStackClient {
       throws TimeoutException, InterruptedException {
 
     Calendar calendar = Calendar.getInstance();
-    calendar.add(Calendar.SECOND, 1); // * 10); // 42 --> 7minutes
+    calendar.add(Calendar.SECOND, 9 * 10); // 7minutes
     long stopPollingTime = calendar.getTimeInMillis();
 
     boolean created = false;
@@ -304,12 +311,21 @@ public class OpenStackClient {
     for (Server serverInstance : servers) {
       if (serverInstance.getName().equalsIgnoreCase(instanceName)) {
         while (System.currentTimeMillis() < stopPollingTime
-            && !serverInstance.getStatus().equals(Server.Status.ERROR)) {
-          getDiagnosedServer(serverInstance);
-
+            && !serverInstance.getStatus().equals(Server.Status.ERROR)
+            && !serverInstance.getStatus().equals(Server.Status.ACTIVE)) {
+          if (getDiagnosedServer(serverInstance)) {
+            serverResultMap.put(Server.Status.ACTIVE, serverInstance);
+            created = true;
+            break;
+          } else
+            serverResultMap.put(serverInstance.getStatus(), serverInstance);
         }
+        // If it's still creating (build status), is in error or polling time is expired, meaning
+        // the machine has not been succesffully created
         if (serverInstance.getStatus().equals(Server.Status.ERROR)
-            || serverInstance.getStatus().equals(Server.Status.BUILD)) {
+            || serverInstance.getStatus().equals(Server.Status.BUILD)
+                && System.currentTimeMillis() > stopPollingTime
+                && !getDiagnosedServer(serverInstance)) {
           serverResultMap.put(serverInstance.getStatus(), serverInstance);
           return serverResultMap;
         }
@@ -330,21 +346,28 @@ public class OpenStackClient {
     return serverResultMap;
   }
 
-  protected Map<Server.Status, Server> getDiagnosedServer(Server serverInstance)
-      throws InterruptedException {
+  protected boolean getDiagnosedServer(Server serverInstance) throws InterruptedException {
 
     Thread.sleep(3000);
+    boolean isInstanceCreated = false;
     Server serverDiagnosed = getOSAuth().compute().servers().get(serverInstance.getId());
     // poll until the result is mappable...
-    log.info("Polling..");
+    log.info("Polling to wait for instance to be created...");
     Map<Server.Status, Server> serverResultMap = new HashMap<>();
     if (serverDiagnosed.getPowerState().equals(POWER_STATE_ACTIVE)) {
       log.info("created..");
-      Server server = serverDiagnosed;
-      serverResultMap.put(Server.Status.ACTIVE, server);
-    }
-    return serverResultMap;
+      isInstanceCreated = true;
+      serverResultMap.put(Server.Status.ACTIVE, serverInstance);
+
+      return isInstanceCreated;
+    } else
+      return isInstanceCreated;
   }
+  
+  protected Server getInstanceInfo(Server serverInstance){
+    return getOSAuth().compute().servers().get(serverInstance.getId());
+  } 
+  
 
   /**
    * Method used for testing openstack4J API.
@@ -411,7 +434,7 @@ public class OpenStackClient {
    * @throws TimeoutException
    * @throws InterruptedException
    */
-  private DeleteVmResult deleteVm(String vmId) throws TimeoutException, InterruptedException {
+  protected DeleteVmResult deleteVm(String vmId) throws TimeoutException, InterruptedException {
 
     // Measure response time
     long startTime = System.currentTimeMillis();
@@ -520,10 +543,8 @@ public class OpenStackClient {
       return failureResult;
     }
 
-    InspectVmResult inspectVmInfo =
-        (InspectVmResult) InspectAndDeleteInstance(createVmInfo).get(INSPECT_OPTION);
-    DeleteVmResult deleteVmInfo =
-        (DeleteVmResult) InspectAndDeleteInstance(createVmInfo).get(DELETE_OPTION);
+    InspectVmResult inspectVmInfo = inspectVm(createVmInfo.getVmId());
+    DeleteVmResult deleteVmInfo = deleteVm(createVmInfo.getVmId());
     // Determine Global Availability
     int globalAvailability = 1;
     if (createVmInfo.getCreateVmAvailability() == 0 || inspectVmInfo.getInspectVmAvailability() == 0
@@ -564,27 +585,11 @@ public class OpenStackClient {
     return finalResult;
   }
 
-  private Map<String, ?> InspectAndDeleteInstance(CreateVmResult createVmInfo) {
-
-    Map<String, Object> resultTryMap = new HashMap<>();
-    try {
-      DeleteVmResult deleteVmInfo = deleteVm(createVmInfo.getVmId());
-      InspectVmResult inspectVmInfo = inspectVm(createVmInfo.getVmId());
-
-      resultTryMap.put(DELETE_OPTION, deleteVmInfo);
-      resultTryMap.put(INSPECT_OPTION, inspectVmInfo);
-
-    } catch (TimeoutException | InterruptedException e) {
-      log.debug(e.getMessage());
-    }
-    return resultTryMap;
-  }
-
   private void tryToDeleteInstance(CreateVmResult createVmInfo) {
 
     try {
-      if(createVmInfo.getVmId()!=null)
-      deleteVm(createVmInfo.getVmId());
+      if (createVmInfo.getVmId() != null)
+        deleteVm(createVmInfo.getVmId());
 
     } catch (TimeoutException | InterruptedException e) {
       log.debug(e.getMessage());

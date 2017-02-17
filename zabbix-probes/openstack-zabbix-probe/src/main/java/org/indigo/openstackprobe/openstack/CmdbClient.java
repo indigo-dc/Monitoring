@@ -36,6 +36,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.indigo.zabbix.utils.PropertiesManager;
 
 /**
  * The CmdbClient class is in charge of the interactions between the probe and the CMDB component.
@@ -60,8 +61,7 @@ public class CmdbClient {
    */
   public CmdbClient() {
     // Retrieve properties
-    PropertiesManager myProp = new PropertiesManager();
-    cmdbUrl = myProp.getProperty(PropertiesManager.CMDB_URL);
+    cmdbUrl = PropertiesManager.getProperty(OpenstackProbeTags.CMDB_URL);
 
     // Create the Client
     ClientConfig cc = new ClientConfig();
@@ -86,7 +86,10 @@ public class CmdbClient {
    */
   public String[] getProvidersList() {
     // Call to CMDB API
-    WebTarget target = client.target(cmdbUrl + "/provider/list");
+    WebTarget target = client.target(
+         cmdbUrl +
+//        "http://indigo.cloud.plgrid.pl/cmdb" 
+              "/provider/list");
     Invocation.Builder invocationBuilder = target.request();
     Response response = invocationBuilder.get();
     String message = response.readEntity(String.class);
@@ -113,7 +116,7 @@ public class CmdbClient {
 
     return resultList;
   }
-  
+
   public String[] getImageList() {
     // Call to CMDB API
     WebTarget target = client.target(cmdbUrl + "/image/list");
@@ -132,8 +135,8 @@ public class CmdbClient {
       JsonObject currentResource = myIter.next().getAsJsonObject();
       JsonObject valueObject = currentResource.getAsJsonObject("value");
       String imageJsonId = valueObject.get("image_id").getAsString();
-      
-      String imageId = imageJsonId!=null ? imageJsonId : currentResource.get("id").getAsString();
+
+      String imageId = imageJsonId != null ? imageJsonId : currentResource.get("id").getAsString();
       imageList.add(imageId);
     }
 
