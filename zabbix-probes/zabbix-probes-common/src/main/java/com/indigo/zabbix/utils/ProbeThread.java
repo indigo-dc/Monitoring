@@ -35,7 +35,11 @@ public abstract class ProbeThread<T extends MetricsCollector> {
   }
 
   protected void loadConfiguration(String propertiesFile) throws IOException {
-    PropertiesManager.loadProperties(propertiesFile);
+	  /*TODO:
+	   * Decomment once the loading configuration file works. Take changes back
+	   */
+//    PropertiesManager.loadProperties(propertiesFile);
+	  PropertiesManagerTest propertiesManagerTest = new PropertiesManagerTest(propertiesFile);
   }
 
   protected SenderResult run(String propertiesFile) {
@@ -56,8 +60,6 @@ public abstract class ProbeThread<T extends MetricsCollector> {
     } catch (IOException e) {
       logger.error("Error reading configuration file",e);
     }
-
-
     return null;
   }
 

@@ -28,6 +28,13 @@ public class ZabbixClient {
 
   private ZabbixWrapperClient wrapperClient;
   private ZabbixSender sender;
+  
+  /*
+   * TODO
+   * To remove...
+   */
+  private static final String CONFIG_FILE = "openstackprobe.properties";
+  private static  PropertiesManagerTest propertiesManagerTest = new PropertiesManagerTest(CONFIG_FILE);
 
   /**
    * Constructor used for testing.
@@ -46,14 +53,17 @@ public class ZabbixClient {
   /**
    * Default constructor that will read the information from the configuration properties.
    */
+  /*TODO
+   * To remove and take it back to the original situation...
+   */
   public ZabbixClient(String category, String group, String template) {
-    this(PropertiesManager.getProperty(ProbesTags.ZABBIX_WRAPPER_ENDPOINT),
-        category,
+    this(//PropertiesManager.getProperty(ProbesTags.ZABBIX_WRAPPER_ENDPOINT),
+		propertiesManagerTest.getProperty(ProbesTags.ZABBIX_WRAPPER_ENDPOINT),
+		category,
         group,
         template,
-        PropertiesManager.getProperty(ProbesTags.ZABBIX_HOST),
-        new Integer(PropertiesManager.getProperty(ProbesTags.ZABBIX_PORT,
-            ZABBIX_DEFAULT_PORT.toString())));
+        //PropertiesManager.getProperty(ProbesTags.ZABBIX_HOST), new Integer(PropertiesManager.getProperty(ProbesTags.ZABBIX_PORT, ZABBIX_DEFAULT_PORT.toString())));
+        propertiesManagerTest.getProperty(ProbesTags.ZABBIX_HOST), 10051);
   }
 
   /**
@@ -106,7 +116,12 @@ public class ZabbixClient {
   public SenderResult sendMetrics(ZabbixMetrics metrics) {
     if (ensureRegistration(metrics.getHostName(), true)) {
       long timeSecs = metrics.getTimestamp() / 1000;
-      String zabbixHost = PropertiesManager.getProperty(ProbesTags.ZABBIX_HOST);
+      /*
+       * TODO:
+       * To decomment when working	
+       */
+      //String zabbixHost = PropertiesManager.getProperty(ProbesTags.ZABBIX_HOST);
+      String zabbixHost = propertiesManagerTest.getProperty(ProbesTags.ZABBIX_HOST);
       if (zabbixHost != null) {
 
         List<DataObject> toSend = metrics.getMetrics().entrySet().stream().map(entry -> {

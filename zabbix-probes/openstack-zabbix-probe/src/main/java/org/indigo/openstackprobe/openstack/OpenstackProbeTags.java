@@ -15,6 +15,8 @@ public interface OpenstackProbeTags {
   public static final String CMDB_URL = "cmdb.location";
   public static final String TENANT_NAME = "openstack.tenant.name";
   
-  static String CONFIG_FILE = "openstackprobe.properties";
+  public static final String INSTANCE_NAME = "vMOpenstackZabbixProbe_";
+  
+  public static String CONFIG_FILE = "openstackprobe.properties";
   String OPENSTACK_METRIC = "os.metric"; 
 }

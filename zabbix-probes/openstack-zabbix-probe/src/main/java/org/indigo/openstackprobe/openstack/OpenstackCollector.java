@@ -1,156 +1,175 @@
 package org.indigo.openstackprobe.openstack;
 
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.openstack4j.model.compute.Server;
 
 import com.indigo.zabbix.utils.LifecycleCollector;
 import com.indigo.zabbix.utils.PropertiesManager;
+import com.indigo.zabbix.utils.PropertiesManagerTest;
 import com.indigo.zabbix.utils.beans.AppOperation;
 
-public class OpenstackCollector extends LifecycleCollector {
+public class OpenstackCollector extends LifecycleCollector implements Runnable {
 
-  private OpenStackClient openstackClient;
-  private static final Log logger = LogFactory.getLog(OpenstackCollector.class);
-  private static final String APP_NAME = "zabbix-test-app";
-  private String provider;
-  private static final Logger log = LogManager.getLogger(OpenstackCollector.class);
-  private CmdbClient cmdbClient = new CmdbClient();
-  private final ScheduledExecutorService scheduler;
-  private long initialDelay = 10;
-  private int numThreads = 2;
+	private OpenStackClient openstackClient;
+	private static final Log logger = LogFactory.getLog(OpenstackCollector.class);
+	private static final String APP_NAME = "zabbix-test-app";
+	private String provider;
+	private static final Logger log = LogManager.getLogger(OpenstackCollector.class);
+	private CmdbClient cmdbClient = new CmdbClient();
+	private final ScheduledExecutorService scheduler;
+	private long initialDelay = 10;
+	private int numThreads = 2;
+	protected OpenstackProbeResult probeResult = new OpenstackProbeResult(provider);
+	private static final String INSTANCE_NAME = OpenstackProbeTags.INSTANCE_NAME;
 
-  /**
-   * Default constructor.
-   */
-  /**
-   * This is the main constructor of the class, in order to retrieve the required information for
-   * carrying out the monitoring activities.
-   * 
-   * @param providerId
-   *          String with the identifier of the provider evaluated
-   * @param providerURL
-   *          String representing the Openstack API URL
-   * @param keystoneURL
-   *          String representing the Keystone API URL
-   */
-  protected OpenstackCollector(String providerId, String providerUrl, String keystoneUrl) {
+	/*
+	 * TODO: Remove when working the popertiesManager
+	 */
 
-    String url = PropertiesManager.getProperty(OpenstackProbeTags.COMPUTE_LOCATION);
-    String username = PropertiesManager.getProperty(OpenstackProbeTags.OPENSTACK_USER);
-    String password = PropertiesManager.getProperty(OpenstackProbeTags.OPENSTACK_PASSWORD);
-    scheduler = Executors.newScheduledThreadPool(numThreads);
+	private static PropertiesManagerTest propertiesManagerTest = new PropertiesManagerTest(
+			OpenstackProbeTags.CONFIG_FILE);
 
-    provider = providerId;
-//    openstackClient = new OpenStackClient(keystoneUrl, providerUrl, providerId);
+	/**
+	 * Default constructor.
+	 */
+	/**
+	 * This is the main constructor of the class, in order to retrieve the
+	 * required information for carrying out the monitoring activities.
+	 * 
+	 * @param providerId
+	 *            String with the identifier of the provider evaluated
+	 * @param providerURL
+	 *            String representing the Openstack API URL
+	 * @param keystoneURL
+	 *            String representing the Keystone API URL
+	 */
+	protected OpenstackCollector(String providerId, String providerUrl, String keystoneUrl) {
 
-    log.info("Nova Endpoint: " + providerUrl);
-    log.info("Keystone Endpoint: " + keystoneUrl);
-  }
+		scheduler = Executors.newScheduledThreadPool(numThreads);
 
-  @Override
-  protected String getHostName() {
-      return provider;
-  }
-       
-  @Override
-  protected AppOperation clear() {
+		provider = providerId;
+		openstackClient = new OpenStackClient(keystoneUrl, providerUrl, providerId);
+		try {
+			probeResult = openstackClient.getOpenstackMonitoringInfo();
+			getResult(probeResult);
 
-    int status = 0;
-    long currentTime = new Date().getTime();
+		} catch (TimeoutException te) {
+			log.debug("Unable to get the information about the provider " + provider + "" + te.getMessage());
+		} catch (InterruptedException ie) {
+			log.error("Unable to get the information about the provider " + provider + "" + ie.getMessage());
+		} catch (NullPointerException npe) {
+			log.debug("Unable to collect metrics for provider " + provider);
+		}
+	}
 
-//    AppOperation getAppResponse = null;
-    OpenstackProbeResult appResponse = null;
-    try {
-      appResponse = openstackClient.getOpenstackMonitoringInfo();
-    } catch (Exception e) {
-      if (404 == appResponse.getGlobalResult()) {
-        long respTime = new Date().getTime() - currentTime;
-        return new AppOperation(AppOperation.Operation.CLEAR, true, appResponse.getGlobalResult(), respTime);
-      } else {
-        long respTime = new Date().getTime() - currentTime;
-        return new AppOperation(AppOperation.Operation.CLEAR, false, appResponse.getGlobalResult(), respTime);
-      }
-    }
+	@Override
+	protected String getHostName() {
+		return provider;
+	}
 
-    if (appResponse != null) {
+	@Override
+	protected AppOperation create() {
+		long time = new Date().getTime();
 
-      DeleteVmResult delResult = null;
-      try {
-        delResult = openstackClient.deleteVm(openstackClient.getOsImage());
-      } catch (Exception e) {
-        logger.error("Can't clear test application", e);
-        long respTime = new Date().getTime() - currentTime;
-        return new AppOperation(AppOperation.Operation.CLEAR, false, delResult.getDeleteVmResult(), respTime);
-      }
-    }
+		CreateVmResult createdProbe = null;
 
-    long respTime = new Date().getTime() - currentTime;
-    return new AppOperation(AppOperation.Operation.CLEAR, true, 200, respTime);
-  }
+		try {
+			createdProbe = probeResult.getCreateVmElement();
+		} catch (Exception e) {
+			long respTime = new Date().getTime() - time;
+			return new AppOperation(AppOperation.Operation.CREATE, false, createdProbe.getCreateVmResult(), respTime);
+		}
+		long respTime = new Date().getTime() - time;
+		return new AppOperation(AppOperation.Operation.CREATE, true, 200, createdProbe.getCreateVmResponseTime());
+	}
 
-  @Override
-  protected AppOperation create() {
-    long time = new Date().getTime();
-//    String instanceName = INSTANCE_NAME + new BigInteger(37, new SecureRandom()).toString(16);
-    
-//    ServerCreate create = openstackClient.createOsServer(instanceName);
-    CreateVmResult createdProbe = null;
-    try {
-      createdProbe = openstackClient.getOpenstackMonitoringInfo().getCreateVmElement();
-    } catch (Exception e) {
-      long respTime = new Date().getTime() - time;
-      return new AppOperation(AppOperation.Operation.CREATE, false, createdProbe.getCreateVmResult(), respTime);
-    }
-    long respTime = new Date().getTime() - time;
-    return new AppOperation(AppOperation.Operation.CREATE, true, 200, respTime);
-  }
+	@Override
+	protected AppOperation retrieve() {
+		long currentTime = new Date().getTime();
 
-  @Override
-  protected AppOperation retrieve() {
-    long currentTime = new Date().getTime();
-    
-    OpenstackProbeResult appResponse = null;
-    InspectVmResult vmapp =  appResponse.getInspectVmElement();
-    try {
-      appResponse = openstackClient.getOpenstackMonitoringInfo();
-      if (appResponse != null) {
-        long respTime = new Date().getTime() - currentTime;
-        return new AppOperation(AppOperation.Operation.RUN, true, 200, respTime);
-      } else {
-        long respTime = new Date().getTime() - currentTime;
-        logger.error("Can't finde application by name " + APP_NAME);
-        return new AppOperation(AppOperation.Operation.RUN, false, 404, respTime);
-      }
-    } catch (Exception e) {
-      logger.error("Error getting instance ", e);
-      long respTime = new Date().getTime() - currentTime;
-      return new AppOperation(AppOperation.Operation.RUN, false, vmapp.getInspectVmResult(), respTime);
-    }
-  }
+		InspectVmResult vmappRetrieved = null;
+		try {
+			vmappRetrieved = probeResult.getInspectVmElement();
+			if (vmappRetrieved != null) {
+				long respTime = new Date().getTime() - currentTime;
+				return new AppOperation(AppOperation.Operation.RUN, true, 200, respTime);
+			} else {
+				long respTime = new Date().getTime() - currentTime;
+				logger.error("Can't finde application by name " + APP_NAME);
+				return new AppOperation(AppOperation.Operation.RUN, false, 404, respTime);
+			}
+		} catch (Exception e) {
+			logger.error("Error getting instance ", e);
+			long respTime = new Date().getTime() - currentTime;
+			return new AppOperation(AppOperation.Operation.RUN, false, vmappRetrieved.getInspectVmAvailability(),
+					respTime);
+		}
+	}
 
-  @Override
-  protected AppOperation delete() {
+	@Override
+	protected AppOperation delete() {
 
-    long currentTime = new Date().getTime();
+		long currentTime = new Date().getTime();
 
-    DeleteVmResult deleteProbe = null;
-    try {
-      deleteProbe = openstackClient.getOpenstackMonitoringInfo().getDeleteVmElement();
-      long respTime = new Date().getTime() - currentTime;
-      return new AppOperation(AppOperation.Operation.DELETE,
-          (deleteProbe != null), 200, respTime);
-    } catch (Exception e) {
-      long respTime = new Date().getTime() - currentTime;
-      logger.error("Error deleting application " + APP_NAME);
-      return new AppOperation(AppOperation.Operation.DELETE, false, deleteProbe.getDeleteVmResult(), respTime);
-    }
+		DeleteVmResult deleteProbe = null;
+		try {
+			deleteProbe = probeResult.getDeleteVmElement();
+			long respTime = new Date().getTime() - currentTime;
+			return new AppOperation(AppOperation.Operation.DELETE, deleteProbe != null, 200, probeResult.getGlobalResponseTime());
+		} catch (Exception e) {
+			long respTime = new Date().getTime() - currentTime;
+			logger.error("Error deleting application " + APP_NAME);
+			return new AppOperation(AppOperation.Operation.DELETE, false, deleteProbe.getDeleteVmAvailability(),
+					respTime);
+		}
 
-  }
+	}
+
+	@Override
+	public void run() {
+		//all the mothods are already ran
+	}
+
+	protected void getResult(OpenstackProbeResult probeResult) {
+		this.probeResult = probeResult;
+	}
+
+	@Override
+	protected AppOperation clear() {
+
+		int status = 0;
+		long currentTime = new Date().getTime();
+		
+			try {
+				List<? extends Server> instancesList = openstackClient.getServerOsList();
+				for (Server server : instancesList) {
+					if (server.getName().contains(INSTANCE_NAME)) {
+						openstackClient.deleteVm(server.getId());
+					}
+				}
+			} catch (Exception e) {
+				if (404 == probeResult.getGlobalResult()) {
+					long respTime = new Date().getTime() - currentTime;
+					return new AppOperation(AppOperation.Operation.CLEAR, true, probeResult.getGlobalResult(),
+							respTime);
+				} else {
+					long respTime = new Date().getTime() - currentTime;
+					return new AppOperation(AppOperation.Operation.CLEAR, false, probeResult.getGlobalResult(),
+							respTime);
+				}		
+		}
+
+		long respTime = new Date().getTime() - currentTime;
+		return new AppOperation(AppOperation.Operation.CLEAR, true, 200, respTime);
+	}
 
 }
