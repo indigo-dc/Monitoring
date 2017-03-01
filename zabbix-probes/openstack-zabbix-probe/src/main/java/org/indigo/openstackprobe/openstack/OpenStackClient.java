@@ -16,6 +16,7 @@ limitations under the License.
 
 package org.indigo.openstackprobe.openstack;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -48,6 +49,7 @@ import org.openstack4j.model.network.Network;
 import org.openstack4j.openstack.OSFactory;
 
 import com.google.gson.JsonObject;
+import com.indigo.zabbix.utils.ProbesTags;
 import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.PropertiesManagerTest;
 
@@ -83,8 +85,6 @@ public class OpenStackClient {
 
 	private static final Logger log = LogManager.getLogger(OpenStackClient.class);
 
-	private PropertiesManagerTest propertiesManagerTest = new PropertiesManagerTest(OpenstackProbeTags.CONFIG_FILE);
-
 	/**
 	 * Main constructor of the OpenStackOcciClient class. It retrieves some
 	 * information from the properties files in order to create and configure
@@ -99,20 +99,20 @@ public class OpenStackClient {
 	 */
 	public OpenStackClient(String keystoneLocation, String providerUrl, String providerName) {
 
-		// Retrieve properties
-		// PropertiesManager myProp = new PropertiesManager();
-		/*
-		 * TODO: To change back when url is working again
-		 */
-		openStackUser = propertiesManagerTest.getProperty(OpenstackProbeTags.OPENSTACK_USER);
-		openStackPwd = propertiesManagerTest.getProperty(OpenstackProbeTags.OPENSTACK_PASSWORD);
-		tenantName = propertiesManagerTest.getProperty(OpenstackProbeTags.TENANT_NAME);
+		try {
+			PropertiesManager.loadProperties(OpenstackProbeTags.CONFIG_FILE);
+		} catch (IOException e) {
+			log.debug("Unable to load the file: " + OpenstackProbeTags.CONFIG_FILE);			
+		}
+		openStackUser = PropertiesManager.getProperty(OpenstackProbeTags.OPENSTACK_USER);
+		openStackPwd = PropertiesManager.getProperty(OpenstackProbeTags.OPENSTACK_PASSWORD);
+		tenantName = PropertiesManager.getProperty(OpenstackProbeTags.TENANT_NAME);
 		providerId = providerName;
 
 		// Disable issue with SSL Handshake in Java 7 and indicate certificates
 		// keystore
 		System.setProperty("jsse.enableSNIExtension", "false");
-		String certificatesTrustStorePath = propertiesManagerTest.getProperty(OpenstackProbeTags.JAVA_KEYSTORE);
+		String certificatesTrustStorePath = PropertiesManager.getProperty(OpenstackProbeTags.JAVA_KEYSTORE);
 		System.setProperty("javax.net.ssl.trustStore", certificatesTrustStorePath);
 
 		// Create the Clients
@@ -139,17 +139,13 @@ public class OpenStackClient {
 		imageId = mockImage;
 	}
 
-	private String getTokenId() {
+	private String getTokenId() throws ConnectionException{
 		// Authenticate
 		String token = null;
-		try {
+
 			OSClient os = myKeystoneClient.endpoint(baseKeystoneUrl).credentials(openStackUser, openStackPwd)
 					.tenantName(tenantName).authenticate();
 			token = os.getToken().getId();
-		} catch (ConnectionException ce) {
-			log.debug("Unable to retrieve the connection to Openstack for the provider: " + providerId + " "
-					+ ce.getMessage());
-		}
 		return token;
 	}
 
@@ -252,9 +248,14 @@ public class OpenStackClient {
 		Map<Server.Status, Server> serverCreation = new HashMap<>();
 		String vmId = null;
 		try {
-			serverCreation = poller(instanceName);
-		} catch (TimeoutException | InterruptedException e) {
-			log.debug(e.getMessage());
+			if (Boolean.parseBoolean(PropertiesManager.getProperty(OpenstackProbeTags.WAIT_FOR_CREATION))) {
+				log.info("Calculating real creation server time by polling the status to be active");
+				serverCreation = poller(instanceName);
+			} else
+				log.info("Calculating http creation server immediate response time");
+				serverCreation = pollGetImmediateResult(instanceName);
+		} catch (TimeoutException | InterruptedException ie) {
+			log.debug(ie.getMessage());
 		}
 
 		if (serverCreation.get(Server.Status.ACTIVE) == null) {
@@ -266,6 +267,7 @@ public class OpenStackClient {
 			responseTime = System.currentTimeMillis();
 		} else {
 			long creationTime = serverCreation.get(Server.Status.ACTIVE).getCreated().getTime();
+
 			responseTime = creationTime - startTime;
 			log.info(TOTAL_CREATION_TIME + serverCreation.get(Server.Status.ACTIVE).getId() + TIME_MS + responseTime);
 
@@ -359,13 +361,57 @@ public class OpenStackClient {
 		return serverResultMap;
 	}
 
+	/**
+	 * It polls the result instance Server until is really returned.
+	 * 
+	 * @param instanceName
+	 *            name of instance to be created
+	 * @return Server instance from openstak4j api @see Server
+	 * @throws TimeoutException
+	 * @throws InterruptedException
+	 */
+	private Map<Server.Status, Server> pollGetImmediateResult(/* Server server, */ String instanceName)
+			throws TimeoutException, InterruptedException {
+
+		Calendar calendar = Calendar.getInstance();
+		calendar.add(Calendar.SECOND, 9 * 10); // 7minutes
+
+		boolean created = false;
+		Map<Server.Status, Server> serverResultMap = new HashMap<>();
+		List<? extends Server> servers = getServerOsList();
+		for (Server serverInstance : servers) {
+			if (serverInstance.getName().equalsIgnoreCase(instanceName)) {
+				if ((!serverInstance.getStatus().equals(Server.Status.ERROR)
+						&& !serverInstance.getStatus().equals(Server.Status.ACTIVE))
+						|| serverInstance.getVmState().equals("building")) {
+					serverResultMap.put(Server.Status.ACTIVE, serverInstance);
+					created = true;
+					break;
+				} else
+					serverResultMap.put(serverInstance.getStatus(), serverInstance);
+			}
+			Iterator<? extends Server> itr = servers.iterator();
+			if (created || !itr.hasNext()) {
+				break;
+			}
+		}
+		return serverResultMap;
+	}
+
+	/**
+	 * Manages the result when polling.
+	 * 
+	 * @param serverInstance
+	 * @return a flag
+	 * @throws InterruptedException
+	 */
 	protected boolean getDiagnosedServer(Server serverInstance) throws InterruptedException {
 
 		Thread.sleep(3000);
 		boolean isInstanceCreated = false;
 		Server serverDiagnosed = getOSAuth().compute().servers().get(serverInstance.getId());
 		// poll until the result is mappable...
-		log.info("Polling to wait for an instance to be created...");
+		log.info("Polling for an instance to be created...");
 		Map<Server.Status, Server> serverResultMap = new HashMap<>();
 		if (serverDiagnosed.getPowerState().equals(POWER_STATE_ACTIVE)) {
 			log.info("created..");
@@ -397,8 +443,8 @@ public class OpenStackClient {
 					servers.wait(3000);
 				}
 
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+			} catch (InterruptedException ie) {
+				ie.printStackTrace();
 			}
 		}
 		long elapsedTime = System.currentTimeMillis() - startTime;
@@ -543,7 +589,7 @@ public class OpenStackClient {
 		log.info("Token is valid. Continue monitoring operation...");
 
 		CreateVmResult createVmInfo = createVm();
-//		Map<String, Object> resultTryMap = new HashMap<>();
+		// Map<String, Object> resultTryMap = new HashMap<>();
 		if (createVmInfo.getCreateVmAvailability() == 0) {
 			// Send failure result, since we cannot go on with the process
 			OpenstackProbeResult failureResult = new OpenstackProbeResult(providerId);

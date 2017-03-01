@@ -16,6 +16,7 @@ public interface OpenstackProbeTags {
   public static final String TENANT_NAME = "openstack.tenant.name";
   
   public static final String INSTANCE_NAME = "vMOpenstackZabbixProbe_";
+  public static final String WAIT_FOR_CREATION = "wait.real.vm.creation";
   
   public static String CONFIG_FILE = "openstackprobe.properties";
   String OPENSTACK_METRIC = "os.metric"; 

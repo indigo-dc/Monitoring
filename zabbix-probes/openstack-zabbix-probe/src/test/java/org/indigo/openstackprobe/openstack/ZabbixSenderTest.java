@@ -19,16 +19,14 @@
 //import java.io.IOException;
 //import java.io.InputStream;
 //
-//import org.indigo.openstackprobe.openstack.CreateVmResult;
-//import org.indigo.openstackprobe.openstack.DeleteVmResult;
-//import org.indigo.openstackprobe.openstack.InspectVmResult;
-//import org.indigo.openstackprobe.openstack.OpenstackProbeResult;
-//import org.indigo.openstackprobe.openstack.ZabbixSender;
-//import org.indigo.openstackprobe.openstack.ZabbixWrapperClient;
 //import org.junit.Assert;
 //import org.junit.Before;
 //import org.junit.Test;
 //import org.mockito.Mockito;
+//
+//import com.indigo.zabbix.utils.ZabbixWrapperClient;
+//
+//import io.github.hengyunabc.zabbix.sender.ZabbixSender;
 //
 //public class ZabbixSenderTest 
 //{

@@ -3,40 +3,32 @@ package org.indigo.openstackprobe.openstack;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.openstack4j.api.exceptions.ConnectionException;
+import org.openstack4j.api.exceptions.ResponseException;
 import org.openstack4j.model.compute.Server;
 
 import com.indigo.zabbix.utils.LifecycleCollector;
-import com.indigo.zabbix.utils.PropertiesManager;
-import com.indigo.zabbix.utils.PropertiesManagerTest;
 import com.indigo.zabbix.utils.beans.AppOperation;
 
-public class OpenstackCollector extends LifecycleCollector implements Runnable {
+public class OpenstackCollector extends LifecycleCollector {
 
-	private OpenStackClient openstackClient;
-	private static final Log logger = LogFactory.getLog(OpenstackCollector.class);
-	private static final String APP_NAME = "zabbix-test-app";
-	private String provider;
+	private OpenStackClient openstackClient = new OpenStackClient("", "", "");
+	public String provider;
+	public String providerEndpoint;
+	public String keystoneEndpoint;
+	
 	private static final Logger log = LogManager.getLogger(OpenstackCollector.class);
-	private CmdbClient cmdbClient = new CmdbClient();
-	private final ScheduledExecutorService scheduler;
-	private long initialDelay = 10;
-	private int numThreads = 2;
-	protected OpenstackProbeResult probeResult = new OpenstackProbeResult(provider);
+	protected OpenstackProbeResult probeResult;
 	private static final String INSTANCE_NAME = OpenstackProbeTags.INSTANCE_NAME;
-
-	/*
-	 * TODO: Remove when working the popertiesManager
-	 */
-
-	private static PropertiesManagerTest propertiesManagerTest = new PropertiesManagerTest(
-			OpenstackProbeTags.CONFIG_FILE);
 
 	/**
 	 * Default constructor.
@@ -52,25 +44,24 @@ public class OpenstackCollector extends LifecycleCollector implements Runnable {
 	 * @param keystoneURL
 	 *            String representing the Keystone API URL
 	 */
-	protected OpenstackCollector(String providerId, String providerUrl, String keystoneUrl) {
-
-		scheduler = Executors.newScheduledThreadPool(numThreads);
-
+	protected OpenstackCollector(String providerId, String providerUrl, String keystoneUrl){
 		provider = providerId;
+		providerEndpoint = providerUrl;
+		keystoneEndpoint = keystoneUrl;
 		openstackClient = new OpenStackClient(keystoneUrl, providerUrl, providerId);
 		try {
 			probeResult = openstackClient.getOpenstackMonitoringInfo();
 			getResult(probeResult);
-
-		} catch (TimeoutException te) {
-			log.debug("Unable to get the information about the provider " + provider + "" + te.getMessage());
-		} catch (InterruptedException ie) {
-			log.error("Unable to get the information about the provider " + provider + "" + ie.getMessage());
-		} catch (NullPointerException npe) {
-			log.debug("Unable to collect metrics for provider " + provider);
+		}catch(ResponseException re){
+			log.debug("Unable to connect to openstack " + re.getMessage());
+		} catch (TimeoutException | InterruptedException te) {
+			log.debug("Unable to get the information about the provider " + provider + "" + te);
+			// Terminate thread manager
 		}
+		providerEndpoint = providerUrl;
+		keystoneEndpoint = keystoneUrl;
 	}
-
+	
 	@Override
 	protected String getHostName() {
 		return provider;
@@ -78,17 +69,17 @@ public class OpenstackCollector extends LifecycleCollector implements Runnable {
 
 	@Override
 	protected AppOperation create() {
-		long time = new Date().getTime();
-
+		long currentTime = new Date().getTime();
 		CreateVmResult createdProbe = null;
 
 		try {
 			createdProbe = probeResult.getCreateVmElement();
-		} catch (Exception e) {
-			long respTime = new Date().getTime() - time;
+		} catch (ConnectionException ce) {
+			return getResultForConnectionException(ce, currentTime);
+		} catch (Exception ex) {
+			long respTime = new Date().getTime() - currentTime;
 			return new AppOperation(AppOperation.Operation.CREATE, false, createdProbe.getCreateVmResult(), respTime);
 		}
-		long respTime = new Date().getTime() - time;
 		return new AppOperation(AppOperation.Operation.CREATE, true, 200, createdProbe.getCreateVmResponseTime());
 	}
 
@@ -101,18 +92,35 @@ public class OpenstackCollector extends LifecycleCollector implements Runnable {
 			vmappRetrieved = probeResult.getInspectVmElement();
 			if (vmappRetrieved != null) {
 				long respTime = new Date().getTime() - currentTime;
-				return new AppOperation(AppOperation.Operation.RUN, true, 200, respTime);
+				return new AppOperation(AppOperation.Operation.RUN, true, 200,
+						vmappRetrieved.getInspectVmResponseTime());
 			} else {
 				long respTime = new Date().getTime() - currentTime;
-				logger.error("Can't finde application by name " + APP_NAME);
+				log.error("Can't find server instance");
 				return new AppOperation(AppOperation.Operation.RUN, false, 404, respTime);
 			}
-		} catch (Exception e) {
-			logger.error("Error getting instance ", e);
+		} catch (ConnectionException ce) {
+			return getResultForConnectionException(ce, currentTime);
+		} catch (Exception exc) {
+			log.error("Error getting instance ", exc);
 			long respTime = new Date().getTime() - currentTime;
-			return new AppOperation(AppOperation.Operation.RUN, false, vmappRetrieved.getInspectVmAvailability(),
-					respTime);
+			return new AppOperation(AppOperation.Operation.RUN, false, probeResult.getGlobalAvailability(), respTime);
 		}
+	}
+
+	/**
+	 * Manages the reponse in case of connection exception to a specific
+	 * provider.
+	 * 
+	 * @param ce
+	 *            ConnectionException
+	 * @param currentTime
+	 * @return AppOperation
+	 */
+	private AppOperation getResultForConnectionException(ConnectionException ce, long currentTime) {
+		long respTime = new Date().getTime() - currentTime;
+		log.debug("Unable to connect to provider: " + provider + " " + ce.getMessage());
+		return new AppOperation(AppOperation.Operation.DELETE, false, 404, respTime);
 	}
 
 	@Override
@@ -123,21 +131,18 @@ public class OpenstackCollector extends LifecycleCollector implements Runnable {
 		DeleteVmResult deleteProbe = null;
 		try {
 			deleteProbe = probeResult.getDeleteVmElement();
+			return new AppOperation(AppOperation.Operation.DELETE, deleteProbe != null, 200,
+					probeResult.getGlobalResponseTime());
+		} catch (ConnectionException ce) {
+			return getResultForConnectionException(ce, currentTime);
+		} catch (Exception exc) {
 			long respTime = new Date().getTime() - currentTime;
-			return new AppOperation(AppOperation.Operation.DELETE, deleteProbe != null, 200, probeResult.getGlobalResponseTime());
-		} catch (Exception e) {
-			long respTime = new Date().getTime() - currentTime;
-			logger.error("Error deleting application " + APP_NAME);
-			return new AppOperation(AppOperation.Operation.DELETE, false, deleteProbe.getDeleteVmAvailability(),
-					respTime);
+			log.error("Error deleting server instance ");
+			return new AppOperation(AppOperation.Operation.DELETE, false, 404, respTime);
 		}
 
 	}
 
-	@Override
-	public void run() {
-		//all the mothods are already ran
-	}
 
 	protected void getResult(OpenstackProbeResult probeResult) {
 		this.probeResult = probeResult;
@@ -146,26 +151,20 @@ public class OpenstackCollector extends LifecycleCollector implements Runnable {
 	@Override
 	protected AppOperation clear() {
 
-		int status = 0;
 		long currentTime = new Date().getTime();
-		
-			try {
-				List<? extends Server> instancesList = openstackClient.getServerOsList();
-				for (Server server : instancesList) {
-					if (server.getName().contains(INSTANCE_NAME)) {
-						openstackClient.deleteVm(server.getId());
-					}
+		try {
+			List<? extends Server> instancesList = openstackClient.getServerOsList();
+			for (Server server : instancesList) {
+				if (server.getName().contains(INSTANCE_NAME)) {
+					openstackClient.deleteVm(server.getId());
 				}
-			} catch (Exception e) {
-				if (404 == probeResult.getGlobalResult()) {
-					long respTime = new Date().getTime() - currentTime;
-					return new AppOperation(AppOperation.Operation.CLEAR, true, probeResult.getGlobalResult(),
-							respTime);
-				} else {
-					long respTime = new Date().getTime() - currentTime;
-					return new AppOperation(AppOperation.Operation.CLEAR, false, probeResult.getGlobalResult(),
-							respTime);
-				}		
+			}
+		} catch (InterruptedException | TimeoutException exc) {
+			log.debug("Unable to get information from provider: " + provider + exc.getMessage());
+			long respTime = new Date().getTime() - currentTime;
+			return new AppOperation(AppOperation.Operation.CLEAR, true, 404, respTime);
+		} catch (ConnectionException ce) {
+			return getResultForConnectionException(ce, currentTime);
 		}
 
 		long respTime = new Date().getTime() - currentTime;

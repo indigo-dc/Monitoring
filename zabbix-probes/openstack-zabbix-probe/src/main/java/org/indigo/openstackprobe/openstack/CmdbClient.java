@@ -1,25 +1,6 @@
-/**
-Copyright 2016 ATOS SPAIN S.A.
-
-Licensed under the Apache License, Version 2.0 (the License);
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-Authors Contact:
-Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
-@email francisco.nieto@atos.net
-**/
-
 package org.indigo.openstackprobe.openstack;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -39,6 +20,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.PropertiesManagerTest;
 
 /**
@@ -61,22 +43,17 @@ public class CmdbClient {
 
 	private static final Logger log = LogManager.getLogger(CmdbClient.class);
 
-	/*
-	 * TODO To remove...
-	 */
-	private PropertiesManagerTest propertiesManagerTest = new PropertiesManagerTest(OpenstackProbeTags.CONFIG_FILE);
-
 	/**
 	 * It constructs an object of the CmdbClient type, retrieving certain
 	 * properties and initializing a Jersey client.
 	 */
 	public CmdbClient() {
-		// Retrieve properties
-		/*
-		 * TODO To decomment...
-		 */
-		// cmdbUrl = PropertiesManager.getProperty(OpenstackProbeTags.CMDB_URL);
-		cmdbUrl = propertiesManagerTest.getProperty(OpenstackProbeTags.CMDB_URL);
+		try {
+			PropertiesManager.loadProperties(OpenstackProbeTags.CONFIG_FILE);
+		} catch (IOException e) {
+			log.debug("Unable to load property file: " + OpenstackProbeTags.CONFIG_FILE);
+		}
+		 cmdbUrl = PropertiesManager.getProperty(OpenstackProbeTags.CMDB_URL);
 
 		// Create the Client
 		ClientConfig cc = new ClientConfig();
@@ -258,20 +235,9 @@ public class CmdbClient {
 				
 				return new CloudProviderInfo(providerId, novaEndpoint, keystoneEndpoint, type,
 						isMonitored, isBeta, isProduction);
-				
-//				openstackProviders.add(new CloudProviderInfo(providerId, novaEndpoint, keystoneEndpoint, type,
-//				isMonitored, isBeta, isProduction));
 			}
 		}
-
-		// else if (currentServiceType.equalsIgnoreCase(SERVICE_TYPE)) {
-		// keystoneEndpoint = identityEndpoint;
-		// type = CloudProviderInfo.OPENNEBULA;
-		// }
-
 		return null;
-
-		
 	}
 
 	/**
@@ -306,34 +272,5 @@ public class CmdbClient {
 		}
 
 		return myResult;
-	}
-
-	/**
-	 * Temporary main for testing.
-	 * 
-	 * @param args
-	 *            Typical arguments
-	 */
-	public static void main(String[] args) {
-		CmdbClient myClient = new CmdbClient();
-		String[] providers = myClient.getProvidersList();
-
-		CloudProviderInfo myInfo = myClient.getProviderData(providers[450]);
-		log.info("Provider: " + myInfo.getProviderId());
-		log.info("COMPUTE URL: " + myInfo.getNovaEndpoint());
-		log.info("Keystone URL: " + myInfo.getKeystoneEndpoint());
-		log.info("Provider Type: " + myInfo.getCloudType());
-		log.info("Is Monitored? " + myInfo.getIsMonitored());
-		log.info("Is Beta? " + myInfo.getIsBeta());
-		log.info("Is Production? " + myInfo.getIsProduction());
-
-		/*
-		 * ArrayList<CloudProviderInfo> myList =
-		 * myClient.getFeasibleProvidersInfo();
-		 * System.out.println("Number of providers: " + myList.size());
-		 * Iterator<CloudProviderInfo> myIter = myList.iterator(); while
-		 * (myIter.hasNext()) { System.out.println("Provider: " +
-		 * myIter.next().getProviderId()); }
-		 */
 	}
 }
