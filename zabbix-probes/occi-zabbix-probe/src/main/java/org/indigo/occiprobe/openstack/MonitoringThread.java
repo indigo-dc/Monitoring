@@ -1,6 +1,6 @@
 package org.indigo.occiprobe.openstack;
 
-import com.indigo.zabbix.utils.CollectorThread;
+import com.indigo.zabbix.utils.*;
 
 import io.github.hengyunabc.zabbix.sender.SenderResult;
 
@@ -14,7 +14,7 @@ import io.github.hengyunabc.zabbix.sender.SenderResult;
  * @author ATOS
  *
  */
-public class MonitoringThread extends CollectorThread<OpenStackOcciClient> {
+public class MonitoringThread extends com.indigo.zabbix.utils.ProbeThread<OpenStackOcciClient> {
   private String provider;
   private String providerUrl;
   private String keystoneUrl;

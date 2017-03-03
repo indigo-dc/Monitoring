@@ -24,6 +24,14 @@ import com.indigo.zabbix.utils.PropertiesManager;
 
 import io.github.hengyunabc.zabbix.sender.SenderResult;
 
+import org.apache.oltu.oauth2.client.OAuthClient;
+import org.apache.oltu.oauth2.client.URLConnectionClient;
+import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
+import org.apache.oltu.oauth2.client.response.OAuthJSONAccessTokenResponse;
+import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
+import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
+import org.apache.oltu.oauth2.common.message.types.GrantType;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -193,9 +201,28 @@ public class ProbeThread {
     // Start the monitoring process
     try {
       PropertiesManager.loadProperties("occiprobe.properties");
-      ProbeThread probeManager = ProbeThread.instance();
-      probeManager.startMonitoringProcess();
+      /*ProbeThread probeManager = ProbeThread.instance();
+      probeManager.startMonitoringProcess();*/
+
+      OAuthClientRequest request = new OAuthClientRequest
+          .TokenRequestBuilder(PropertiesManager.getProperty(OcciProbeTags.IAM_LOCATION))
+          .setUsername(PropertiesManager.getProperty(OcciProbeTags.IAM_USERNAME))
+          .setPassword(PropertiesManager.getProperty(OcciProbeTags.IAM_PASSWORD))
+          .setGrantType(GrantType.PASSWORD)
+          .setScope("openid scope")
+          .buildQueryMessage();
+
+      OAuthClient client = new OAuthClient(new URLConnectionClient());
+
+      OAuthJSONAccessTokenResponse response = client.accessToken(request);
+
+      System.out.println("Access token: " + response.getAccessToken());
+
     } catch (IOException e) {
+      e.printStackTrace();
+    } catch (OAuthSystemException e) {
+      e.printStackTrace();
+    } catch (OAuthProblemException e) {
       e.printStackTrace();
     }
 

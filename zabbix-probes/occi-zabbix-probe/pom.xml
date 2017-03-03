@@ -37,6 +37,12 @@
 			<artifactId>openstack4j</artifactId>
 			<version>2.11</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.apache.oltu.oauth2</groupId>
+			<artifactId>org.apache.oltu.oauth2.client</artifactId>
+			<version>1.0.2</version>
+		</dependency>
   
   	</dependencies>
     
