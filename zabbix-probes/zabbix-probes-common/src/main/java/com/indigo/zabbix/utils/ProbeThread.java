@@ -35,11 +35,7 @@ public abstract class ProbeThread<T extends MetricsCollector> {
   }
 
   protected void loadConfiguration(String propertiesFile) throws IOException {
-	  /*TODO:
-	   * Decomment once the loading configuration file works. Take changes back
-	   */
-//    PropertiesManager.loadProperties(propertiesFile);
-	  PropertiesManagerTest propertiesManagerTest = new PropertiesManagerTest(propertiesFile);
+    PropertiesManager.loadProperties(propertiesFile);
   }
 
   protected SenderResult run(String propertiesFile) {
