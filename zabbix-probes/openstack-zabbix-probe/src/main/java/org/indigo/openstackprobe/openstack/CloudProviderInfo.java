@@ -52,10 +52,10 @@ public class CloudProviderInfo {
    * @param beta Boolean indicating whether the provider uses a beta version
    * @param production Boolean indicating whether the provider platform is in production
    */
-  public CloudProviderInfo(String provider, String nova, String keystone, int type,
+  public CloudProviderInfo(String provider, /*String nova,*/ String keystone, int type,
       boolean monitored, boolean beta, boolean production) {
     providerId = provider;
-    novaEndpoint = nova;
+//    novaEndpoint = nova;
     keystoneEndpoint = keystone;
     cloudType = type;
     isMonitored = monitored;

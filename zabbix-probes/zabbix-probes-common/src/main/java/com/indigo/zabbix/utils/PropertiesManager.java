@@ -2,6 +2,7 @@ package com.indigo.zabbix.utils;
 
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.logging.Log;
 
 import java.io.File;
 import java.io.FileReader;
@@ -86,5 +87,4 @@ public class PropertiesManager {
   public static List<String> getListProperty(String property) {
     return props.getList(String.class, property);
   }
-
 }

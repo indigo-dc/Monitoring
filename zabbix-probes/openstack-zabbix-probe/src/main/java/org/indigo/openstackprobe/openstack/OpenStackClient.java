@@ -66,7 +66,6 @@ import feign.RequestLine;
  */
 public class OpenStackClient {
 	private Client client = null;
-	private String baseNovaUrl;
 	private String baseKeystoneUrl;
 	private String openStackUser;
 	private String openStackPwd;
@@ -97,12 +96,12 @@ public class OpenStackClient {
 	 * @param providerName
 	 *            String with the identifier of the Cloud Provider
 	 */
-	public OpenStackClient(String keystoneLocation, String providerUrl, String providerName) {
+	public OpenStackClient(String keystoneLocation, String providerName) {
 
 		try {
 			PropertiesManager.loadProperties(OpenstackProbeTags.CONFIG_FILE);
 		} catch (IOException e) {
-			log.debug("Unable to load the file: " + OpenstackProbeTags.CONFIG_FILE);			
+			log.debug("Unable to load the file: " + OpenstackProbeTags.CONFIG_FILE);
 		}
 		openStackUser = PropertiesManager.getProperty(OpenstackProbeTags.OPENSTACK_USER);
 		openStackPwd = PropertiesManager.getProperty(OpenstackProbeTags.OPENSTACK_PASSWORD);
@@ -123,7 +122,6 @@ public class OpenStackClient {
 		// Prepare access URLs
 		baseKeystoneUrl = keystoneLocation.contains("https") ? keystoneLocation
 				: keystoneLocation.replace("http", "https");
-		baseNovaUrl = providerUrl;
 	}
 
 	/**
@@ -139,14 +137,16 @@ public class OpenStackClient {
 		imageId = mockImage;
 	}
 
-	private String getTokenId() throws ConnectionException{
+	/**
+	 * It asks the token to Openstack.
+	 * @return token String
+	 * @throws ConnectionException
+	 */
+	protected String getTokenId() throws ConnectionException {
 		// Authenticate
-		String token = null;
-
-			OSClient os = myKeystoneClient.endpoint(baseKeystoneUrl).credentials(openStackUser, openStackPwd)
-					.tenantName(tenantName).authenticate();
-			token = os.getToken().getId();
-		return token;
+		OSClient os = myKeystoneClient.endpoint(baseKeystoneUrl).credentials(openStackUser, openStackPwd)
+				.tenantName(tenantName).authenticate();
+		return os.getToken().getId();
 	}
 
 	private OSClient getOSAuth() {
@@ -253,7 +253,7 @@ public class OpenStackClient {
 				serverCreation = poller(instanceName);
 			} else
 				log.info("Calculating http creation server immediate response time");
-				serverCreation = pollGetImmediateResult(instanceName);
+			serverCreation = pollGetImmediateResult(instanceName);
 		} catch (TimeoutException | InterruptedException ie) {
 			log.debug(ie.getMessage());
 		}
@@ -370,8 +370,8 @@ public class OpenStackClient {
 	 * @throws TimeoutException
 	 * @throws InterruptedException
 	 */
-	private Map<Server.Status, Server> pollGetImmediateResult(/* Server server, */ String instanceName)
-			throws TimeoutException, InterruptedException {
+	private Map<Server.Status, Server> pollGetImmediateResult(
+			/* Server server, */ String instanceName) throws TimeoutException, InterruptedException {
 
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.SECOND, 9 * 10); // 7minutes
@@ -665,7 +665,7 @@ public class OpenStackClient {
 	public static void main(String[] args) throws TimeoutException, InterruptedException {
 		// Run the Openstack monitoring process and retrieve the result
 		OpenStackClient myClient = new OpenStackClient("http://cloud.recas.ba.infn.it:5000/v2.0",
-				"http://cloud.recas.ba.infn.it:8774", "provider-RECAS-BARI");
+				"provider-RECAS-BARI");
 
 		myClient.getNetworksList();
 

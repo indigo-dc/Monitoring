@@ -15,11 +15,11 @@ public  class ProviderSearch {
 	public static String providerId;
 	public static String providerUrl;
 	public static String keystoneUrl;
-	private static OpenstackThread _instance = null;
-	private long interval = 200;
-	private int numThreads = 4;
-	private long initialDelay = 20;
-	private boolean termination = true;	
+//	private static OpenstackThread _instance = null;
+//	private long interval = 200;
+//	private int numThreads = 4;
+//	private long initialDelay = 20;
+//	private boolean termination = true;	
 	private static OpenstackCollector openstackTaskCollector;
 	
 	public static List<OpenstackCollector> getCollectorResults(){
@@ -35,16 +35,14 @@ public  class ProviderSearch {
 
 				while (providersIterator.hasNext()) {
 					CloudProviderInfo currentProvider = providersIterator.next();
-					if (currentProvider.getNovaEndpoint() != null && currentProvider.getKeystoneEndpoint() != null) {
+					if (currentProvider.getKeystoneEndpoint() != null) {
 						providerId = currentProvider.getProviderId();
-						providerUrl = currentProvider.getNovaEndpoint();
 						keystoneUrl = currentProvider.getKeystoneEndpoint();
 						providers.add(currentProvider);
 					}
 
-					log.info("Task scheduled for the provider: " + providerId + " whose compute endpoint is " + providerUrl
-							+ " and identity endpoint is " + keystoneUrl);
-					openstackTaskCollector = new OpenstackCollector(providerId, providerUrl, keystoneUrl);
+					log.info("Task scheduled for the provider: " + providerId + " whose identity endpoint is " + keystoneUrl);
+					openstackTaskCollector = new OpenstackCollector(providerId, keystoneUrl);
 					tasks.add(openstackTaskCollector);
 				}
 				return tasks;

@@ -1,9 +1,10 @@
 package org.indigo.openstackprobe.openstack;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import javax.ws.rs.client.Client;
@@ -11,22 +12,27 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.logging.Log;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
+import org.openstack4j.api.networking.ext.LoadBalancerService;
 
-import com.indigo.zabbix.utils.ProbeThread;
+import com.indigo.zabbix.utils.PropertiesManager;
 
 import io.github.hengyunabc.zabbix.sender.ZabbixSender;
 
 public class ThreadsManagementTest {
   private Client mockCmdb;
   private Client mockCmdbFail;
-  private ScheduledExecutorService schedulerMock;
   private ZabbixSender mockSender;
   private CmdbClient cmdbClientMock;
+  
+//  private static final Logger log = LogManager.getLogger(ThreadsManagementTest.class);
 
   @Before
   public void prepareMockElements() throws TimeoutException, InterruptedException {
@@ -40,14 +46,15 @@ public class ThreadsManagementTest {
     Invocation.Builder invocationBuilderDetails = Mockito.mock(Invocation.Builder.class);
     Response responseGetList = Mockito.mock(Response.class);
     Response responseGetDetails = Mockito.mock(Response.class);
+//    PropertiesManager propertiesManager = Mockito.mock(PropertiesManager.class);
 
-    // Define main relationships for the Client class
+    // Define main relationships for the Client class for getting providers
     Mockito.when(mockCmdb.target(Mockito.endsWith("/provider/list"))).thenReturn(targetList);
     Mockito.when(mockCmdb.target(Mockito.endsWith("include_docs=true"))).thenReturn(targetDetails);
     Mockito.when(targetList.request()).thenReturn(invocationBuilderList);
     Mockito.when(targetDetails.request()).thenReturn(invocationBuilderDetails);
-
-    // Define mock response for GET list (complete result)
+    
+ // Define mock response for GET list of providers(complete result)
     Mockito.when(invocationBuilderList.get()).thenReturn(responseGetList);
     Mockito.when(responseGetList.getStatus()).thenReturn(200);
     String listResponse = "{\"total_rows\":738,\"offset\":20,\"rows\":["
@@ -71,6 +78,44 @@ public class ThreadsManagementTest {
         + "{\"id\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\",\"key\":[\"provider-RECAS-BARI\",\"services\"],\"value\":{\"provider_id\":\"provider-RECAS-BARI\",\"type\":\"compute\"},\"doc\":{\"_id\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\",\"_rev\":\"1-256d36283315ea9bb045e6d5038657b6\",\"data\":{\"service_type\":\"eu.egi.cloud.vm-management.openstack\",\"endpoint\":\"http://cloud.recas.ba.infn.it:5000/v2.0\",\"provider_id\":\"provider-RECAS-BARI\",\"type\":\"compute\"},\"type\":\"service\"}},"
         + "{\"id\":\"7efc59c5db69ea67c5100de0f73ab567\",\"key\":[\"provider-RECAS-BARI\",\"services\"],\"value\":{\"provider_id\":\"provider-RECAS-BARI\",\"type\":\"storage\"},\"doc\":{\"_id\":\"7efc59c5db69ea67c5100de0f73ab567\",\"_rev\":\"4-6e2921c359fb76118616e26c7de76397\",\"data\":{\"service_type\":\"eu.egi.cloud.storage-management.oneprovider\",\"endpoint\":\"E1u8A4FgR6C1UgbD2JOoP9OQIG43q-zDsXkx1PoaaI4\",\"provider_id\":\"provider-RECAS-BARI\",\"type\":\"storage\"},\"type\":\"service\"}}]}";
     Mockito.when(responseGetDetails.readEntity(String.class)).thenReturn(detailResponse);
+
+ // Define main relationships for the Client class Images
+    Mockito.when(mockCmdb.target(Mockito.endsWith("/image/list"))).thenReturn(targetList);
+    Mockito.when(mockCmdb.target(Mockito.endsWith("include_docs=true"))).thenReturn(targetDetails);
+    Mockito.when(targetList.request()).thenReturn(invocationBuilderList);
+    Mockito.when(targetDetails.request()).thenReturn(invocationBuilderDetails);
+    
+ // Define mock response for GET list of images(complete result)
+    Mockito.when(invocationBuilderList.get()).thenReturn(responseGetList);
+    Mockito.when(responseGetList.getStatus()).thenReturn(200);
+    String listImagesResponse = "{\"total_rows\":72,\"offset\":6,\"rows\":[{\"id\":\"7efc59c5db69ea67c5100de0f726d41e\",\"key\":"
+    		+ "[\"4401ac5dc8cfbbb737b0a02575e6f4bc\",\"images\"],\"value\":{\"image_id\":\"303d8324-69a7-4372-be24-1d68703affd7\","
+    		+ "\"image_name\":\"indigodatacloud/ubuntu-sshd:14.04-devel\",\"service\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\"},\"doc\":{\"_id\":\"7efc59c5db69ea67c5100de0f726d41e\","
+    		+ "\"_rev\":\"1-583b38e80f989b7f39b8ddd5d28c4c76\",\"type\":\"image\",\"data\":{\"image_id\":\"303d8324-69a7-4372-be24-1d68703affd7\","
+    		+ "\"image_name\":\"indigodatacloud/ubuntu-sshd:14.04-devel\",\"architecture\":\"x86_64\",\"type\":\"linux\","
+    		+ "\"distribution\":\"ubuntu\",\"version\":\"14.04\",\"service\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\"}}},"
+    		+ "{\"id\":\"7efc59c5db69ea67c5100de0f726e0a0\",\"key\":[\"4401ac5dc8cfbbb737b0a02575e6f4bc\",\"images\"],\"value\":{\"image_id\":\"0de96743-4a12-4470-b8b2-6dc260977a40\",\"image_name\":\"indigodatacloud/centos-sshd:7-devel\",\"service\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\"},"
+    		+ "\"doc\":{\"_id\":\"7efc59c5db69ea67c5100de0f726e0a0\",\"_rev\":\"1-948dae5f4b7e1096036af3f0cca37f89\",\"type\":\"image\",\"data\":"
+    		+ "{\"image_id\":\"0de96743-4a12-4470-b8b2-6dc260977a40\",\"image_name\":\"indigodatacloud/centos-sshd:7-devel\",\"architecture\":\"x86_64\","
+    		+ "\"type\":\"linux\",\"distribution\":\"centos\",\"version\":\"7\",\"service\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\"}}},{\"id\":\"7efc59c5db69ea67c5100de0f72ca01a\","
+    		+ "\"key\":[\"4401ac5dc8cfbbb737b0a02575e6f4bc\",\"images\"],\"value\":{\"image_id\":\"303d8324-69a7-4372-be24-1d68703affd7\","
+    		+ "\"image_name\":\"linux-ubuntu-14.04-vmi\",\"service\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\"},\"doc\":{\"_id\":\"7efc59c5db69ea67c5100de0f72ca01a\","
+    		+ "\"_rev\":\"1-458cb41b7747761b8bb8f27ad561958a\",\"type\":\"image\",\"data\":{\"image_id\":\"303d8324-69a7-4372-be24-1d68703affd7\","
+    		+ "\"image_name\":\"linux-ubuntu-14.04-vmi\",\"architecture\":\"x86_64\",\"type\":\"linux\",\"distribution\":\"ubuntu\",\"version\":\"14.04\","
+    		+ "\"service\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\"}}},{\"id\":\"7efc59c5db69ea67c5100de0f751dfa2\",\"key\":[\"4401ac5dc8cfbbb737b0a02575e6f4bc\","
+    		+ "\"images\"],\"value\":{\"image_id\":\"0de96743-4a12-4470-b8b2-6dc260977a40\",\"image_name\":\"linux-centos-7-vmi\","
+    		+ "\"service\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\"},\"doc\":{\"_id\":\"7efc59c5db69ea67c5100de0f751dfa2\","
+    		+ "\"_rev\":\"2-945794a2ee09317dc89b52f507bbe11f\",\"type\":\"image\",\"data\":{\"image_id\":\"0de96743-4a12-4470-b8b2-6dc260977a40\","
+    		+ "\"image_name\":\"linux-centos-7-vmi\",\"architecture\":\"x86_64\",\"type\":\"linux\",\"distribution\":\"centos\","
+    		+ "\"version\":\"7\",\"service\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\"}}},{\"id\":\"7efc59c5db69ea67c5100de0f7706af4\","
+    		+ "\"key\":[\"4401ac5dc8cfbbb737b0a02575e6f4bc\",\"images\"],\"value\":{\"image_id\":\"867bdfd7-7a97-4ef5-bfa8-9f7d05958239\","
+    		+ "\"image_name\":\"linux-ubuntu-14.04-mesos-vmi\",\"service\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\"},"
+    		+ "\"doc\":{\"_id\":\"7efc59c5db69ea67c5100de0f7706af4\",\"_rev\":\"1-cc4a0c7af11bde8237663181f5800f53\","
+    		+ "\"type\":\"image\",\"data\":{\"image_id\":\"867bdfd7-7a97-4ef5-bfa8-9f7d05958239\","
+    		+ "\"image_name\":\"linux-ubuntu-14.04-mesos-vmi\",\"architecture\":\"x86_64\",\"type\":\"linux\","
+    		+ "\"distribution\":\"ubuntu\",\"version\":\"14.04\",\"service\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\"}}}]}";
+    Mockito.when(responseGetList.readEntity(String.class)).thenReturn(listImagesResponse);
+    
 
     // Define mocks for CMDB failure
     mockCmdbFail = Mockito.mock(Client.class);
@@ -116,7 +161,7 @@ public class ThreadsManagementTest {
     Mockito.when(cmdbClientMock.getProvidersList())
         .thenReturn(new String[] { "provider-RECAS-BARI", "provider-UPV-GRyCAP" });
     CloudProviderInfo testProvider =
-        new CloudProviderInfo("provider-RECAS-BARI", "http://cloud.recas.ba.infn.it:8774/",
+        new CloudProviderInfo("provider-RECAS-BARI", /*"http://cloud.recas.ba.infn.it:8774/",*/
             "http://cloud.recas.ba.infn.it:5000/v2.0", 0, true, false, true);
     Mockito.when(cmdbClientMock.getProviderData(Mockito.matches("provider-RECAS-BARI")))
         .thenReturn(testProvider);
@@ -125,6 +170,8 @@ public class ThreadsManagementTest {
     ArrayList<CloudProviderInfo> testList = new ArrayList<CloudProviderInfo>();
     testList.add(testProvider);
     Mockito.when(cmdbClientMock.getFeasibleProvidersInfo()).thenReturn(testList);
+    String[] testListImages = new String[2];
+    Mockito.when(cmdbClientMock.getImageList()).thenReturn(new String[]{"linux-ubuntu-14.04-vmi", "linux-ubuntu-14.04-mesos-vmi"});
 
     // Mock Openstack Client
     OpenStackClient mockOpenstack = Mockito.mock(OpenStackClient.class);
@@ -139,24 +186,50 @@ public class ThreadsManagementTest {
     Mockito.when(mockOpenstack.getOpenstackMonitoringInfo()).thenReturn(global);
 
     // Complete Mock
-//    MonitoringThread mockThread = new MonitoringThread(mockSender, mockOpenstack, "MockProvider");
-    ScheduledExecutorService delegate = Executors.newScheduledThreadPool(2);
-    schedulerMock =
-        Mockito.mock(ScheduledExecutorService.class, AdditionalAnswers.delegatesTo(delegate));
+    OpenstackThread mockThread = new OpenstackThread();
+//    ScheduledExecutorService delegate = Executors.newScheduledThreadPool(2);
+//    schedulerMock =
+//        Mockito.mock(ScheduledExecutorService.class, AdditionalAnswers.delegatesTo(delegate));
 //    Mockito.doReturn(delegate.schedule(mockThread, 5, TimeUnit.SECONDS)).when(schedulerMock)
 //        .schedule(Mockito.any(Runnable.class), Mockito.anyLong(), Mockito.eq(TimeUnit.SECONDS));
 
     System.out.println("Testing environment ready!");
   }
 
-  @Test
-  public void threadsManagementShouldWorkFine() {
+//  @Test
+//  public void threadsManagementShouldWorkFine() {
+	  
+	 
     // Run the probe code
 //    ProbeThread probeManager = ProbeThread.instance(schedulerMock, mockSender, cmdbClientMock);
 //    boolean result = probeManager.startMonitoringProcess();
 
     // Check Results
 //    Assert.assertTrue("The result of the whole monitoring operation should be fine.", result);
+//  }
+  
+  @Test(expected=IOException.class)
+  public void CmdbConstructorTestFail() throws IOException {
+	  PropertiesManager propertiesManager = Mockito.mock(PropertiesManager.class);
+	  String testConfigFile = "configFile";
+	  String cmdburl = "dburl";
+	  PropertiesManager.loadProperties(testConfigFile);
+	  String prop = propertiesManager.getProperty(testConfigFile);
+//	  CmdbClient cmdbclient = new CmdbClient();
+  }
+  
+  @Test()
+  public void CmdbConstructorTestSuccess() {
+	  PropertiesManager propertiesManager = Mockito.mock(PropertiesManager.class);
+	  
+	  String testConfigFile = OpenstackProbeTags.CONFIG_FILE;
+	  String cmdburl = OpenstackProbeTags.CMDB_URL;
+	 
+//	  PropertiesManager.loadProperties(testConfigFile);
+	  String prop = propertiesManager.getProperty(testConfigFile);
+//	  CmdbClient cmdbclient = new CmdbClient();
+	  
+	  Assert.assertEquals("the url of cmdb should be", prop, PropertiesManager.getProperty(testConfigFile));
   }
 
   @Test
@@ -175,17 +248,32 @@ public class ThreadsManagementTest {
   @Test
   public void cmdbAccessShouldWorkFine() {
     // Create the CMDB client with Mock
+	  OpenStackClient mockOpenstack = Mockito.mock(OpenStackClient.class);
     CmdbClient myTestClient = new CmdbClient(mockCmdb);
+    
 
+//    Mockito.when(myTestClient.getImageList()).thenReturn(new String[]{"linux-ubuntu-14.04-vmi", "linux-ubuntu-14.04-mesos-vmi"});
+    String[] testListImages = myTestClient.getImageList();
+
+    
     // Try to list providers and to get info from one of them
-    String[] testList = myTestClient.getProvidersList();
+    String[] testList = cmdbClientMock.getProvidersList();
     CloudProviderInfo testInfo = myTestClient.getProviderData("TestProvider");
+    
+    
+    List<CloudProviderInfo>  providersInfos = new ArrayList<>();
+    providersInfos.add(testInfo);
+    providersInfos = myTestClient.getFeasibleProvidersInfo();
+    
+    Assert.assertEquals("The number of provider Info should be:  ", 5, providersInfos.size());
+    
+    Assert.assertEquals("The number of images in the list should be: ", 5, testListImages.length);
 
     Assert.assertEquals("The number of providers in the list should be 0.", 2, testList.length);
     Assert.assertNotNull("The CloudProviderInfo object should not be null.", testInfo);
-    System.out.println(testInfo.getNovaEndpoint());
-//    Assert.assertEquals("The Nova endpoint should be the right one.",
-//        "http://cloud.recas.ba.infn.it:8774", testInfo.getNovaEndpoint());
+    System.out.println(testInfo.getKeystoneEndpoint());
+    Assert.assertEquals("The keystone endpoint should be the right one.",
+        "http://cloud.recas.ba.infn.it:5000/v2.0", testInfo.getKeystoneEndpoint());
     Assert.assertTrue("The client should have parsed that production is Y.",
         testInfo.getIsProduction());
   }

@@ -53,11 +53,10 @@ public class CmdbClient {
 		} catch (IOException e) {
 			log.debug("Unable to load property file: " + OpenstackProbeTags.CONFIG_FILE);
 		}
-		 cmdbUrl = PropertiesManager.getProperty(OpenstackProbeTags.CMDB_URL);
-
+		cmdbUrl = PropertiesManager.getProperty(OpenstackProbeTags.CMDB_URL);
 		// Create the Client
-		ClientConfig cc = new ClientConfig();
-		client = JerseyClientBuilder.newClient(cc);
+	    ClientConfig cc = new ClientConfig();
+	    client = JerseyClientBuilder.newClient(cc);
 	}
 
 	/**
@@ -79,7 +78,6 @@ public class CmdbClient {
 	public String[] getProvidersList() {
 		// Call to CMDB API
 		WebTarget target = client.target(cmdbUrl +
-		// "http://indigo.cloud.plgrid.pl/cmdb"
 				"/provider/list");
 		Invocation.Builder invocationBuilder = target.request();
 		Response response = invocationBuilder.get();
@@ -155,7 +153,7 @@ public class CmdbClient {
 		Response response = invocationBuilder.get();
 		String message = response.readEntity(String.class);
 
-//		log.info(message);
+		// log.info(message);
 
 		// Retrieve the services list
 		JsonElement jelement = new JsonParser().parse(message);
@@ -173,7 +171,6 @@ public class CmdbClient {
 		boolean isProduction = false;
 
 		Iterator<JsonElement> myIter = listArray.iterator();
-		List<CloudProviderInfo> openstackProviders = new ArrayList<>();
 		while (myIter.hasNext()) {
 			JsonObject currentResource = myIter.next().getAsJsonObject();
 			JsonObject currentDoc = currentResource.get("doc").getAsJsonObject();
@@ -184,12 +181,12 @@ public class CmdbClient {
 			for (JsonElement obj : listArray) {
 				JsonElement docIter = obj.getAsJsonObject().get("doc");
 				JsonElement dataIter = docIter.getAsJsonObject().get("data");
-				JsonElement occiEndpoint = dataIter.getAsJsonObject().get("endpoint");
+//				JsonElement occiEndpoint = dataIter.getAsJsonObject().get("endpoint");
 				try {
+//					currentServiceType = getServiceType(dataIter, currentServiceType);
 					if (dataIter.getAsJsonObject().get("service_type").getAsString().equals(SERVICE_TYPE))
 						currentServiceType = SERVICE_TYPE;
-					if (occiEndpoint.getAsString().contains(OCCI_DEFAULT_PORT))
-						computeEndpoint = occiEndpoint.getAsString();
+					
 					if (dataIter.getAsJsonObject().get("endpoint").getAsString().contains(IDENTITY_DEFAULT_PORT))
 						identityEndpoint = dataIter.getAsJsonObject().get("endpoint").getAsString();
 				} catch (UnsupportedOperationException uoe) {
@@ -206,17 +203,6 @@ public class CmdbClient {
 			// the service type represents the filter this class works on
 			if (currentServiceType.equalsIgnoreCase(SERVICE_TYPE)) {
 				keystoneEndpoint = identityEndpoint;
-				/*
-				 * TODO: Ask for a field with correct nova endpoint to CMDB guys
-				 */
-				// novaEndpoint = currentEndpoint.contains(VERSION_2) ?
-				// currentEndpoint.replace(IDENTITY_DEFAULT_PORT + VERSION_2,
-				// NOVA_DEFUALT_PORT) :
-				// currentEndpoint.replace(IDENTITY_DEFAULT_PORT + VERSION_3,
-				// NOVA_DEFUALT_PORT);
-				novaEndpoint = computeEndpoint.contains(OCCI_DEFAULT_PORT + "/occi")
-						? computeEndpoint.replace(OCCI_DEFAULT_PORT + "/occi", NOVA_DEFUALT_PORT)
-						: computeEndpoint.replace(OCCI_DEFAULT_PORT, NOVA_DEFUALT_PORT);
 
 				JsonElement currentBeta = currentData.get("beta");
 				JsonElement currentProduction = currentData.get("in_production");
@@ -232,9 +218,9 @@ public class CmdbClient {
 				if (currentProduction != null && currentProduction.getAsString().equalsIgnoreCase("Y")) {
 					isProduction = true;
 				}
-				
-				return new CloudProviderInfo(providerId, novaEndpoint, keystoneEndpoint, type,
-						isMonitored, isBeta, isProduction);
+
+				return new CloudProviderInfo(providerId, keystoneEndpoint, type, isMonitored, isBeta,
+						isProduction);
 			}
 		}
 		return null;
@@ -263,8 +249,6 @@ public class CmdbClient {
 			// Now check it is compliant with our requirements
 			if (currentInfo != null) {
 				int cloudType = currentInfo.getCloudType();
-				boolean isMonitored = currentInfo.getIsMonitored();
-				boolean isProduction = currentInfo.getIsProduction();
 				if (cloudType == CloudProviderInfo.OPENSTACK) {
 					myResult.add(currentInfo);
 				}

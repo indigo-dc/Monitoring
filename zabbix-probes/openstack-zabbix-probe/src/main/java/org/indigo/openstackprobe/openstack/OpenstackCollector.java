@@ -21,7 +21,7 @@ import com.indigo.zabbix.utils.beans.AppOperation;
 
 public class OpenstackCollector extends LifecycleCollector {
 
-	private OpenStackClient openstackClient = new OpenStackClient("", "", "");
+	private OpenStackClient openstackClient = new OpenStackClient("","");
 	public String provider;
 	public String providerEndpoint;
 	public String keystoneEndpoint;
@@ -44,11 +44,10 @@ public class OpenstackCollector extends LifecycleCollector {
 	 * @param keystoneURL
 	 *            String representing the Keystone API URL
 	 */
-	protected OpenstackCollector(String providerId, String providerUrl, String keystoneUrl){
+	protected OpenstackCollector(String providerId, String keystoneUrl){
 		provider = providerId;
-		providerEndpoint = providerUrl;
 		keystoneEndpoint = keystoneUrl;
-		openstackClient = new OpenStackClient(keystoneUrl, providerUrl, providerId);
+		openstackClient = new OpenStackClient(keystoneUrl, providerId);
 		try {
 			probeResult = openstackClient.getOpenstackMonitoringInfo();
 			getResult(probeResult);
@@ -58,7 +57,6 @@ public class OpenstackCollector extends LifecycleCollector {
 			log.debug("Unable to get the information about the provider " + provider + "" + te);
 			// Terminate thread manager
 		}
-		providerEndpoint = providerUrl;
 		keystoneEndpoint = keystoneUrl;
 	}
 	
