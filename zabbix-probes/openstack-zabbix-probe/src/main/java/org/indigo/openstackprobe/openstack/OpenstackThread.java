@@ -10,12 +10,18 @@ import com.indigo.zabbix.utils.ProbeThread;
 public class OpenstackThread extends ProbeThread<OpenstackCollector> {
 
 	private static final Logger log = LogManager.getLogger(OpenStackClient.class);
-	String providerId;
-	String providerUrl;
-	String keystoneUrl;
+	
 	static int countColls = 0;
 	private static List<OpenstackCollector> collectors;
 
+	/**
+	 * Constructor for test purposes.
+	 */
+	protected OpenstackThread(List<OpenstackCollector> collectorsMocked) {
+		super("IaaS", "Cloud_Providers", "TemplateOpenstack");
+		collectors = collectorsMocked;
+	}
+	
 	/**
 	 * Constructor for initializing the the the implementation of the thread.
 	 */
@@ -37,6 +43,7 @@ public class OpenstackThread extends ProbeThread<OpenstackCollector> {
 			log.info("Collecting metrics from: " + collectors.get(countColls).provider);
 			return collectors.get(countColls);
 		}
+		log.info("No provider for collecting metrics from");
 		return null;
 	}
 }

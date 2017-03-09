@@ -19,6 +19,7 @@ package org.indigo.openstackprobe.openstack;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -39,21 +40,21 @@ import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.openstack4j.api.Builders;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.client.IOSClientBuilder.V2;
+import org.openstack4j.api.compute.ComputeService;
+import org.openstack4j.api.compute.FlavorService;
+import org.openstack4j.api.compute.ServerService;
 import org.openstack4j.api.exceptions.ConnectionException;
+import org.openstack4j.api.image.ImageService;
 import org.openstack4j.model.compute.ActionResponse;
 import org.openstack4j.model.compute.Flavor;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.compute.ServerCreate;
+import org.openstack4j.model.identity.Token;
 import org.openstack4j.model.image.Image;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.openstack.OSFactory;
 
-import com.google.gson.JsonObject;
-import com.indigo.zabbix.utils.ProbesTags;
 import com.indigo.zabbix.utils.PropertiesManager;
-import com.indigo.zabbix.utils.PropertiesManagerTest;
-
-import feign.RequestLine;
 
 /**
  * It takes care of the interactions to be performed with Cloud Providers whose
@@ -71,12 +72,28 @@ public class OpenStackClient {
 	private String openStackPwd;
 	private String currentToken;
 	private String providerId;
-	private V2 myKeystoneClient = null;
+
 	private static final String POWER_STATE_ACTIVE = "1";
 	private String flavorId;
 	private String imageId;
+	private Flavor flavor;
+	private Image image;
+	private List<? extends Image> images = new ArrayList<>();
+	private List<? extends Flavor> flavors = new ArrayList<>();
+	private List<? extends Server> servers = new ArrayList<>();
 	private final String INSTANCE_NAME = OpenstackProbeTags.INSTANCE_NAME;
+	private OSClient osClient;
+	private V2 myKeystoneClient;
+	private Token token;
+	private ComputeService computeService;
+	private FlavorService flavorService;
+	private ImageService imageService;
 	private String tenantName;
+	private Map<String, Integer> resultMap;
+	private Map<Server.Status, Server> serverCreation;
+	private Server server;
+	private ServerService serverService;
+	String vmId;
 	private static final String HTTP_RESPONSE_CODE = "httpCode";
 	private static final String AVAILABILITY_STATUS = "availability";
 	private static final String TIME_MS = " time in milliseconds: ";
@@ -130,15 +147,54 @@ public class OpenStackClient {
 	 * @param mockClient
 	 *            Mock of the Jersey Client class, for simulating.
 	 */
-	public OpenStackClient(Client mockClient, V2 mockKeystone, String mockFlavor, String mockImage) {
+	public OpenStackClient(Client mockClient, OSClient osClientMocked, V2 mockKeystone, Token tokenMoked,
+			ComputeService computeserviceMocked, FlavorService flavorServiceMocked, ImageService imageServiceMocked,
+			List<Flavor> flavorsMocked, List<Image> imagesMocked, Flavor mockFlavor, Image mockImage,
+			String baseKeystoneUrlMocked, String openStackUserMocked, String openStackPwdMocked, String tenantNameMoked,
+			Map<Server.Status, Server> serverCreationMocked, ServerService serverServiceMocked, Server serverMocked,
+			Map<String, Integer> resultMapMocked, List<Server> serversMocks, OpenstackComponent component) {
+//		OpenstackComponent component = new OpenstackComponent();
+		client = mockClient;
+		client = component.getMockClient();
+		myKeystoneClient = mockKeystone;
+		flavor = mockFlavor;
+		image = mockImage;
+		myKeystoneClient = mockKeystone;
+		osClient = osClientMocked;
+		token = tokenMoked;
+		baseKeystoneUrl = baseKeystoneUrlMocked;
+		openStackUser = openStackUserMocked;
+		openStackPwd = openStackPwdMocked;
+		tenantName = tenantNameMoked;
+		images = imagesMocked;
+		flavors = flavorsMocked;
+		computeService = computeserviceMocked;
+		flavorService = flavorServiceMocked;
+		imageService = imageServiceMocked;
+		serverCreation = serverCreationMocked;
+		resultMap = resultMapMocked;
+		serverService = serverServiceMocked;
+		server = serverMocked;
+		servers = serversMocks;
+		vmId = serverMocked.getId();
+	}
+
+	/**
+	 * Constructor to be used for automatic testing purposes only.
+	 * 
+	 * @param mockClient
+	 *            Mock of the Jersey Client class, for simulating.
+	 */
+	public OpenStackClient(Client mockClient, V2 mockKeystone, String mockFlavorId, String mockImageId) {
 		client = mockClient;
 		myKeystoneClient = mockKeystone;
-		flavorId = mockFlavor;
-		imageId = mockImage;
+		flavorId = mockFlavorId;
+		imageId = mockImageId;
 	}
 
 	/**
 	 * It asks the token to Openstack.
+	 * 
 	 * @return token String
 	 * @throws ConnectionException
 	 */
@@ -151,7 +207,6 @@ public class OpenStackClient {
 
 	private OSClient getOSAuth() {
 		// More general Authentication
-
 		return myKeystoneClient.endpoint(baseKeystoneUrl).credentials(openStackUser, openStackPwd)
 				.tenantName(tenantName).authenticate();
 	}
@@ -161,14 +216,15 @@ public class OpenStackClient {
 	}
 
 	/**
-	 * Retrieves the flavors from the providers. It checks weheter there is any
+	 * Retrieves the flavors from the providers. It checks whether there is any
 	 * flavor called small, otherwise gets the first.
 	 * 
 	 * @return the Id of the flavor
 	 */
 	public String getFlavor() {
-		List<? extends Flavor> flavors = getInternalFlavor();
-
+		if (flavors.isEmpty()) {
+			flavors = getInternalFlavor();
+		}
 		for (Flavor flavor : flavors) {
 			if (flavor.getName().toLowerCase().contains("small")) {
 				return flavor.getId();
@@ -191,7 +247,10 @@ public class OpenStackClient {
 	 * @return id of the Image used for creating the instance.
 	 */
 	public String getOsImage() {
-		List<? extends Image> images = getInternalOsImage();
+
+		if (images.isEmpty()) {
+			images = getInternalOsImage();
+		}
 		for (Image image : images) {
 			for (String imageIdCmdb : getImagesFromCmdb()) {
 				if (image.getId().equals(imageIdCmdb)) {
@@ -241,12 +300,13 @@ public class OpenStackClient {
 		// Create the machine
 		bootOsServer(sc);
 
-		Map<String, Integer> resultMap = new HashMap<>();
-		long responseTime = 0;
+		// resultMap = new HashMap<>();
+		long responseTime;
 
-		// Wait for the process to be done
-		Map<Server.Status, Server> serverCreation = new HashMap<>();
-		String vmId = null;
+		// Wait for the process to be done or just get the immediate result
+		// coming from Openstack API
+		// serverCreation = new HashMap<>();
+		// String vmId = null;
 		try {
 			if (Boolean.parseBoolean(PropertiesManager.getProperty(OpenstackProbeTags.WAIT_FOR_CREATION))) {
 				log.info("Calculating real creation server time by polling the status to be active");
@@ -321,7 +381,8 @@ public class OpenStackClient {
 
 		boolean created = false;
 		Map<Server.Status, Server> serverResultMap = new HashMap<>();
-		List<? extends Server> servers = getServerOsList();
+		// List<? extends Server>
+		servers = getServerOsList();
 		for (Server serverInstance : servers) {
 			if (serverInstance.getName().equalsIgnoreCase(instanceName)) {
 				while (System.currentTimeMillis() < stopPollingTime
@@ -378,7 +439,8 @@ public class OpenStackClient {
 
 		boolean created = false;
 		Map<Server.Status, Server> serverResultMap = new HashMap<>();
-		List<? extends Server> servers = getServerOsList();
+		// List<? extends Server>
+		servers = getServerOsList();
 		for (Server serverInstance : servers) {
 			if (serverInstance.getName().equalsIgnoreCase(instanceName)) {
 				if ((!serverInstance.getStatus().equals(Server.Status.ERROR)
@@ -427,30 +489,31 @@ public class OpenStackClient {
 		return getOSAuth().compute().servers().get(serverInstance.getId());
 	}
 
-	/**
-	 * Method used for testing openstack4J API.
-	 */
-	private void getVmsList() {
-
-		// List all Servers
-		List<? extends Server> servers = getOSAuth().compute().servers().list();
-
-		// Measure response time and wait
-		long startTime = System.currentTimeMillis();
-		while (servers.isEmpty()) {
-			try {
-				synchronized (servers) {
-					servers.wait(3000);
-				}
-
-			} catch (InterruptedException ie) {
-				ie.printStackTrace();
-			}
-		}
-		long elapsedTime = System.currentTimeMillis() - startTime;
-		log.info("Total elapsed http request/response time in milliseconds: " + elapsedTime);
-
-	}
+	// /**
+	// * Method used for testing openstack4J API.
+	// */
+	// private void getVmsList() {
+	//
+	// // List all Servers
+	// List<? extends Server> servers = getOSAuth().compute().servers().list();
+	//
+	// // Measure response time and wait
+	// long startTime = System.currentTimeMillis();
+	// while (servers.isEmpty()) {
+	// try {
+	// synchronized (servers) {
+	// servers.wait(3000);
+	// }
+	//
+	// } catch (InterruptedException ie) {
+	// ie.printStackTrace();
+	// }
+	// }
+	// long elapsedTime = System.currentTimeMillis() - startTime;
+	// log.info("Total elapsed http request/response time in milliseconds: " +
+	// elapsedTime);
+	//
+	// }
 
 	/**
 	 * Inspect the instance in Openstack after passing the proper uuid. In case
@@ -464,7 +527,7 @@ public class OpenStackClient {
 	 */
 	private InspectVmResult inspectVm(String vmId) throws TimeoutException, InterruptedException {
 		long startTime = System.currentTimeMillis();
-		Server server = getOSAuth().compute().servers().get(vmId);
+		server = getOSAuth().compute().servers().get(vmId);
 
 		// Measure response time
 		while (server.getCreated() == null) {

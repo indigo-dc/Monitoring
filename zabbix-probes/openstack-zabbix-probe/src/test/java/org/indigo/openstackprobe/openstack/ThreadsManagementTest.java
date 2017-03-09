@@ -1,10 +1,14 @@
 package org.indigo.openstackprobe.openstack;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import javax.ws.rs.client.Client;
@@ -12,31 +16,30 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.logging.Log;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.AdditionalAnswers;
 import org.mockito.Mockito;
-import org.openstack4j.api.networking.ext.LoadBalancerService;
 
 import com.indigo.zabbix.utils.PropertiesManager;
-
-import io.github.hengyunabc.zabbix.sender.ZabbixSender;
+import com.indigo.zabbix.utils.beans.AppOperation;
 
 public class ThreadsManagementTest {
   private Client mockCmdb;
   private Client mockCmdbFail;
-  private ZabbixSender mockSender;
   private CmdbClient cmdbClientMock;
   
-//  private static final Logger log = LogManager.getLogger(ThreadsManagementTest.class);
+  private OpenstackThread hostThreadMocked;
+  private OpenstackCollector collectorMocked;
+  private ProviderSearch providerSearch;
+  private CloudProviderInfo providermocked; 
+  List<CloudProviderInfo> providersMocked = new ArrayList<>();
+  
+  List<OpenstackCollector> collectors= new ArrayList<>();
 
   @Before
   public void prepareMockElements() throws TimeoutException, InterruptedException {
-    System.out.println("Setting up testing environment...");
+    System.out.println("Setting up testing global environment...");
 
     // Define the main mock classes for complete result
     mockCmdb = Mockito.mock(Client.class);
@@ -115,7 +118,6 @@ public class ThreadsManagementTest {
     		+ "\"image_name\":\"linux-ubuntu-14.04-mesos-vmi\",\"architecture\":\"x86_64\",\"type\":\"linux\","
     		+ "\"distribution\":\"ubuntu\",\"version\":\"14.04\",\"service\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\"}}}]}";
     Mockito.when(responseGetList.readEntity(String.class)).thenReturn(listImagesResponse);
-    
 
     // Define mocks for CMDB failure
     mockCmdbFail = Mockito.mock(Client.class);
@@ -149,13 +151,6 @@ public class ThreadsManagementTest {
     String detailResponseFail = "{\"total_rows\":60,\"offset\":49,\"rows\":[]}";
     Mockito.when(responseGetDetailsFail.readEntity(String.class)).thenReturn(detailResponseFail);
 
-    // Scheduler Mock delegating most of the calls to a real object
-    // Mock Zabbix Sender
-    mockSender = Mockito.mock(ZabbixSender.class);
-//    Mockito.when(mockSender.addMetricToQueue(Mockito.any(OpenstackProbeResult.class)))
-//        .thenReturn(true);
-//    Mockito.when(mockSender.sendMetrics()).thenReturn(true);
-
     // Mock CMDB client
     cmdbClientMock = Mockito.mock(CmdbClient.class);
     Mockito.when(cmdbClientMock.getProvidersList())
@@ -185,28 +180,74 @@ public class ThreadsManagementTest {
     global.addDeleteVmInfo(delete);
     Mockito.when(mockOpenstack.getOpenstackMonitoringInfo()).thenReturn(global);
 
-    // Complete Mock
-    OpenstackThread mockThread = new OpenstackThread();
-//    ScheduledExecutorService delegate = Executors.newScheduledThreadPool(2);
-//    schedulerMock =
-//        Mockito.mock(ScheduledExecutorService.class, AdditionalAnswers.delegatesTo(delegate));
-//    Mockito.doReturn(delegate.schedule(mockThread, 5, TimeUnit.SECONDS)).when(schedulerMock)
-//        .schedule(Mockito.any(Runnable.class), Mockito.anyLong(), Mockito.eq(TimeUnit.SECONDS));
-
-    System.out.println("Testing environment ready!");
+    //Mock the list of providers
+    providermocked = Mockito.mock(CloudProviderInfo.class);
+    Mockito.when(providermocked.getCloudType()).thenReturn(0);
+    Mockito.when(providermocked.getIsBeta()).thenReturn(true);
+    Mockito.when(providermocked.getProviderId()).thenReturn("TestProvider");
+    Mockito.when(providermocked.getKeystoneEndpoint()).thenReturn("keystoneEndpoint");
+    providersMocked.add(providermocked);
+    Mockito.when(cmdbClientMock.getFeasibleProvidersInfo()).thenReturn(providersMocked);
+    
+    //Mock Openstack
+    OpenStackClient osclientMocked = Mockito.mock(OpenStackClient.class);
+    CreateVmResult createVmResultmocked = Mockito.mock(CreateVmResult.class);
+    Mockito.when(createVmResultmocked.getVmId()).thenReturn("vmid");
+    Mockito.when(osclientMocked.createVm()).thenReturn(createVmResultmocked);
+    
+    // Mock the final results
+    hostThreadMocked = Mockito.mock(OpenstackThread.class);
+    collectorMocked = Mockito.mock(OpenstackCollector.class); 
+    AppOperation appoperationMocked = Mockito.mock(AppOperation.class);
+    Map<String, String> metricMapMocked = new HashMap<>();
+    metricMapMocked.put("MetricNameTest", "MetricValueTest");
+    Mockito.when(appoperationMocked.getMetrics()).thenReturn(metricMapMocked);
+    Mockito.when(appoperationMocked.getStatus()).thenReturn(200);
+    Mockito.when(collectorMocked.clear()).thenReturn(appoperationMocked);
+    Mockito.when(hostThreadMocked.createCollector()).thenReturn(collectorMocked);
+    providerSearch = Mockito.mock(ProviderSearch.class);
+    collectors.add(collectorMocked);
+    
+    System.out.println("Testing environment ready, finished mocking components!");
   }
 
-//  @Test
-//  public void threadsManagementShouldWorkFine() {
-	  
+  @Test
+  public void threadsManagementShouldWorkFine() {
 	 
-    // Run the probe code
-//    ProbeThread probeManager = ProbeThread.instance(schedulerMock, mockSender, cmdbClientMock);
-//    boolean result = probeManager.startMonitoringProcess();
-
-    // Check Results
+//     Run the probe code
+    OpenstackThread mockThreadInitial = new OpenstackThread();
+    OpenstackThread mockThread = new OpenstackThread(collectors);
+//     Check Results
 //    Assert.assertTrue("The result of the whole monitoring operation should be fine.", result);
-//  }
+    assertSame(collectorMocked, mockThread.createCollector());
+  }
+  
+  
+  @Test
+  public void threadsManagementShouldReturnProvidersFine() {
+	 
+//     Run the probe code
+	providerSearch = new ProviderSearch(providersMocked, collectorMocked, cmdbClientMock, providermocked);
+	List<OpenstackCollector> collectorlist = providerSearch.getCollectorResults();
+	
+    OpenstackThread mockThread = new OpenstackThread(collectorlist);
+//     Check Results
+//    Assert.assertTrue("The result of the whole monitoring operation should be fine.", result);
+    Assert.assertEquals(1, collectorlist.size());
+    assertNotNull(mockThread.createCollector());    
+  }
+  
+  @Test
+  public void threadsManagementShouldFail() {
+	 
+//     Run the probe code
+//    OpenstackThread mockThread = new OpenstackThread();
+	  collectors = new ArrayList<>();
+    OpenstackThread mockThread = new OpenstackThread(collectors);
+//     Check Results
+//    Assert.assertTrue("The result of the whole monitoring operation should be fine.", result);
+    assertNull(mockThread.createCollector());
+  }
   
   @Test(expected=IOException.class)
   public void CmdbConstructorTestFail() throws IOException {
@@ -248,7 +289,7 @@ public class ThreadsManagementTest {
   @Test
   public void cmdbAccessShouldWorkFine() {
     // Create the CMDB client with Mock
-	  OpenStackClient mockOpenstack = Mockito.mock(OpenStackClient.class);
+	OpenStackClient mockOpenstack = Mockito.mock(OpenStackClient.class);
     CmdbClient myTestClient = new CmdbClient(mockCmdb);
     
 
@@ -260,10 +301,14 @@ public class ThreadsManagementTest {
     String[] testList = cmdbClientMock.getProvidersList();
     CloudProviderInfo testInfo = myTestClient.getProviderData("TestProvider");
     
-    
     List<CloudProviderInfo>  providersInfos = new ArrayList<>();
     providersInfos.add(testInfo);
     providersInfos = myTestClient.getFeasibleProvidersInfo();
+    
+    List<OpenstackCollector> collectors = new ArrayList<>();
+    OpenstackCollector collectorMocked = Mockito.mock(OpenstackCollector.class);
+    
+    collectors.add(collectorMocked);
     
     Assert.assertEquals("The number of provider Info should be:  ", 5, providersInfos.size());
     
@@ -276,6 +321,14 @@ public class ThreadsManagementTest {
         "http://cloud.recas.ba.infn.it:5000/v2.0", testInfo.getKeystoneEndpoint());
     Assert.assertTrue("The client should have parsed that production is Y.",
         testInfo.getIsProduction());
+    Assert.assertTrue("The client should have parsed that production is Y.",
+            testInfo.getIsMonitored());
+    Assert.assertNotNull("The client should have parsed that production is Y.",
+            testInfo.getProviderId());
+    Assert.assertNotNull("The client should have parsed that production is Y.",
+            testInfo.getIsBeta());
+    Assert.assertEquals("The client should have parsed that production is Y.",
+            0, testInfo.getCloudType());
   }
 
 }

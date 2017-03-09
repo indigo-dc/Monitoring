@@ -20,10 +20,13 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.openstackprobe.openstack;
 
-import static org.mockito.Mockito.validateMockitoUsage;
+import static org.junit.Assert.assertSame;
 
+import java.math.BigInteger;
 import java.net.ConnectException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,13 +42,15 @@ import javax.ws.rs.core.Response;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.internal.stubbing.answers.ThrowsException;
-import org.openstack4j.api.Builders;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.client.IOSClientBuilder.V2;
+import org.openstack4j.api.compute.ComputeService;
+import org.openstack4j.api.compute.FlavorService;
+import org.openstack4j.api.compute.ServerService;
+import org.openstack4j.api.image.ImageService;
+import org.openstack4j.model.compute.ActionResponse;
 import org.openstack4j.model.compute.Flavor;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.compute.ServerCreate;
@@ -61,22 +66,41 @@ public class MonitoringTest {
 	private Client mockClientFailure;
 	private V2 keystoneMock;
 	private ServerCreate serverCreate;
+	private Image mockOSImage;
+	private Flavor mockOSFlavor;
+	private FlavorService flavorServiceMocked;
+	private OSClient mockOSClient;
+	private OpenStackClient osclient;
+	private Token mockToken;
+	private ComputeService computeMocked;
+	private ImageService imageServiceMocked;
+	private ActionResponse actionMocked;
 
 	private String imageId;
 	private String flavorId;
 	private String virtualMachineTest;
-	private String imageMock = "";
-	private String flavorMock = "";
+	private String flavorMockId = "";
+	private String imageMockId = "";
+	private ArrayList<Flavor> flavorsSimulated;
+	private ArrayList<Image> imagesSimulated;
 
-	// private Logger log = LogManager.getLogger(MonitoringTest.class);
-
-	String token = UUID.randomUUID().toString();
-	@InjectMocks
-	Builders builders;
+	private static final String token = UUID.randomUUID().toString();
+	private static final String tenant = "tenantTest";
+	private static final String password = "passwordTest";
+	private static final String user = "userTest";
+	private static final String endpoint = "endpoint";
+	
+	private List<Server> servers = new ArrayList<>();
+	
+	private Map<Server.Status, Server> serverCreationMocked = new HashMap<>();
+	
+	private ServerService serverServiceMocked;
+	private Server serverMocked;
+	Map<String, Integer> resultMap = new HashMap<>();
 
 	@Before
 	public void prepareMockOpenstackServer() {
-		System.out.println("Setting up testing environment and preparr the prepareMockOpenstackServer...");
+		System.out.println("Setting up testing environment and prepare the prepareMockOpenstackServer...");
 
 		// Define the main mock classes for complete result
 		mockClient = Mockito.mock(Client.class);
@@ -105,6 +129,9 @@ public class MonitoringTest {
 		Mockito.when(invocationBuilder.delete()).thenReturn(responseDelete);
 		Mockito.when(responseDelete.getStatus()).thenReturn(204);
 		Mockito.when(responseDelete.readEntity(String.class)).thenReturn("");
+		ActionResponse actionMocked = Mockito.mock(ActionResponse.class);
+		Mockito.when(actionMocked.isSuccess()).thenReturn(true);
+		
 
 		// Define the main mock classes for unavailability error
 		mockClientFailure = Mockito.mock(Client.class);
@@ -124,55 +151,118 @@ public class MonitoringTest {
 		// Define KeystoneMock
 		keystoneMock = Mockito.mock(V2.class);
 		OSClient mockOSClient = Mockito.mock(OSClient.class);
-//		OpenStackClient mockOpenstackClient = Mockito.mock(OpenStackClient.class);
-		Token mockToken = Mockito.mock(Token.class);
+		computeMocked = Mockito.mock(ComputeService.class);
+		mockToken = Mockito.mock(Token.class);
 		Mockito.when(keystoneMock.endpoint(Mockito.anyString())).thenReturn(keystoneMock);
 		Mockito.when(keystoneMock.credentials(Mockito.anyString(), Mockito.anyString())).thenReturn(keystoneMock);
 		Mockito.when(keystoneMock.tenantName(Mockito.anyString())).thenReturn(keystoneMock);
 		Mockito.when(keystoneMock.authenticate()).thenReturn(mockOSClient);
 		Mockito.when(mockOSClient.getToken()).thenReturn(mockToken);
-		Mockito.when(mockOSClient.getToken().getId()).thenReturn(token);
+		Mockito.when(mockOSClient.compute()).thenReturn(computeMocked);
+		Mockito.when(mockToken.getId()).thenReturn(token);
 
-		// Mockito.when(mockOpenstackClient.getFlavor()).thenReturn(flavorId);
-		// Mockito.when(mockOpenstackClient.getOsImage()).thenReturn(imageId);
-		// Mockito.when(mockOSClient.compute().flavors().get(flavorId)).thenReturn(flavormock);
-		// Mockito.when(mockOSClient.compute().images().get(imageId)).thenReturn(imagemock);
+		// Mock Image and Flavor
+		mockOSImage = Mockito.mock(Image.class);
+		imageServiceMocked = Mockito.mock(ImageService.class);
+		Mockito.when(mockOSClient.images()).thenReturn(imageServiceMocked);
+		List<Image> images = new ArrayList<>();
+		images.add(mockOSImage);
+		Mockito.doReturn("ubuntu").when(mockOSImage).getName();
+		Mockito.doReturn("imageIdTest").when(mockOSImage).getId();
+		imagesSimulated = Lists.newArrayList(mockOSImage);
 
-		// OpenStackClient openstackClient = Mockito.spy(new
-		// OpenStackClient(mockClientFailure, keystoneMock, flavorMock,
-		// imageMock));
-		Image responseOSImage = Mockito.mock(Image.class);
-		Mockito.when(responseOSImage.getId()).thenReturn("small");
-		Flavor responseOSFlavor = Mockito.mock(Flavor.class);
-		Mockito.when(responseOSFlavor.getId()).thenReturn("7");
-		OpenStackClient openstackClient = Mockito.mock(OpenStackClient.class);
-		Mockito.when(openstackClient.getInternalFlavor()).thenReturn(new ArrayList<>());
-		Mockito.when(openstackClient.getInternalOsImage()).thenReturn(new ArrayList<>());
-		Mockito.when(openstackClient.getOsImage()).thenReturn(new String());
-		Mockito.when(openstackClient.getFlavor()).thenReturn(new String());
-
-		Mockito.when(mockToken.getId()).thenReturn("FakeToken!");
+		// Mock the flavors
+		// Mockito.when(imageServiceMocked.list()).thenReturn(images);
+		mockOSFlavor = Mockito.mock(Flavor.class);
+		flavorServiceMocked = Mockito.mock(FlavorService.class);
+		Mockito.when(computeMocked.flavors()).thenReturn(flavorServiceMocked);
+		List<FlavorService> flavors = new ArrayList<>();
+		flavors.add(flavorServiceMocked);
+		Mockito.doReturn("small").when(mockOSFlavor).getName();
+		Mockito.doReturn("flavorId").when(mockOSFlavor).getId();
+		flavorsSimulated = Lists.newArrayList(mockOSFlavor);
+		// Mockito.when(flavorServiceMocked.list()).thenReturn(flavors);
 		System.out.println("Finished the preparation of mockig class!");
+		
+		//Mock the Creation of a VM
+		serverServiceMocked = Mockito.mock(ServerService.class);
+		Mockito.when(computeMocked.servers()).thenReturn(serverServiceMocked);
+		
+		serverMocked = Mockito.mock(Server.class);
+		Mockito.when(serverMocked.getId()).thenReturn("ServerIdTest");
+		Mockito.when(serverMocked.getStatus()).thenReturn(Server.Status.ACTIVE);
+		Mockito.when(serverMocked.getId()).thenReturn("vmIdTest");
+		Mockito.when(serverMocked.getName()).thenReturn("vMOpenstackZabbixProbe_" + new BigInteger(37, new SecureRandom()).toString(16) );
+		ServerCreate serverCreateMoked = Mockito.mock(ServerCreate.class);
+		Mockito.when(serverServiceMocked.boot(serverCreateMoked)).thenReturn(serverMocked);
+		
+//		Mockito.doReturn(Server.Status.ACTIVE).when(serverMocked.getStatus());
+//		serverCreationMocked.put(serverMocked.getStatus(), value)
+		serverCreationMocked.put(Server.Status.ACTIVE, serverMocked);
+		Mockito.when(serverCreationMocked.get(Server.Status.ACTIVE).getId()).thenReturn("vmIdTest");
+		Mockito.when(serverServiceMocked.get("vmIdTest")).thenReturn(serverMocked);
+		Mockito.when(serverMocked.getCreated()).thenReturn(new Date());
+		servers.add(serverMocked);
+		
+		//Mock the delete operation
+		Mockito.when(serverServiceMocked.delete("vmIdTest")).thenReturn(actionMocked);
+		
+		resultMap.put("availability", 1);
+		resultMap.put("httpCode", 200);
+	}
+
+	@Test
+	public void monitoringOperationsShouldReturnCompleteResult() throws TimeoutException, InterruptedException {
+
+		
+		OpenstackComponent component = new OpenstackComponent();
+		component.setMockClient(mockClient);
+		
+		OpenStackClient openstackClient = new OpenStackClient(mockClient, mockOSClient, keystoneMock, mockToken,
+				computeMocked, flavorServiceMocked, imageServiceMocked, flavorsSimulated, imagesSimulated, mockOSFlavor,
+				mockOSImage, endpoint, user, password, tenant, serverCreationMocked, serverServiceMocked, serverMocked, resultMap, servers, component);
+
+		OpenstackProbeResult result = openstackClient.getOpenstackMonitoringInfo();
+
+		// Check Results
+		Assert.assertNotNull("The result must contain information.", result);
+		Assert.assertEquals("The createVM invocation should reflect 200 status.", 200,
+				result.getCreateVmElement().getCreateVmResult());
+		Assert.assertNotNull("The inspectVM result should exist.", result.getInspectVmElement());
+		Assert.assertNotNull("The inspectVM result should exist.",
+				result.getInspectVmElement().getInspectVmAvailability());
+		Assert.assertNotNull("The inspectVM result should exist.", result.getInspectVmElement().getInspectVmResult());
+		Assert.assertNotNull("The inspectVM result should exist.",
+				result.getInspectVmElement().getInspectVmResponseTime());
+		Assert.assertNotNull("The inspectVM result should include response time.",
+				result.getInspectVmElement().getInspectVmResponseTime());
+		Assert.assertNotNull("The deleteVM result should exist.", result.getDeleteVmElement());
+		Assert.assertNotNull("The deleteVM result should exist.",
+				result.getDeleteVmElement().getDeleteVmAvailability());
+		Assert.assertNotNull("The deleteVM result should exist.",
+				result.getDeleteVmElement().getDeleteVmResponseTime());
+		Assert.assertNotNull("The deleteVM result should exist.", result.getDeleteVmElement().getDeleteVmResult());
+		Assert.assertEquals("The general availability result should be 1", 1, result.getGlobalAvailability());
 	}
 
 	@Test
 	public void testFlavorSmall() {
 		OpenStackClient openstackClient = Mockito
-				.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMock, imageMock));
-		Flavor small = Mockito.mock(Flavor.class);
-		Mockito.doReturn("small").when(small).getName();
+				.spy(new OpenStackClient(mockClient, keystoneMock, flavorMockId, imageMockId));
+		Flavor flavormocked = Mockito.mock(Flavor.class);
+		Mockito.doReturn("small").when(flavormocked).getName();
 		Flavor large = Mockito.mock(Flavor.class);
 		Mockito.doReturn("large").when(large).getName();
 
-		ArrayList<Flavor> images = Lists.newArrayList(small);
-		Mockito.doReturn(images).when(openstackClient).getInternalFlavor();
+		ArrayList<Flavor> flavors = Lists.newArrayList(flavormocked);
+		Mockito.doReturn(flavors).when(openstackClient).getInternalFlavor();
 		openstackClient.getFlavor();
 	}
 
 	@Test(expected = NotFoundException.class)
 	public void testEmptyFlavor() {
 		OpenStackClient openstackClient = Mockito
-				.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMock, imageMock));
+				.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMockId, imageMockId));
 
 		ArrayList<Flavor> images = Lists.newArrayList();
 		Mockito.doReturn(images).when(openstackClient).getInternalFlavor();
@@ -182,7 +272,7 @@ public class MonitoringTest {
 	@Test
 	public void testFlavorUnempty() {
 		OpenStackClient openstackClient = Mockito
-				.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMock, imageMock));
+				.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMockId, imageMockId));
 		Flavor flavor = Mockito.mock(Flavor.class);
 		Mockito.doReturn("NOTsmall").when(flavor).getName();
 		ArrayList<Flavor> flavors = Lists.newArrayList(flavor);
@@ -194,7 +284,7 @@ public class MonitoringTest {
 	@Test
 	public void testOsImageUbuntu() {
 		OpenStackClient openstackClient = Mockito
-				.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMock, imageMock));
+				.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMockId, imageMockId));
 
 		Image centos = Mockito.mock(Image.class);
 		Mockito.doReturn("centos").when(centos).getName();
@@ -210,166 +300,33 @@ public class MonitoringTest {
 	public void testImagesFromCmdb() {
 		// List<Image> imagesFromCmdbmocked = new ArrayList<>();
 		OpenStackClient openstackClient = Mockito
-				.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMock, imageMock));
+				.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMockId, imageMockId));
 		Mockito.doReturn(new ArrayList<>()).when(openstackClient).getImagesFromCmdb();
 	}
 
 	@Test(expected = NotFoundException.class)
 	public void testOsImageEmpty() {
 		OpenStackClient openstackClient = Mockito
-				.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMock, imageMock));
+				.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMockId, imageMockId));
 		Mockito.doReturn(new ArrayList<>()).when(openstackClient).getInternalOsImage();
 		openstackClient.getOsImage();
 	}
-	
+
 	@Test
 	public void testgetTokenIdSuccessfull() {
 		OpenStackClient openstackClient = Mockito
-				.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMock, imageMock));
+				.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMockId, imageMockId));
 		Mockito.doReturn(token).when(openstackClient).getTokenId();
-		openstackClient.getTokenId();
+
+		assertSame(token, openstackClient.getTokenId());
 	}
-	
+
 	@Test(expected = ConnectException.class)
 	public void testgetTokenIdFailure() {
 		OpenStackClient openstackClient = Mockito
-				.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMock, imageMock));
+				.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMockId, imageMockId));
 		Mockito.doThrow(ConnectException.class).when(openstackClient).getTokenId();
-		
+
 		openstackClient.getTokenId();
 	}
-
-	@Test
-	public void createServerSuccessFully() throws InterruptedException, TimeoutException {
-		OpenStackClient openstackClient = Mockito
-				.spy(new OpenStackClient(mockClientFailure, keystoneMock, flavorMock, imageMock));
-		// CreateVmResult createdVmResultmocked = Mockito.spy(new
-		// CreateVmResult(1, 200, 898097809, "idMocked"));
-
-		ServerCreate sc = Mockito.mock(ServerCreate.class);
-		CreateVmResult cVmResult = Mockito.mock(CreateVmResult.class);
-		Server server = Mockito.mock(Server.class);
-		List<Server> servers = Lists.newArrayList(server);
-		Mockito.doReturn(servers).when(openstackClient).getServerOsList();
-		Image image = Mockito.mock(Image.class);
-
-		ArrayList<Image> images = Lists.newArrayList(image);
-		Mockito.doReturn(images).when(openstackClient).getInternalOsImage();
-		Mockito.doReturn(new ArrayList<>()).when(openstackClient).getInternalOsImage();
-		Flavor flavor = Mockito.mock(Flavor.class);
-		ArrayList<Flavor> flavors = Lists.newArrayList(flavor);
-		Mockito.doReturn(flavors).when(openstackClient).getInternalFlavor();
-		Mockito.doReturn(sc).when(openstackClient).createOsServer(Mockito.anyString());
-		// Mockito.when(openstackClient.createOsServer(Mockito.anyString())).thenReturn(sc);
-		Mockito.doNothing().when(openstackClient).bootOsServer(sc);
-		Mockito.doReturn(sc).when(openstackClient).createOsServer(Mockito.anyString());
-		Mockito.doReturn(new ArrayList<>()).when(openstackClient).getServerOsList();
-		Mockito.doReturn(200).when(cVmResult).getCreateVmResult();
-		// Mockito.doReturn(Mockito.anyLong()).when(cVmResult).getCreateVmResponseTime();
-		Mockito.doReturn(1).when(cVmResult).getCreateVmAvailability();
-		Mockito.doReturn("idMocked").when(cVmResult).getVmId();
-		Map<String, Integer> manageResponseStatusresult = new HashMap<>();
-		manageResponseStatusresult.put("codeMocked", 200);
-		manageResponseStatusresult.put("availabityMocked", 1);
-		Mockito.doReturn(manageResponseStatusresult).when(openstackClient).manageResponseStatus(Server.Status.ACTIVE);
-		Mockito.doReturn(sc).when(openstackClient).createOsServer(Mockito.anyString());
-		// openstackClient.createVm();
-	}
-
-	@Test
-	public void monitoringOperationsShouldReturnCompleteResult() throws TimeoutException, InterruptedException {
-		// OpenStackClient mockOpenstackClient =
-		// Mockito.mock(OpenStackClient.class);
-		// Mockito.when(mockOpenstackClient.getFlavor()).thenReturn(flavorId);
-		// Mockito.when(mockOpenstackClient.getOsImage()).thenReturn(imageId);
-
-//		keystoneMock = Mockito.mock(V2.class);
-//		Image responseOSImage = Mockito.mock(Image.class);
-//		Mockito.when(responseOSImage.getId()).thenReturn("small");
-//		Flavor responseOSFlavor = Mockito.mock(Flavor.class);
-//		Mockito.when(responseOSFlavor.getId()).thenReturn("7");
-//		OpenStackClient openstackClient = Mockito.mock(OpenStackClient.class);
-//		Mockito.when(openstackClient.getInternalFlavor()).thenReturn(new ArrayList<>());
-//		Mockito.when(openstackClient.getInternalOsImage()).thenReturn(new ArrayList<>());
-//		Mockito.when(openstackClient.getOsImage()).thenReturn(new String());
-//		Mockito.when(openstackClient.getFlavor()).thenReturn(new String());
-//
-//		OSClient mockOSClient = Mockito.mock(OSClient.class);
-//		Token mockToken = Mockito.mock(Token.class);
-//		Mockito.when(keystoneMock.endpoint(Mockito.anyString())).thenReturn(keystoneMock);
-//		Mockito.when(keystoneMock.credentials(Mockito.anyString(), Mockito.anyString())).thenReturn(keystoneMock);
-//		Mockito.when(keystoneMock.tenantName(Mockito.anyString())).thenReturn(keystoneMock);
-//		Mockito.when(keystoneMock.authenticate()).thenReturn(mockOSClient);
-//		Mockito.when(mockOSClient.getToken()).thenReturn(mockToken);
-//		Mockito.when(mockOSClient.getToken().getId()).thenReturn(token);
-//		Mockito.when(openstackClient.getTokenId()).thenReturn(Mockito.anyString());
-//
-////		Mockito.doReturn(new ArrayList<>()).when(openstackClient).getInternalOsImage();
-////		Mockito.doReturn(new ArrayList<>()).when(openstackClient).getInternalFlavor();
-//		flavorMock = "flavorMockTest";
-//		imageMock = "imageMockTest";
-//
-//		// Run the openstack monitoring process and retrieve the result
-//		// OpenStackClient myClient = new OpenStackClient(mockClient,
-//		// keystoneMock, flavorMock, imageMock);
-
-		OpenStackClient openstackClient = new OpenStackClient(mockClient, keystoneMock, flavorMock, imageMock);
-
-		// Mockito.when(myClient.getTokenId()).thenReturn(token);
-		OpenstackProbeResult result = openstackClient.getOpenstackMonitoringInfo();
-
-		// Check Results
-		Assert.assertNotNull("The result must contain information.", result);
-		Assert.assertEquals("The createVM invocation should reflect 200 status.", 200,
-				result.getCreateVmElement().getCreateVmResult());
-		Assert.assertNotNull("The inspectVM result should exist.", result.getInspectVmElement());
-		Assert.assertNotNull("The inspectVM result should include response time.",
-				result.getInspectVmElement().getInspectVmResponseTime());
-		Assert.assertNotNull("The deleteVM result should exist.", result.getDeleteVmElement());
-		Assert.assertEquals("The general availability result should be 1", 1, result.getGlobalAvailability());
-	}
-
-	@Test
-	public void monitoringOperationShouldReturnPartialResult() throws TimeoutException, InterruptedException {
-
-//		Image responseOSImage = Mockito.mock(Image.class);
-//		Mockito.when(responseOSImage.getId()).thenReturn("small");
-//		Flavor responseOSFlavor = Mockito.mock(Flavor.class);
-//		Mockito.when(responseOSFlavor.getId()).thenReturn("7");
-//		OpenStackClient openstackClient = Mockito.mock(OpenStackClient.class);
-//		Mockito.when(openstackClient.getInternalFlavor()).thenReturn(new ArrayList<>());
-//		Mockito.when(openstackClient.getInternalOsImage()).thenReturn(new ArrayList<>());
-//		Mockito.when(openstackClient.getOsImage()).thenReturn(new String());
-//		Mockito.when(openstackClient.getFlavor()).thenReturn(new String());
-//
-//		OSClient mockOSClient = Mockito.mock(OSClient.class);
-//		OpenStackClient mockOpenstackClient = Mockito.mock(OpenStackClient.class);
-//		Token mockToken = Mockito.mock(Token.class);
-//		Mockito.when(keystoneMock.endpoint(Mockito.anyString())).thenReturn(keystoneMock);
-//		Mockito.when(keystoneMock.credentials(Mockito.anyString(), Mockito.anyString())).thenReturn(keystoneMock);
-//		Mockito.when(keystoneMock.tenantName(Mockito.anyString())).thenReturn(keystoneMock);
-//		Mockito.when(keystoneMock.authenticate()).thenReturn(mockOSClient);
-//		Mockito.when(mockOSClient.getToken()).thenReturn(mockToken);
-//		Mockito.when(mockOSClient.getToken().getId()).thenReturn(token);
-//
-//		Mockito.doReturn(new ArrayList<>()).when(mockOpenstackClient).getInternalFlavor();
-//		Mockito.doReturn(new ArrayList<>()).when(mockOpenstackClient).getInternalOsImage();
-//		Mockito.when(mockOpenstackClient.getFlavor()).thenReturn(flavorId);
-//		Mockito.when(mockOpenstackClient.getOsImage()).thenReturn(imageId);
-
-		// Run the openstack monitoring process and retrieve the result
-		OpenStackClient myClient = new OpenStackClient(mockClientFailure, keystoneMock, flavorMock, imageMock);
-
-		// String token = UUID.randomUUID().toString();
-		Mockito.when(myClient.getTokenId()).thenReturn(token);
-		OpenstackProbeResult result = myClient.getOpenstackMonitoringInfo();
-
-		// Check Results
-		Assert.assertNotNull("The result must contain information.", result);
-		Assert.assertEquals("The createVM invocation should reflect 404 status.", 404,
-				result.getCreateVmElement().getCreateVmResult());
-		Assert.assertNull("The inspectVM result should not exist.", result.getInspectVmElement());
-		Assert.assertEquals("The general availability result should be 0", 0, result.getGlobalAvailability());
-	}
-
 }

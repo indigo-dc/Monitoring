@@ -23,7 +23,6 @@ public class OpenstackCollector extends LifecycleCollector {
 
 	private OpenStackClient openstackClient = new OpenStackClient("","");
 	public String provider;
-	public String providerEndpoint;
 	public String keystoneEndpoint;
 	
 	private static final Logger log = LogManager.getLogger(OpenstackCollector.class);
@@ -76,20 +75,19 @@ public class OpenstackCollector extends LifecycleCollector {
 			return getResultForConnectionException(ce, currentTime);
 		} catch (Exception ex) {
 			long respTime = new Date().getTime() - currentTime;
-			return new AppOperation(AppOperation.Operation.CREATE, false, createdProbe.getCreateVmResult(), respTime);
+			return new AppOperation(AppOperation.Operation.CREATE, false, 404, respTime);
 		}
 		return new AppOperation(AppOperation.Operation.CREATE, true, 200, createdProbe.getCreateVmResponseTime());
 	}
 
 	@Override
 	protected AppOperation retrieve() {
+		
 		long currentTime = new Date().getTime();
-
 		InspectVmResult vmappRetrieved = null;
 		try {
 			vmappRetrieved = probeResult.getInspectVmElement();
 			if (vmappRetrieved != null) {
-				long respTime = new Date().getTime() - currentTime;
 				return new AppOperation(AppOperation.Operation.RUN, true, 200,
 						vmappRetrieved.getInspectVmResponseTime());
 			} else {
@@ -125,7 +123,6 @@ public class OpenstackCollector extends LifecycleCollector {
 	protected AppOperation delete() {
 
 		long currentTime = new Date().getTime();
-
 		DeleteVmResult deleteProbe = null;
 		try {
 			deleteProbe = probeResult.getDeleteVmElement();
