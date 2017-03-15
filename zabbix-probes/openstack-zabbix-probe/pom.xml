@@ -61,7 +61,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>org.indigo.occiprobe.openstack.ProbeThread</mainClass>
+							<mainClass>org.indigo.openstackprobe.openstack.OpenstackThread</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

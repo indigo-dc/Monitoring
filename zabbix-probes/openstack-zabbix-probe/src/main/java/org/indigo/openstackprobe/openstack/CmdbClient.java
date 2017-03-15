@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
@@ -21,7 +20,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.indigo.zabbix.utils.PropertiesManager;
-import com.indigo.zabbix.utils.PropertiesManagerTest;
 
 /**
  * The CmdbClient class is in charge of the interactions between the probe and

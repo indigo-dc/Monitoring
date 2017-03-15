@@ -20,6 +20,10 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.openstackprobe.openstack;
 
+import java.util.List;
+
+import org.openstack4j.model.compute.Server;
+
 /**
  * This class represents the whole result of a monitoring action which has 
  * followed the full VM lifecycle by using the OCCI API exposed by a 
@@ -37,6 +41,7 @@ public class OpenstackProbeResult {
   private CreateVmResult createVmElement;
   private InspectVmResult inspectVmElement;
   private DeleteVmResult deleteVmElement;
+  private List<? extends Server> instancesList;
   
   /**
    * This is an empty constructor for the class.
@@ -157,5 +162,13 @@ public class OpenstackProbeResult {
    */
   public DeleteVmResult getDeleteVmElement() {
     return deleteVmElement;
+  }
+  
+  public void setOsInstanceList(List<? extends Server> instances){
+	  this.instancesList= instances;
+  }
+  
+  public List<? extends Server> getOsInstanceList(){
+	  return instancesList;
   }
 }

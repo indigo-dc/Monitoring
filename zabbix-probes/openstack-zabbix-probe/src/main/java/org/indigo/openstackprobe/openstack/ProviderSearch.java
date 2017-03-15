@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.openstack4j.api.OSClient;
+import org.openstack4j.api.exceptions.ResponseException;
 
 public class ProviderSearch {
 
@@ -14,15 +16,17 @@ public class ProviderSearch {
 	private static List<CloudProviderInfo> providersList = new ArrayList<>();
 	private static String providerId;
 	private static String keystoneUrl;
-	private OpenstackCollector collector;
-	private static CloudProviderInfo provider;
+	private static OpenstackCollector collector;
+	private OSClient osclient;
+//	private static CloudProviderInfo provider;
 
 	protected ProviderSearch(List<CloudProviderInfo> providers, OpenstackCollector collectorMocked,
-			CmdbClient cmdbMocked, CloudProviderInfo providerMocked) {
+			CmdbClient cmdbMocked, CloudProviderInfo providerMocked, OSClient osclientMocked) {
 		providersList = providers;
 		collector = collectorMocked;
 		cmdbClient = cmdbMocked;
-		provider = providerMocked;
+		CloudProviderInfo provider = providerMocked;
+		osclient = osclientMocked;
 	}
 
 	public static List<OpenstackCollector> getCollectorResults() {
@@ -37,14 +41,19 @@ public class ProviderSearch {
 		List<CloudProviderInfo> providers = new ArrayList<>();
 
 		while (providersIterator.hasNext()) {
-			provider = providersIterator.next();
+			CloudProviderInfo provider = providersIterator.next();
 			if (provider.getKeystoneEndpoint() != null) {
 				providerId = provider.getProviderId();
 				keystoneUrl = provider.getKeystoneEndpoint();
 				providers.add(provider);
 			}
 			log.info("Task scheduled for the provider: " + providerId + " whose identity endpoint is " + keystoneUrl);
-			tasks.add(new OpenstackCollector(providerId, keystoneUrl));
+			try{
+			collector = new OpenstackCollector(providerId, keystoneUrl);
+			tasks.add(collector);
+			}catch(ResponseException | IllegalArgumentException iae){
+				log.debug(iae.getMessage());
+			}
 		}
 		return tasks;
 	}
