@@ -288,7 +288,7 @@ public class ThreadsManagementTest {
 		providerSearch = new ProviderSearch(providersMocked, collectorMocked, cmdbClientMock, providermocked,
 				osClientmocked);
 		List<OpenstackCollector> collectorlist = providerSearch.getCollectorResults();
-
+		collectorlist.add(collectorMocked);
 		OpenstackThread mockThread = new OpenstackThread(collectorlist);
 		Assert.assertEquals(1, collectorlist.size());
 		assertNotNull(mockThread.createCollector());

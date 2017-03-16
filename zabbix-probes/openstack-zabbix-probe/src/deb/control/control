@@ -6,4 +6,4 @@ Priority: low
 Architecture: all
 Description: [Zabbix probe for monitoring Openstack APIs]
 Maintainer: m.grandolfo@reply.it
-Depends: default-jre | java8-runtime
+Depends: default-jre | java-8-runtime

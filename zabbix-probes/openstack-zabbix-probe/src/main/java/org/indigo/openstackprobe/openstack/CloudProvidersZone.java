@@ -2,8 +2,6 @@ package org.indigo.openstackprobe.openstack;
 
 import java.util.HashMap;
 import java.util.Map;
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -93,7 +91,7 @@ public class CloudProvidersZone {
 	 * @param name the new name
 	 */
 	@JsonProperty("name")
-	public void setName(String name) {
+    public void setName(String name) {
 		this.name = name;
 	}
 

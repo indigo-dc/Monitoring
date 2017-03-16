@@ -55,7 +55,6 @@ public class CloudProviderInfo {
   public CloudProviderInfo(String provider, /*String nova,*/ String keystone, int type,
       boolean monitored, boolean beta, boolean production) {
     providerId = provider;
-//    novaEndpoint = nova;
     keystoneEndpoint = keystone;
     cloudType = type;
     isMonitored = monitored;

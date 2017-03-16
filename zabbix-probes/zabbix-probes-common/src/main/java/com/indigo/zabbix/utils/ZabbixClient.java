@@ -133,7 +133,7 @@ public class ZabbixClient {
               logger.error("Error sending values for host " + metrics.getHostName() + ": "
                   + "\nTotal: " + sendResult.getTotal()
                   + "\nProcessed: " + sendResult.getProcessed()
-                  + "\nFailed: " + sendResult.getFailed());
+                  + "\nFailed: " + sendResult.getFailed() +  ": " + metrics.getMetrics().toString());
             } else {
               logger.info("Successfully sent " + sendResult.getProcessed()
                   + " metrics for host " + metrics.getHostName());

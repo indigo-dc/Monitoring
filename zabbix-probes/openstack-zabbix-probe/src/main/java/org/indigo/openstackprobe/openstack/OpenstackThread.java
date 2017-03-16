@@ -7,6 +7,11 @@ import org.apache.logging.log4j.Logger;
 
 import com.indigo.zabbix.utils.ProbeThread;
 
+/**
+ * 
+ * @author Reply Santer.
+ *
+ */
 public class OpenstackThread extends ProbeThread<OpenstackCollector> {
 
 	private static final Logger log = LogManager.getLogger(OpenStackClient.class);

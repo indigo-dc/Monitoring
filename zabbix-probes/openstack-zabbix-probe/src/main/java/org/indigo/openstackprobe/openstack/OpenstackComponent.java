@@ -16,9 +16,10 @@ import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.identity.Token;
 import org.openstack4j.model.image.Image;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class OpenstackComponent.
+ * 
+ * @author Reply.
+ *
  */
 public class OpenstackComponent {
 

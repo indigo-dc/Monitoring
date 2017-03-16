@@ -80,9 +80,7 @@ public class CmdbClient {
 		Invocation.Builder invocationBuilder = target.request();
 		Response response = invocationBuilder.get();
 		String message = response.readEntity(String.class);
-
-		// System.out.println(message);
-
+		
 		// Retrieve the providers list
 		JsonElement jelement = new JsonParser().parse(message);
 		JsonObject parsedRes = jelement.getAsJsonObject();
@@ -190,7 +188,6 @@ public class CmdbClient {
 				} catch (UnsupportedOperationException uoe) {
 					log.debug("unable to get the endpoint for the provider: " + providerId, " " + uoe.getMessage());
 				}
-
 			}
 			JsonElement jsonEndpoint = currentData.get("endpoint");
 
