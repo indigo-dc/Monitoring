@@ -49,12 +49,12 @@ public class CmdbClient {
 		try {
 			PropertiesManager.loadProperties(OpenstackProbeTags.CONFIG_FILE);
 		} catch (IOException e) {
-			log.debug("Unable to load property file: " + OpenstackProbeTags.CONFIG_FILE);
+			log.debug("Unable to load property file: {}", OpenstackProbeTags.CONFIG_FILE, e);
 		}
 		cmdbUrl = PropertiesManager.getProperty(OpenstackProbeTags.CMDB_URL);
 		// Create the Client
-	    ClientConfig cc = new ClientConfig();
-	    client = JerseyClientBuilder.newClient(cc);
+		ClientConfig cc = new ClientConfig();
+		client = JerseyClientBuilder.newClient(cc);
 	}
 
 	/**
@@ -63,7 +63,8 @@ public class CmdbClient {
 	 * @param mock
 	 *            Mock of the Jersey Client class
 	 */
-	public CmdbClient(Client mock) {
+	public CmdbClient(Client mock, String cmdburlMocked) {
+		cmdbUrl = cmdburlMocked;
 		client = mock;
 	}
 
@@ -75,12 +76,11 @@ public class CmdbClient {
 	 */
 	public String[] getProvidersList() {
 		// Call to CMDB API
-		WebTarget target = client.target(cmdbUrl +
-				"/provider/list");
+		WebTarget target = client.target(cmdbUrl + "/provider/list");
 		Invocation.Builder invocationBuilder = target.request();
 		Response response = invocationBuilder.get();
 		String message = response.readEntity(String.class);
-		
+
 		// Retrieve the providers list
 		JsonElement jelement = new JsonParser().parse(message);
 		JsonObject parsedRes = jelement.getAsJsonObject();
@@ -177,12 +177,14 @@ public class CmdbClient {
 			for (JsonElement obj : listArray) {
 				JsonElement docIter = obj.getAsJsonObject().get("doc");
 				JsonElement dataIter = docIter.getAsJsonObject().get("data");
-//				JsonElement occiEndpoint = dataIter.getAsJsonObject().get("endpoint");
+				// JsonElement occiEndpoint =
+				// dataIter.getAsJsonObject().get("endpoint");
 				try {
-//					currentServiceType = getServiceType(dataIter, currentServiceType);
+					// currentServiceType = getServiceType(dataIter,
+					// currentServiceType);
 					if (dataIter.getAsJsonObject().get("service_type").getAsString().equals(SERVICE_TYPE))
 						currentServiceType = SERVICE_TYPE;
-					
+
 					if (dataIter.getAsJsonObject().get("endpoint").getAsString().contains(IDENTITY_DEFAULT_PORT))
 						identityEndpoint = dataIter.getAsJsonObject().get("endpoint").getAsString();
 				} catch (UnsupportedOperationException uoe) {
@@ -214,8 +216,7 @@ public class CmdbClient {
 					isProduction = true;
 				}
 
-				return new CloudProviderInfo(providerId, keystoneEndpoint, type, isMonitored, isBeta,
-						isProduction);
+				return new CloudProviderInfo(providerId, keystoneEndpoint, type, isMonitored, isBeta, isProduction);
 			}
 		}
 		return null;

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +30,8 @@ import org.openstack4j.model.compute.ActionResponse;
 import org.openstack4j.model.compute.Flavor;
 import org.openstack4j.model.identity.Token;
 import org.openstack4j.model.image.Image;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 
 import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.beans.AppOperation;
@@ -65,6 +68,7 @@ public class ThreadsManagementTest {
 	private static final String user = "userTest";
 	private static final String endpoint = "endpoint";
 	private V2 keystoneMock;
+	private static final String cmdUrlMoked = "http://indigo.cloud.plgrid.pl/cmdb";
 
 	private OSClient osClientmocked;
 
@@ -73,7 +77,7 @@ public class ThreadsManagementTest {
 	// private OpenStackClient openstackclientMocked;
 
 	@Before
-	public void prepareMockElements() throws TimeoutException, InterruptedException, IOException {
+	public void prepareMockElements() throws Exception {
 		System.out.println("Setting up testing global environment...");
 
 		// Define KeystoneMock
@@ -229,7 +233,7 @@ public class ThreadsManagementTest {
 		String[] testListImages = new String[2];
 		Mockito.when(cmdbClientMock.getImageList())
 				.thenReturn(new String[] { "linux-ubuntu-14.04-vmi", "linux-ubuntu-14.04-mesos-vmi" });
-
+		
 		// Mock Openstack Client
 		OpenStackClient mockOpenstack = Mockito.mock(OpenStackClient.class);
 		// Generate output object
@@ -271,6 +275,9 @@ public class ThreadsManagementTest {
 		collectors.add(collectorMocked);
 
 		System.out.println("Testing environment ready, finished mocking components!");
+		
+		PropertiesManager.loadProperties(new InputStreamReader(
+		        this.getClass().getResourceAsStream("/testprobe.properties")));
 	}
 
 	@Test
@@ -282,9 +289,11 @@ public class ThreadsManagementTest {
 	}
 
 	@Test
-	public void threadsManagementShouldReturnProvidersFine() {
+	public void threadsManagementShouldReturnProvidersFine() throws IOException {
 
 		// Run the probe code
+//		CmdbClient cmdbClient = new CmdbClient(mockCmdb, cmdUrlMoked);
+		
 		providerSearch = new ProviderSearch(providersMocked, collectorMocked, cmdbClientMock, providermocked,
 				osClientmocked);
 		List<OpenstackCollector> collectorlist = providerSearch.getCollectorResults();
@@ -311,7 +320,6 @@ public class ThreadsManagementTest {
 		String cmdburl = "dburl";
 		PropertiesManager.loadProperties(testConfigFile);
 		String prop = propertiesManager.getProperty(testConfigFile);
-		// CmdbClient cmdbclient = new CmdbClient();
 	}
 
 	@Test()
@@ -329,7 +337,7 @@ public class ThreadsManagementTest {
 	@Test
 	public void cmdbAccessShouldFail() {
 		// Create the CMDB client with Mock
-		CmdbClient myTestClient = new CmdbClient(mockCmdbFail);
+		CmdbClient myTestClient = new CmdbClient(mockCmdbFail, cmdUrlMoked);
 
 		// Try to list providers and to get info from one of them
 		String[] testList = myTestClient.getProvidersList();
@@ -343,7 +351,7 @@ public class ThreadsManagementTest {
 	public void cmdbAccessShouldWorkFine() {
 		// Create the CMDB client with Mock
 		OpenStackClient mockOpenstack = Mockito.mock(OpenStackClient.class);
-		CmdbClient myTestClient = new CmdbClient(mockCmdb);
+		CmdbClient myTestClient = new CmdbClient(mockCmdb, cmdUrlMoked);
 
 		// Mockito.when(myTestClient.getImageList()).thenReturn(new
 		// String[]{"linux-ubuntu-14.04-vmi", "linux-ubuntu-14.04-mesos-vmi"});

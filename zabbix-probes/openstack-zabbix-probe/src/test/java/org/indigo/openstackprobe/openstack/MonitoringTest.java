@@ -22,6 +22,8 @@ package org.indigo.openstackprobe.openstack;
 
 import static org.junit.Assert.assertSame;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.net.ConnectException;
 import java.security.SecureRandom;
@@ -58,6 +60,8 @@ import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.compute.ServerCreate;
 import org.openstack4j.model.identity.Token;
 import org.openstack4j.model.image.Image;
+
+import com.indigo.zabbix.utils.PropertiesManager;
 
 import jersey.repackaged.com.google.common.collect.Lists;
 
@@ -104,7 +108,7 @@ public class MonitoringTest {
 	Map<String, Integer> resultMap = new HashMap<>();
 
 	@Before
-	public void prepareMockOpenstackServer() {
+	public void prepareMockOpenstackServer() throws IOException {
 		System.out.println("Setting up testing environment and prepare the prepareMockOpenstackServer...");
 
 //		system = Mockito.mock(System.class);
@@ -254,6 +258,9 @@ public class MonitoringTest {
 
 		resultMap.put("availability", 1);
 		resultMap.put("httpCode", 200);
+		
+		PropertiesManager.loadProperties(new InputStreamReader(
+		        this.getClass().getResourceAsStream("/testprobe.properties")));
 	}
 
 	@Test
