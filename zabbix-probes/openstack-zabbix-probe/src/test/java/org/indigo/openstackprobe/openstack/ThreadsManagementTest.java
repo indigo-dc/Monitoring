@@ -4,14 +4,18 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeoutException;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
@@ -30,9 +34,9 @@ import org.openstack4j.model.compute.ActionResponse;
 import org.openstack4j.model.compute.Flavor;
 import org.openstack4j.model.identity.Token;
 import org.openstack4j.model.image.Image;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.beans.AppOperation;
 
@@ -53,6 +57,10 @@ public class ThreadsManagementTest {
 	private ComputeService computeMocked;
 	private ImageService imageServiceMocked;
 	private ActionResponse actionMocked;
+	private OpenstackZones openstackZones;
+	CloudProvidersZone cloudProvidersZone;
+	List<CloudProvidersZone> cloudzones = new ArrayList<>();
+	private File filemocked;
 
 	private String imageId;
 	private String flavorId;
@@ -61,6 +69,7 @@ public class ThreadsManagementTest {
 	private String imageMockId = "";
 	private ArrayList<Flavor> flavorsSimulated;
 	private ArrayList<Image> imagesSimulated;
+	private OpenstackConfiguration openstackConfigurationMock;
 
 	private static final String token = UUID.randomUUID().toString();
 	private static final String tenant = "tenantTest";
@@ -69,6 +78,8 @@ public class ThreadsManagementTest {
 	private static final String endpoint = "endpoint";
 	private V2 keystoneMock;
 	private static final String cmdUrlMoked = "http://indigo.cloud.plgrid.pl/cmdb";
+	private ObjectMapper objectMapper;
+	private OpenstackConfiguration openstackConfiguration;
 
 	private OSClient osClientmocked;
 
@@ -233,7 +244,7 @@ public class ThreadsManagementTest {
 		String[] testListImages = new String[2];
 		Mockito.when(cmdbClientMock.getImageList())
 				.thenReturn(new String[] { "linux-ubuntu-14.04-vmi", "linux-ubuntu-14.04-mesos-vmi" });
-		
+
 		// Mock Openstack Client
 		OpenStackClient mockOpenstack = Mockito.mock(OpenStackClient.class);
 		// Generate output object
@@ -275,9 +286,14 @@ public class ThreadsManagementTest {
 		collectors.add(collectorMocked);
 
 		System.out.println("Testing environment ready, finished mocking components!");
-		
-		PropertiesManager.loadProperties(new InputStreamReader(
-		        this.getClass().getResourceAsStream("/testprobe.properties")));
+		ClassLoader classLoader = getClass().getClassLoader();
+
+		// final ObjectMapper mapper = new ObjectMapper(new YAMLFactory()); //
+		// jackson
+
+		// databind
+		PropertiesManager
+				.loadProperties(new InputStreamReader(this.getClass().getResourceAsStream("/testprobe.properties")));
 	}
 
 	@Test
@@ -289,11 +305,13 @@ public class ThreadsManagementTest {
 	}
 
 	@Test
-	public void threadsManagementShouldReturnProvidersFine() throws IOException {
+	public void threadsManagementShouldReturnProvidersFine() throws IOException, URISyntaxException {
 
 		// Run the probe code
-//		CmdbClient cmdbClient = new CmdbClient(mockCmdb, cmdUrlMoked);
-		
+		PropertiesManager
+				.loadProperties(new InputStreamReader(this.getClass().getResourceAsStream("/testprobe.properties")));
+
+		OpenstackConfiguration.zone = "/testoszones.yml";
 		providerSearch = new ProviderSearch(providersMocked, collectorMocked, cmdbClientMock, providermocked,
 				osClientmocked);
 		List<OpenstackCollector> collectorlist = providerSearch.getCollectorResults();

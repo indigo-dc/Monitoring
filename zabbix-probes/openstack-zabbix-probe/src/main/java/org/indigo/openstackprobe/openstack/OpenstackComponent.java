@@ -24,6 +24,9 @@ import org.openstack4j.model.image.Image;
 public class OpenstackComponent {
 
 	/** The mock client. */
+	private OpenstackConfiguration osConfiguration ;
+	
+	/** The mock client. */
 	private Client mockClient;
 	
 	/** The os client mocked. */
@@ -86,6 +89,24 @@ public class OpenstackComponent {
 	/** The servers mocks. */
 	private List<Server> serversMocks;
 
+	/**
+	 * Gets the osConfiguration.
+	 *
+	 * @return the osConfiguration
+	 */
+	public OpenstackConfiguration getOsConfiguration() {
+		return osConfiguration;
+	}
+
+	/**
+	 * Sets the osConfiguration.
+	 *
+	 * @param osConfiguration
+	 */
+	public void setOsConfiguration(OpenstackConfiguration osConfiguration) {
+		this.osConfiguration = osConfiguration;
+	}
+	
 	/**
 	 * Gets the mock client.
 	 *

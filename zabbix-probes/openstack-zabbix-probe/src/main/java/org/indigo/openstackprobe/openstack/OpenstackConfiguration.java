@@ -3,6 +3,8 @@ package org.indigo.openstackprobe.openstack;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,6 +25,7 @@ public class OpenstackConfiguration {
 	/** The Constant log. */
 	private static final Logger log = LogManager.getLogger(OpenstackConfiguration.class);
 	public static final String OS_ZONE_PROPERTY_FILE = "oszones.yml";
+	public static String zone;
 
 	/** The openstack zones. */
 	private OpenstackZones openstackZones;
@@ -34,6 +37,19 @@ public class OpenstackConfiguration {
 		try {
 			log.info("Retrieving openstack properties per zone");
 			openstackZones = readYaml(getConfigFile(OS_ZONE_PROPERTY_FILE));
+
+		} catch (Exception ex) {
+			throw new RuntimeException("Failed to read property file " + OS_ZONE_PROPERTY_FILE, ex);
+		}
+	}
+
+	/**
+	 * Instantiates a new openstack configuration used for test only
+	 */
+	public OpenstackConfiguration(String testZoneFile) {
+		try {
+			log.info("Retrieving openstack properties per zone");
+			openstackZones = readYaml(getConfigFile(testZoneFile));
 
 		} catch (Exception ex) {
 			throw new RuntimeException("Failed to read property file " + OS_ZONE_PROPERTY_FILE, ex);
@@ -67,16 +83,23 @@ public class OpenstackConfiguration {
 	 * @param file
 	 *            the file
 	 * @return the config file
+	 * @throws URISyntaxException
 	 */
-	private File getConfigFile(String file) {
+	protected File getConfigFile(String file) throws URISyntaxException {
 		String location = "";
 		String opSystem = System.getProperty("os.name").toLowerCase();
-		if (opSystem.indexOf("win") >= 0) {
-			location = "C://zabbixconfig//";
+		if (file.contains("test")) {
+			URL url = getClass().getResource("/testoszones.yml");
+			location = url.toURI().getPath();
 		} else {
-			location = "/etc/zabbix/";
+			if (opSystem.indexOf("win") >= 0) {
+				location = "C://zabbixconfig//";
+			} else {
+				location = "/etc/zabbix/";
+			}
+			return new File(location + "/" + file);
 		}
-		return new File(location + "/" + file);
+		return new File(location);
 	}
 
 	/**

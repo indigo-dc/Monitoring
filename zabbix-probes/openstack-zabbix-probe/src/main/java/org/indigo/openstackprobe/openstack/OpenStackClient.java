@@ -93,10 +93,9 @@ public class OpenStackClient {
 	private Map<Server.Status, Server> serverCreation;
 	private Server server;
 	private ServerService serverService;
-	// protected String tokenId;
+	private OpenstackConfiguration osconfig;
 	String vmId;
-
-	// private OpenstackConfiguration config = new OpenstackConfiguration();
+	OpenstackComponent component;
 
 	private static final String HTTP_RESPONSE_CODE = "httpCode";
 	private static final String AVAILABILITY_STATUS = "availability";
@@ -128,22 +127,12 @@ public class OpenStackClient {
 				log.debug("Unable to load the file: " + OpenstackProbeTags.CONFIG_FILE);
 			}
 
-			OpenstackConfiguration config = new OpenstackConfiguration();
-			for (CloudProvidersZone zone : config.getMonitoringZones().getCloudProvidersZones()) {
-				if (zone.getName().equalsIgnoreCase(providerName)
-						&& (zone.getPassword() != null || zone.getTenant() != null || zone.getUsername() != null)) {
-					openStackUser = zone.getUsername();
-					openStackPwd = zone.getPassword();
-					tenantName = zone.getTenant();
-				}
-			}
+			checkCredentials(providerName);
 
-			if (openStackPwd == null || tenantName == null || openStackUser == null)
-				throw new IllegalArgumentException("Unable to schedule task for the provider " + providerName
-						+ " because of errors or missing data into properties file");
 		} else {
 			// use the Client IAM t authenticate to openstack instance
 		}
+
 		providerId = providerName;
 
 		// Disable issue with SSL Handshake in Java 7 and indicate certificates
@@ -197,6 +186,32 @@ public class OpenStackClient {
 		servers = component.getServersMocks();
 		vmId = component.getServerMocked().getId();
 		// tokenId = component.getTokenId();
+	}
+
+	/**
+	 * checks whether there are credentials of openstack.
+	 * 
+	 * @param providerName
+	 */
+	protected void checkCredentials(String providerName) {
+
+		if (OpenstackConfiguration.zone != null && OpenstackConfiguration.zone.contains("test")) {
+			osconfig = new OpenstackConfiguration("testoszone.yml");
+		} else {
+			osconfig = new OpenstackConfiguration();
+		}
+		for (CloudProvidersZone zone : osconfig.getMonitoringZones().getCloudProvidersZones()) {
+			if (zone.getName().equalsIgnoreCase(providerName)
+					&& (zone.getPassword() != null || zone.getTenant() != null || zone.getUsername() != null)) {
+				openStackUser = zone.getUsername();
+				openStackPwd = zone.getPassword();
+				tenantName = zone.getTenant();
+			}
+		}
+
+		if (openStackPwd == null || tenantName == null || openStackUser == null)
+			throw new IllegalArgumentException("Unable to schedule task for the provider " + providerName
+					+ " because of errors or missing data into properties file");
 	}
 
 	/**
