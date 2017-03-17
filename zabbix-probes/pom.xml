@@ -1,40 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>org.indigo</groupId>
-    <artifactId>zabbix-probes</artifactId>
-    <version>1.01</version>
-    <name>Zabbix Probe container project</name>
-    <packaging>pom</packaging>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.indigo</groupId>
+	<artifactId>zabbix-probes</artifactId>
+	<version>1.01</version>
+	<name>Zabbix Probe container project</name>
+	<packaging>pom</packaging>
 
-    <inceptionYear>2016</inceptionYear>
-    <organization>
-        <name>Indigo DataCloud H2020 Project</name>
-        <url>https://www.indigo-datacloud.eu/</url>
-    </organization>
-    <licenses>
-        <license>
-            <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
-            <distribution>jar</distribution>
-        </license>
-    </licenses>
+	<inceptionYear>2016</inceptionYear>
+	<organization>
+		<name>Indigo DataCloud H2020 Project</name>
+		<url>https://www.indigo-datacloud.eu/</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0</url>
+			<distribution>jar</distribution>
+		</license>
+	</licenses>
 
-    <properties>
-        <checkstyle.config.location>google_checks.xml</checkstyle.config.location>
-    </properties>
+	<properties>
+		<checkstyle.config.location>google_checks.xml</checkstyle.config.location>
+	</properties>
 
-    <developers>
-        <developer>
-            <name>ATOS</name>
-        </developer>
-    </developers>
+	<developers>
+		<developer>
+			<name>ATOS</name>
+		</developer>
+	</developers>
 
 
-    <modules>
-        <module>zabbix-probes-common</module>
-        <module>zabbix-probes-base</module>
-        <module>heapster-zabbix-probe</module>
-        <module>occi-zabbix-probe</module>
-    </modules>
+	<modules>
+		<module>zabbix-probes-common</module>
+		<module>zabbix-probes-base</module>
+		<module>heapster-zabbix-probe</module>
+		<module>occi-zabbix-probe</module>
+		<module>openstack-zabbix-probe</module>
+    <module>lifecycle-mapping</module>
+  </modules>
 
 </project>
