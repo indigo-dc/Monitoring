@@ -19,6 +19,8 @@ import java.util.Map;
  */
 public class MesosCollector implements MetricsCollector {
 
+  private static final String PREFIX = "Mesos_";
+
   private Map<String, String> readMetrics(JsonObject metrics, List<String> properties) {
     Map<String, String> result = new HashMap<>();
     properties.forEach(property -> {
@@ -62,7 +64,7 @@ public class MesosCollector implements MetricsCollector {
 
           ZabbixMetrics result = new ZabbixMetrics();
 
-          result.setHostName(leaderInfo.getHostname());
+          result.setHostName(PREFIX + leaderInfo.getHostname());
 
           JsonObject metrics = mesosClient.getMetrics();
           result.setMetrics(readMetrics(metrics, properties));

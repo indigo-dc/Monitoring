@@ -15,7 +15,8 @@ public class MesosThread {
 
   private static final Log logger = LogFactory.getLog(MesosThread.class);
 
-  private ZabbixClient zabbixMesosClient = new ZabbixClient("IaaS", "Mesos");
+  private ZabbixClient zabbixMesosClient =
+      new ZabbixClient("IaaS", "Mesos", "TemplateMesos");
 
   private void startMonitoring() {
     MesosCollector collector = new MesosCollector();
