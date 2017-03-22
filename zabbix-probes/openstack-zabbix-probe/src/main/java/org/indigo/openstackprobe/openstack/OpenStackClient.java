@@ -45,6 +45,7 @@ import org.openstack4j.api.compute.FlavorService;
 import org.openstack4j.api.compute.ServerService;
 import org.openstack4j.api.exceptions.ClientResponseException;
 import org.openstack4j.api.exceptions.ConnectionException;
+import org.openstack4j.api.identity.IdentityService;
 import org.openstack4j.api.image.ImageService;
 import org.openstack4j.model.compute.ActionResponse;
 import org.openstack4j.model.compute.Flavor;
@@ -55,6 +56,7 @@ import org.openstack4j.model.image.Image;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.openstack.OSFactory;
 
+//import com.indigo.zabbix.utils.IamClient;
 import com.indigo.zabbix.utils.PropertiesManager;
 
 /**
@@ -131,6 +133,8 @@ public class OpenStackClient {
 
 		} else {
 			// use the Client IAM t authenticate to openstack instance
+//			IamClient iamclient = new IamClient();
+//			iamclient.getJsonToken();
 		}
 
 		providerId = providerName;
@@ -189,7 +193,7 @@ public class OpenStackClient {
 	}
 
 	/**
-	 * checks whether there are credentials of openstack.
+	 * It checks whether there are credentials of openstack.
 	 * 
 	 * @param providerName
 	 */
