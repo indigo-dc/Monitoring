@@ -9,8 +9,9 @@ The Monitoring Framework is divided in several main parts:
 
 This repository contains the supporting scripts for the Zabbix server (in order to perform automatic backups of the Zabbix database and configuration), the wrapper to be deployed with Zabbix (as a way to facilitate integration) and the probes released in the first version: a probe for monitoring OCCI interfaces of Infrastructure Providers and a probe for monitoring the Kubernetes cluster where the Indigo platform is deployed (by means of the Heapster tool).
 
-1. Zabbix Wrapper
-=================
+
+1 Zabbix Wrapper
+================
 
 1.1 Main Features
 -----------------
