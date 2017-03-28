@@ -30,7 +30,7 @@ Then, it is necessary to install the corresponding packages:
 
 * Ubuntu:
 ```
-wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/openstack-zabbix-probe/openstack-zabbix-probe-1.01.jar
+wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/openstack-zabbix-probe/openstack-zabbix-probe-1.01.deb
 ```
 
 Although the probes can be run just on demand, the best option is to configure them as Cron jobs. That can be configured by editing the configuration file with the following command:
@@ -63,7 +63,7 @@ If a previous version of the packages is already installed, it is necessary to u
 
 * Ubuntu:
 ```
-wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/openstack-zabbix-probe/openstack-zabbix-probe-1.01.jar
+wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/openstack-zabbix-probe/openstack-zabbix-probe-1.01.deb
 ```
 
 6 Potential Issues
