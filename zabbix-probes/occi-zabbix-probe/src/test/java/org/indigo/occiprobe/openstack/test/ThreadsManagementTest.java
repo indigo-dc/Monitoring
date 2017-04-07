@@ -1,26 +1,17 @@
 package org.indigo.occiprobe.openstack.test;
 
+import io.github.hengyunabc.zabbix.sender.ZabbixSender;
+
 import org.indigo.occiprobe.openstack.CloudProviderInfo;
 import org.indigo.occiprobe.openstack.CmdbClient;
-import org.indigo.occiprobe.openstack.CreateVmResult;
-import org.indigo.occiprobe.openstack.DeleteVmResult;
-import org.indigo.occiprobe.openstack.InspectVmResult;
-import org.indigo.occiprobe.openstack.OcciProbeResult;
-import org.indigo.occiprobe.openstack.OpenStackOcciClient;
 import org.indigo.occiprobe.openstack.ProbeThread;
-import org.indigo.occiprobe.openstack.ZabbixSender;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
-import java.util.ArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
 
 public class ThreadsManagementTest 
 {
@@ -33,7 +24,7 @@ public class ThreadsManagementTest
 	@Before
 	public void prepareMockElements() 
 	{
-		System.out.println ("Setting up testing environment...");		
+		/*System.out.println ("Setting up testing environment...");
 		
 		// Define the main mock classes for complete result
 		mockCmdb = Mockito.mock(Client.class);
@@ -56,7 +47,7 @@ public class ThreadsManagementTest
 		String listResponse = "{\"total_rows\":738,\"offset\":20,\"rows\":["
 				+ "{\"id\":\"provider-100IT\",\"key\":[\"provider\"],\"value\":{\"name\":\"100IT\"}},"
 				+ "{\"id\":\"provider-RECAS-BARI\",\"key\":[\"provider\"],\"value\":{\"name\":\"RECAS-BARI\"}}]}";
-		Mockito.when(responseGetList.readEntity(String.class)).thenReturn(listResponse);
+		Mockito.when(responseGetList.getEntity()).thenReturn(listResponse);
 		
 		// Define mock response for GET details (complete result)
 		Mockito.when(invocationBuilderDetails.get()).thenReturn(responseGetDetails);
@@ -65,7 +56,7 @@ public class ThreadsManagementTest
 				+ "{\"id\":\"4401ac5dc8cfbbb737b0a025758cfd60\",\"key\":[\"provider-RECAS-BARI\",\"services\"],\"value\":{\"sitename\":\"RECAS-BARI\",\"provider_id\":\"provider-RECAS-BARI\",\"hostname\":\"cloud.recas.ba.infn.it\",\"type\":\"compute\"},\"doc\":{\"_id\":\"4401ac5dc8cfbbb737b0a025758cfd60\",\"_rev\":\"2-6540bc334d76090c53399c7bd5bc0aae\",\"data\":{\"primary_key\":\"8015G0\",\"hostname\":\"cloud.recas.ba.infn.it\",\"gocdb_portal_url\":\"https://goc.egi.eu/portal/index.php?Page_Type=Service&id=8015\",\"hostdn\":\"/C=IT/O=INFN/OU=Host/L=Bari/CN=cloud.recas.ba.infn.it\",\"beta\":\"N\",\"service_type\":\"eu.egi.cloud.vm-management.occi\",\"core\":null,\"in_production\":\"Y\",\"node_monitored\":\"Y\",\"sitename\":\"RECAS-BARI\",\"country_name\":\"Italy\",\"country_code\":\"IT\",\"roc_name\":\"NGI_IT\",\"scopes\":{\"scope\":[\"EGI\",\"wlcg\",\"lhcb\"]},\"extensions\":null,\"type\":\"compute\",\"provider_id\":\"provider-RECAS-BARI\",\"endpoint\":\"http://cloud.recas.ba.infn.it:8787/occi\"},\"type\":\"service\"}},"
 				+ "{\"id\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\",\"key\":[\"provider-RECAS-BARI\",\"services\"],\"value\":{\"provider_id\":\"provider-RECAS-BARI\",\"type\":\"compute\"},\"doc\":{\"_id\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\",\"_rev\":\"1-256d36283315ea9bb045e6d5038657b6\",\"data\":{\"service_type\":\"eu.egi.cloud.vm-management.openstack\",\"endpoint\":\"http://cloud.recas.ba.infn.it:5000/v2.0\",\"provider_id\":\"provider-RECAS-BARI\",\"type\":\"compute\"},\"type\":\"service\"}},"
 				+ "{\"id\":\"7efc59c5db69ea67c5100de0f73ab567\",\"key\":[\"provider-RECAS-BARI\",\"services\"],\"value\":{\"provider_id\":\"provider-RECAS-BARI\",\"type\":\"storage\"},\"doc\":{\"_id\":\"7efc59c5db69ea67c5100de0f73ab567\",\"_rev\":\"4-6e2921c359fb76118616e26c7de76397\",\"data\":{\"service_type\":\"eu.egi.cloud.storage-management.oneprovider\",\"endpoint\":\"E1u8A4FgR6C1UgbD2JOoP9OQIG43q-zDsXkx1PoaaI4\",\"provider_id\":\"provider-RECAS-BARI\",\"type\":\"storage\"},\"type\":\"service\"}}]}";
-		Mockito.when(responseGetDetails.readEntity(String.class)).thenReturn(detailResponse);
+		Mockito.when(responseGetDetails.getEntity()).thenReturn(detailResponse);
 		
 		// Define mocks for CMDB failure 
 		mockCmdbFail = Mockito.mock(Client.class);
@@ -86,7 +77,7 @@ public class ThreadsManagementTest
 		Mockito.when(invocationBuilderListFail.get()).thenReturn(responseGetListFail);
 		Mockito.when(responseGetListFail.getStatus()).thenReturn(200);
 		String listResponseFail = "{\"total_rows\":0,\"offset\":20,\"rows\":[]}";				
-		Mockito.when(responseGetListFail.readEntity(String.class)).thenReturn(listResponseFail);
+		Mockito.when(responseGetListFail.getEntity()).thenReturn(listResponseFail);
 		
 		// Define mock response for GET details (complete result)
 		Mockito.when(invocationBuilderDetailsFail.get()).thenReturn(responseGetDetailsFail);
@@ -94,7 +85,7 @@ public class ThreadsManagementTest
 		//String detailResponseFail = "{\"total_rows\":60,\"offset\":49,\"rows\":[" 
 		//		+ "{\"id\":\"4401ac5dc8cfbbb737b0a025758cfd60\",\"key\":[\"provider-RECAS-BARI\",\"services\"],\"value\":{\"sitename\":\"RECAS-BARI\",\"provider_id\":\"provider-RECAS-BARI\",\"hostname\":\"cloud.recas.ba.infn.it\",\"type\":\"compute\"},\"doc\":{\"_id\":\"4401ac5dc8cfbbb737b0a025758cfd60\",\"_rev\":\"2-6540bc334d76090c53399c7bd5bc0aae\",\"data\":{\"primary_key\":\"8015G0\",\"hostname\":\"cloud.recas.ba.infn.it\",\"gocdb_portal_url\":\"https://goc.egi.eu/portal/index.php?Page_Type=Service&id=8015\",\"hostdn\":\"/C=IT/O=INFN/OU=Host/L=Bari/CN=cloud.recas.ba.infn.it\",\"beta\":\"N\",\"service_type\":\"eu.egi.cloud.vm-management.noocci\",\"core\":null,\"in_production\":\"Y\",\"node_monitored\":\"Y\",\"sitename\":\"RECAS-BARI\",\"country_name\":\"Italy\",\"country_code\":\"IT\",\"roc_name\":\"NGI_IT\",\"scopes\":{\"scope\":[\"EGI\",\"wlcg\",\"lhcb\"]},\"extensions\":null,\"type\":\"compute\",\"provider_id\":\"provider-RECAS-BARI\",\"endpoint\":\"http://cloud.recas.ba.infn.it:8787/occi\"},\"type\":\"service\"}}]}";
 		String detailResponseFail = "{\"total_rows\":60,\"offset\":49,\"rows\":[]}";
-		Mockito.when(responseGetDetailsFail.readEntity(String.class)).thenReturn(detailResponseFail);
+		Mockito.when(responseGetDetailsFail.getEntity()).thenReturn(detailResponseFail);
 		
 		// Scheduler Mock delegating most of the calls to a real object
 		// Mock Zabbix Sender		
@@ -122,7 +113,7 @@ public class ThreadsManagementTest
 		global.addCreateVmInfo(create);
 		global.addInspectVmInfo(inspect);
 		global.addDeleteVmInfo(delete);
-		Mockito.when(mockOcci.getOcciMonitoringInfo()).thenReturn(global);
+		Mockito.when(mockOcci.getOcciMonitoringInfo()).thenReturn(global);*/
 		
 		// Complete Mock
 		/*MonitoringThread mockThread = new MonitoringThread(mockSender, mockOcci, "MockProvider");

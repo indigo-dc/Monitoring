@@ -20,17 +20,15 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
+import com.indigo.zabbix.utils.IamClient;
 import com.indigo.zabbix.utils.PropertiesManager;
 
 import io.github.hengyunabc.zabbix.sender.SenderResult;
+import io.github.hengyunabc.zabbix.sender.ZabbixSender;
 
-import org.apache.oltu.oauth2.client.OAuthClient;
-import org.apache.oltu.oauth2.client.URLConnectionClient;
-import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.oltu.oauth2.client.response.OAuthJSONAccessTokenResponse;
-import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
-import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
-import org.apache.oltu.oauth2.common.message.types.GrantType;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,6 +45,9 @@ import java.util.concurrent.ScheduledExecutorService;
  *
  */
 public class ProbeThread {
+
+  private static final Log logger = LogFactory.getLog(ProbeThread.class);
+
   // A handle to the unique Singleton instance.
   private final ScheduledExecutorService scheduler;
   private static ProbeThread _instance = null;
@@ -102,6 +103,12 @@ public class ProbeThread {
    * the treads pool and launching monitoring operations per each provider.
    */
   public void startMonitoringProcess() {
+
+    //Get access token from IAM
+    OAuthJSONAccessTokenResponse response = IamClient.getAccessToken();
+
+    String accessToken = response.getAccessToken();
+
     // Retrieve the list of providers with their info   
     System.out.println("Looking for providers and their info...");
     List<CloudProviderInfo> providersList = myClient.getFeasibleProvidersInfo();
@@ -116,7 +123,8 @@ public class ProbeThread {
       String occiEndpoint = currentProvider.getOcciEndpoint();
       String keystoneEndpoint = currentProvider.getKeystoneEndpoint();
       
-      MonitoringThread myTask = new MonitoringThread(providerId, occiEndpoint, keystoneEndpoint);
+      MonitoringThread myTask = new MonitoringThread(accessToken, providerId,
+          occiEndpoint, keystoneEndpoint);
       try {
         SenderResult result = myTask.run();
         if (result.success()) {
@@ -133,51 +141,6 @@ public class ProbeThread {
 
       //myTaskList.add(myTask);
     }
-    /*
-    MonitoringThread myTask1 = new MonitoringThread("provider-RECAS-BARI", "http://cloud.recas.ba.infn.it:8787", "https://cloud.recas.ba.infn.it:5000");
-    MonitoringThread myTask2 = new MonitoringThread("provider-UPV-GRyCAP", "http://cloud.recas.ba.infn.it:8787", "https://cloud.recas.ba.infn.it:5000");
-    MonitoringThread myTask3 = new MonitoringThread("provider-RECAS-BARI", "http://cloud.recas.ba.infn.it:8787", "https://cloud.recas.ba.infn.it:5000");
-    MonitoringThread myTask4 = new MonitoringThread("provider-UPV-GRyCAP", "http://cloud.recas.ba.infn.it:8787", "https://cloud.recas.ba.infn.it:5000");
-    myTaskList.add(myTask1);
-    myTaskList.add(myTask2);
-    myTaskList.add(myTask3);
-    myTaskList.add(myTask4);
-    */
-    
-    // Create threads and run the monitoring actions
-    /*Iterator<MonitoringThread> myTaskIterator = myTaskList.iterator();
-    int schedulingFailures = 0;
-    while (myTaskIterator.hasNext()) {
-      MonitoringThread currentTask = myTaskIterator.next();
-      try {
-        scheduler.schedule(currentTask, initialDelay, TimeUnit.SECONDS);
-      } catch (RejectedExecutionException ex) {
-        System.out.println("Issue detected when scheduling a new thread!" + ex.getMessage());
-        schedulingFailures ++;
-      }      
-    }
-            
-    // Terminate thread manager
-    boolean result = true;
-    if (schedulingFailures > 0) {
-      result = false;
-    } else {
-      // Check scheduled tasks finalization
-      
-    }
-    scheduler.shutdown();
-    try {
-      termination = scheduler.awaitTermination(30, TimeUnit.MINUTES);
-    } catch (InterruptedException ex) {
-      System.out.println("The scheduler was interrupted because of unexpected reasons!");
-      result = false;
-    }
-    
-    // Send all the metrics    
-    result = mySender.sendMetrics();
-    if (!result) {
-      System.out.println("Some metrics could not be sent correctly!");
-    }*/
     
     System.out.println("OCCI Monitoring Probe finished!");
   }
@@ -201,28 +164,21 @@ public class ProbeThread {
     // Start the monitoring process
     try {
       PropertiesManager.loadProperties("occiprobe.properties");
-      /*ProbeThread probeManager = ProbeThread.instance();
-      probeManager.startMonitoringProcess();*/
 
-      OAuthClientRequest request = new OAuthClientRequest
-          .TokenRequestBuilder(PropertiesManager.getProperty(OcciProbeTags.IAM_LOCATION))
-          .setUsername(PropertiesManager.getProperty(OcciProbeTags.IAM_USERNAME))
-          .setPassword(PropertiesManager.getProperty(OcciProbeTags.IAM_PASSWORD))
-          .setGrantType(GrantType.PASSWORD)
-          .setScope("openid scope")
-          .buildQueryMessage();
+      OAuthJSONAccessTokenResponse response = IamClient.getAccessToken();
 
-      OAuthClient client = new OAuthClient(new URLConnectionClient());
+      String accessToken = response.getAccessToken();
 
-      OAuthJSONAccessTokenResponse response = client.accessToken(request);
+      /*MonitoringThread thread = new MonitoringThread(accessToken, "cloud.ifca.es",
+          "https://cloud.ifca.es:8787/occi1.1/", "https://keystone.ifca.es:5000/");*/
 
-      System.out.println("Access token: " + response.getAccessToken());
+      MonitoringThread thread = new MonitoringThread(accessToken, "nimbus.ngc.ingrid.pt",
+          "https://nimbus.ncg.ingrid.pt:8787/occi1.2", "https://nimbus.ncg.ingrid.pt:5000");
+
+      SenderResult results = thread.run();
+
 
     } catch (IOException e) {
-      e.printStackTrace();
-    } catch (OAuthSystemException e) {
-      e.printStackTrace();
-    } catch (OAuthProblemException e) {
       e.printStackTrace();
     }
 

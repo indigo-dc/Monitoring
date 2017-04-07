@@ -9,7 +9,7 @@ import java.util.List;
  */
 public class OpenstackProjectsInfo {
 
-  public class Project {
+  public static class Project {
 
     @SerializedName("is_domain")
     private boolean isDomain;

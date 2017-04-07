@@ -13,10 +13,19 @@ import org.apache.oltu.oauth2.common.message.types.GrantType;
 /**
  * Created by jose on 31/03/17.
  */
-public class IAMClient {
+public class IamClient {
 
-  private static final Log logger = LogFactory.getLog(IAMClient.class);
+  private static final Log logger = LogFactory.getLog(IamClient.class);
 
+  /**
+   * Gets an access token from the IAM service.
+   * @param location Location of the IAM server.
+   * @param username Username for the authorized user.
+   * @param password Password for the authorized user.
+   * @param clientId Client ID to authorize.
+   * @param clientSecret Client secret of the client ID application.
+   * @return An access token for the provided user and application.
+   */
   public static OAuthJSONAccessTokenResponse getAccessToken(String location,
                                                             String username, String password,
                                                             String clientId, String clientSecret) {
@@ -43,6 +52,16 @@ public class IAMClient {
     return null;
   }
 
+  /**
+   * Utility method that will return an access token from parameters provided in the configuration
+   * file.
+   * - iam.location: Location of the IAM server.
+   * - iam.username: Username for the authorized user.
+   * - iam.password: Password for the authorized user.
+   * - iam.clientid: Client ID to authorize.
+   * - iam.clientsecret: Client secret of the client ID application.
+   * @return An access token for the provided user and application.
+   */
   public  static OAuthJSONAccessTokenResponse getAccessToken() {
 
     return getAccessToken(PropertiesManager.getProperty(ProbesTags.IAM_LOCATION),

@@ -20,21 +20,29 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
-import com.indigo.zabbix.utils.MetricsCollector;
+import com.indigo.zabbix.utils.KeystoneClient;
+import com.indigo.zabbix.utils.LifecycleCollector;
 import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.ZabbixMetrics;
+import com.indigo.zabbix.utils.beans.AppOperation;
 
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.openstack4j.api.OSClient;
-import org.openstack4j.api.client.IOSClientBuilder;
-import org.openstack4j.model.common.Identifier;
-import org.openstack4j.openstack.OSFactory;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+
+import cz.cesnet.cloud.occi.Model;
+import cz.cesnet.cloud.occi.api.EntityBuilder;
+import cz.cesnet.cloud.occi.api.exception.CommunicationException;
+import cz.cesnet.cloud.occi.api.exception.EntityBuildingException;
+import cz.cesnet.cloud.occi.api.http.HTTPClient;
+import cz.cesnet.cloud.occi.core.Entity;
+import cz.cesnet.cloud.occi.core.Mixin;
+import cz.cesnet.cloud.occi.core.Resource;
+
 /**
  * It takes care of the interactions to be performed with Cloud Providers whose base platform
  * is OpenStack, since it requires additional interactions with the Keystone component, in order
@@ -43,14 +51,21 @@ import javax.ws.rs.core.Response;
  * @author ATOS
  *
  */
-public class OpenStackOcciClient implements MetricsCollector{
-  private Client client = null;
-  private String baseOcciUrl = "";
-  private String baseKeystoneUrl = "";
-  private String openStackUser = "";
-  private String openStackPwd = "";
-  private String currentToken = "";
+public class OpenStackOcciClient extends LifecycleCollector {
+
+  private static final Log logger = LogFactory.getLog(OpenStackOcciClient.class);
+
+  public static final String OCCI_OS = "http://schemas.openstack.org/template/os#";
+  public static final String OCCI_RESOURCE = "http://schemas.openstack.org/template/resource#";
+
+  private cz.cesnet.cloud.occi.api.Client occiClient;
+
   private String providerId;
+
+  private URI vmId;
+
+  private OcciProbeResult creationFailResults;
+
   //private IOSClientBuilder.V3 myKeystoneClient = null;
   
   /**
@@ -61,315 +76,203 @@ public class OpenStackOcciClient implements MetricsCollector{
    * @param occiLocation String with the root location of the OCCI API [IP:Port]
    * @param providerName String with the identifier of the Cloud Provider
    */
-  public OpenStackOcciClient(String keystoneLocation, String occiLocation, String providerName) {
+  public OpenStackOcciClient(String accessToken, String keystoneLocation, String occiLocation,
+                             String providerName) {
+
+    creationFailResults = null;
+
     // Retrieve properties
-    openStackUser = PropertiesManager.getProperty(OcciProbeTags.OPENSTACK_USER);
-    openStackPwd = PropertiesManager.getProperty(OcciProbeTags.OPENSTACK_PASSWORD);
-    providerId = providerName;
-    
-    // Disable issue with SSL Handshake in Java 7 and indicate certificates keystore
-    System.setProperty("jsse.enableSNIExtension", "false");
-    String certificatesTrustStorePath = PropertiesManager.getProperty(OcciProbeTags.JAVA_KEYSTORE);
-    System.setProperty("javax.net.ssl.trustStore", certificatesTrustStorePath);
-    
-    // Create the Clients
-    ClientConfig cc = new ClientConfig();
-    client = JerseyClientBuilder.newClient(cc);
-    //myKeystoneClient = OSFactory.builderV3();
-    
-    // Force use of HTTPS
-    if (keystoneLocation.startsWith("http://")) {
-      baseKeystoneUrl = keystoneLocation.replace("http://", "https://");
-    } else {
-      baseKeystoneUrl = keystoneLocation;
+    String project = PropertiesManager.getProperty(OcciProbeTags.OCCI_OS_PROJECT);
+
+    String occiToken = new KeystoneClient(keystoneLocation).getScopedToken(accessToken, project);
+
+    try {
+      occiClient = new HTTPClient(URI.create(occiLocation), new TokenOcciAuth(occiToken));
+    } catch (CommunicationException e) {
+
+      int code = 400;
+      boolean availability = true;
+
+      creationFailResults = new OcciProbeResult(availability,code,0);
     }
 
-    //baseKeystoneUrl = keystoneLocation;
+    this.providerId = providerName;
 
-    baseOcciUrl = occiLocation;                     
   }
   
   /**
    * Constructor to be used for automatic testing purposes only.
    * @param mockClient Mock of the Jersey Client class, for simulating.
    */
-  public OpenStackOcciClient(Client mockClient, IOSClientBuilder.V3 mockKeystone) {
-    client = mockClient;
-    //myKeystoneClient = mockKeystone;
+  public OpenStackOcciClient(cz.cesnet.cloud.occi.api.Client mockClient, String providerId) {
+    occiClient = mockClient;
+    this.providerId = providerId;
   }
-  
-  private String getToken() {
-    /*
-    // Build JSON input
-    TokenRequest tRequest= new TokenRequest("INDIGO", openStackUser, openStackPwd);
-    Gson gson = new Gson();
-    String input = gson.toJson(tRequest);
-    System.out.println (input);
-    
-    // Call to Keystone
-    WebTarget target = client.target(baseKeystoneUrl + "/tokens");
-    System.out.println (target.toString());
-    Response response =  target.request(MediaType.APPLICATION_JSON)
-      .post(Entity.entity(input, MediaType.APPLICATION_JSON), Response.class); 
-    
-    //String result = r.accept(MediaType.APPLICATION_JSON_TYPE).get(String.class);
-    
-    //JsonElement jelement = new JsonParser().parse(response.);
-    //System.out.println(jelement.toString());
-    *
-    */
-    
-    
-    // Authenticate 
-    OSClient os = baseKeystoneUrl.endsWith("v3")?OSFactory.builderV3()
-                .endpoint(baseKeystoneUrl)
-                .credentials(openStackUser,openStackPwd, Identifier.byName("default"))
-                .scopeToProject(Identifier.byName("indigo"), Identifier.byName("default"))
-                .authenticate():
-        OSFactory.builder().endpoint(baseKeystoneUrl).credentials(openStackUser, openStackPwd)
-        .authenticate();
-    
-    //System.out.println(os.getToken().toString());
-    
-    return os.getToken().getId();
-  }
-  
-  private CreateVmResult createVm() {
-    // Call to OCCI API
-    WebTarget target = client.target(baseOcciUrl + "/compute/");
-    Invocation.Builder invocationBuilder = target.request();
-    invocationBuilder.header("Content-Type", "text/occi");
-    invocationBuilder.header("X-Auth-Token", currentToken);
-    invocationBuilder.header("Category", "compute; scheme=\"http://schemas.ogf.org/occi/infrastructure#\"; class=\"kind\"");
-    invocationBuilder.header("Category", "7; scheme=\"http://schemas.openstack.org/template/resource#\"; class=\"mixin\"");
-    invocationBuilder.header("Category", "303d8324-69a7-4372-be24-1d68703affd7; scheme=\"http://schemas.openstack.org/template/os#\"; class=\"mixin\"");
-    
-    /*
-    String linkedNetwork = "<http://cloud.recas.ba.infn.it:8787/occi/network/ac063601-5af8-4b80-9972-07908e764a9c>; "
-        + "rel=\"http://schemas.ogf.org/occi/infrastructure#network\"; "
-        + "category=\"http://schemas.ogf.org/occi/infrastructure#networkinterface\"; "
-        + "occi.networkinterface.interface=\"eth0\"; "
-        + "occi.networkinterface.mac=\"00:11:22:33:44:55\";";
-    
-    invocationBuilder.header("Link", linkedNetwork);
-    */
-    
-    // Invoke the OCCI service and measure response time
-    long startTime = System.currentTimeMillis();
-    Response response = invocationBuilder.post(null);
-    long responseTime = System.currentTimeMillis() - startTime;
-    System.out.println("Total elapsed http request/response time in milliseconds: " + responseTime);
-    
-    // Get response information
-    //System.out.println(response.toString());
-    int httpCode = response.getStatus();
-    int availability = 1;
-    
-    if (httpCode >= 400 && httpCode <= 600) {
-      availability = 0;
-    }
-    
-    // Get response message
-    String message = response.readEntity(String.class);
-    System.out.println(message);
-    
-    String[] vmUrlParts = message.split("/");
-    String vmId = vmUrlParts[vmUrlParts.length - 1];
-    System.out.println("Created VM: " + vmId);
-     
-    // Feed monitoring info
-    CreateVmResult monitoredInfo = new CreateVmResult(availability, httpCode, responseTime, vmId);
-    
-    return monitoredInfo;
-  }
-  
-  private String getVmsList() {
-    // Build the OCCI call
-    WebTarget target = client.target(baseOcciUrl + "/compute/");
-    Invocation.Builder invocationBuilder = target.request();
-    invocationBuilder.header("Content-Type", "text/occi");
-    invocationBuilder.header("X-Auth-Token", currentToken);
-    
-    // Invoke the OCCI service and measure response time
-    long startTime = System.currentTimeMillis();
-    Response response = invocationBuilder.get();
-    long elapsedTime = System.currentTimeMillis() - startTime;
-    System.out.println("Total elapsed http request/response time in milliseconds: " + elapsedTime);
-    
-    // Get response data
-    System.out.println(response.toString());
-    String message = response.readEntity(String.class);
-    
-    System.out.println(message);
-    
-    return "";
-  }
-  
-  private InspectVmResult inspectVm(String vmId) {
-    // Build the OCCI call
-    WebTarget target = client.target(baseOcciUrl + "/compute/" + vmId);
-    Invocation.Builder invocationBuilder = target.request();
-    invocationBuilder.header("Content-Type", "text/occi");
-    invocationBuilder.header("X-Auth-Token", currentToken);
-    
-    // Invoke the OCCI service and measure response time
-    long startTime = System.currentTimeMillis();
-    Response response = invocationBuilder.get();
-    long responseTime = System.currentTimeMillis() - startTime;
-    System.out.println("Total elapsed http request/response time in milliseconds: " + responseTime);
-    
-    // Get response information
-    int httpCode = response.getStatus();
-    int availability = 1;
-    
-    if (httpCode >= 400 && httpCode <= 600) {
-      availability = 0;
-    }
-    
-    // Feed monitoring info
-    InspectVmResult monitoredInfo = new InspectVmResult(availability, httpCode, responseTime);
-    
-    // Get response message
-    String message = response.readEntity(String.class);
-    System.out.println(message);
-    
-    return monitoredInfo;
-  }
-  
-  private DeleteVmResult deleteVm(String vmId) {
-    // Build the OCCI call
-    WebTarget target = client.target(baseOcciUrl + "/compute/" + vmId);
-    Invocation.Builder invocationBuilder = target.request();
-    invocationBuilder.header("Content-Type", "text/occi");
-    invocationBuilder.header("X-Auth-Token", currentToken);
-    
-    // Invoke the OCCI service and measure response time
-    long startTime = System.currentTimeMillis();
-    Response response = invocationBuilder.delete();
-    long responseTime = System.currentTimeMillis() - startTime;
-    System.out.println("Total elapsed http request/response time in milliseconds: " + responseTime);
-    
-    // Get response information
-    System.out.println(response.toString());
-    int httpCode = response.getStatus();
-    int availability = 1;
-    
-    if (httpCode >= 400 && httpCode <= 600) {
-      availability = 0;
-    }
-    
-    // Feed monitoring info
-    DeleteVmResult monitoredInfo = new DeleteVmResult(availability, httpCode, responseTime);
-    
-    // Get response message
-    String message = response.readEntity(String.class);
-    System.out.println(message);
-    
-    return monitoredInfo;
-  }
-  
-  /**
-   * It retrieves the list of networks available. 
-   */
-  public void getNetworksList() {
-    // Build the OCCI call
-    WebTarget target = client.target(baseOcciUrl + "/network/");
-    Invocation.Builder invocationBuilder = target.request();
-    invocationBuilder.header("Content-Type", "text/occi");
-    invocationBuilder.header("X-Auth-Token", currentToken);
-    
-    System.out.println(invocationBuilder.toString());
-    Response response = invocationBuilder.get();
-    // Get response message
-    String message = response.readEntity(String.class);
-    System.out.println(message);
-  }
-  
-  /**
-   * This method goes through the whole lifecycle of a VM (create, inspect 
-   * and delete VM) in order to retrieve monitoring metrics: availability, 
-   * HTTP response code and response time. 
-   * @return Object representing results for each operation and a global 
-   *     aggregation.
-   */
-  public OcciProbeResult getOcciMonitoringInfo() {
-    // Follow the full lifecycle for a VM
-    // Retrieve the operation token
-    currentToken = getToken();
-    if (currentToken == null) {
-      return null;
-    }
-    //getVMsList();
 
-    System.out.println("Token is valid. Continue monitoring operation...");
-    CreateVmResult createVmInfo = createVm();
-    if (createVmInfo.getCreateVmAvailability() == 0) {
-      // Send failure result, since we cannot go on with the process
-      OcciProbeResult failureResult = new OcciProbeResult(providerId);
-      failureResult.addCreateVmInfo(createVmInfo);
-      failureResult.addGlobalInfo(0, createVmInfo.getCreateVmResult(), -1);
-      return failureResult;
-    }
-    
-    InspectVmResult inspectVmInfo = inspectVm(createVmInfo.getVmId());
-    DeleteVmResult deleteVmInfo = deleteVm(createVmInfo.getVmId());
-    
-    // Determine Global Availability
-    int globalAvailability = 1;
-    if (createVmInfo.getCreateVmAvailability() == 0 
-        || inspectVmInfo.getInspectVmAvailability() == 0 
-        || deleteVmInfo.getDeleteVmAvailability() == 0) {
-      globalAvailability = 0;
-    }
-    
-    // Determine Global Result
-    int globalResult = 200;
-    int createVmResult = createVmInfo.getCreateVmResult();
-    int inspectVmResult = inspectVmInfo.getInspectVmResult();
-    int deleteVmResult = deleteVmInfo.getDeleteVmResult();
-    if (createVmResult > inspectVmResult) {
-      if (createVmResult > deleteVmResult) {
-        globalResult = createVmResult;
-      } else {
-        globalResult = deleteVmResult;
-      }
-    } else {
-      if (inspectVmResult > deleteVmResult) {
-        globalResult = inspectVmResult;
-      } else {
-        globalResult = deleteVmResult;
-      }
-    }
-    
-    // Determine Global ResponseTime
-    long globalResponseTime = createVmInfo.getCreateVmResponseTime() 
-        + inspectVmInfo.getInspectVmResponseTime() 
-        + deleteVmInfo.getDeleteVmResponseTime();
-    
-    // Construct the result
-    OcciProbeResult finalResult = new OcciProbeResult(providerId);
-    finalResult.addCreateVmInfo(createVmInfo);
-    finalResult.addInspectVmInfo(inspectVmInfo);
-    finalResult.addDeleteVmInfo(deleteVmInfo);
-    finalResult.addGlobalInfo(globalAvailability, globalResult, globalResponseTime);
-    
-    return finalResult;
+  @Override
+  protected String getHostName() {
+    return providerId;
   }
-  
-  /**
-   * Typical main for testing.
-   * @param args Typical args
-   */
-  public static void main(String[] args) {
-    // Run the OCCI monitoring process and retrieve the result
-    OpenStackOcciClient myClient = new OpenStackOcciClient("https://cloud.recas.ba.infn.it:5000", "http://cloud.recas.ba.infn.it:8787", "provider-RECAS-BARI");
-    myClient.getNetworksList();
-    
-    myClient.getOcciMonitoringInfo();
+
+  @Override
+  protected AppOperation clear() {
+    return new AppOperation(AppOperation.Operation.CLEAR,true,200, 0);
+  }
+
+  @Override
+  protected AppOperation create() {
+    // Call to OCCI API
+
+    Model model = occiClient.getModel();
+
+    Mixin os = model.getMixins().stream()
+        .filter(mixin -> OCCI_OS.equals(mixin.getScheme().toString())).findFirst().get();
+
+    Mixin flavour = model.getMixins().stream()
+        .filter(mixin -> (OCCI_RESOURCE.equals(mixin.getScheme().toString()))
+            && mixin.getTitle().contains("small"))
+        .findFirst().get();
+
+    EntityBuilder builder = new EntityBuilder(model);
+
+    long startTime = System.currentTimeMillis();
+
+    int httpCode = 200;
+    boolean availability = true;
+    URI vmId = null;
+    try {
+      Resource resource = builder.getResource("compute");
+      resource.addMixin(os);
+      resource.addMixin(flavour);
+      this.vmId = occiClient.create(resource);
+    } catch (CommunicationException e) {
+      logger.error("Error creating occi vm",e);
+      httpCode = 500;
+      availability = false;
+    } catch (EntityBuildingException e) {
+      httpCode = 400;
+      availability = false;
+    }
+
+    long responseTime = System.currentTimeMillis() - startTime;
+
+    System.out.println("Created VM: " + vmId);
+
+    // Feed monitoring info
+    AppOperation monitoredInfo = new AppOperation(AppOperation.Operation.CREATE,
+        availability, httpCode, responseTime);
+
+    return monitoredInfo;
+  }
+
+  @Override
+  protected AppOperation retrieve() {
+    // Invoke the OCCI service and measure response time
+    int httpCode = 200;
+    boolean availability = true;
+    long startTime = System.currentTimeMillis();
+    try {
+      List<Entity> entities = occiClient.describe(vmId);
+      if (entities == null || entities.isEmpty()) {
+        httpCode = 400;
+      }
+    } catch (CommunicationException e) {
+      logger.error("Error getting info of resource " + vmId, e);
+      httpCode = 500;
+      availability = false;
+    }
+    long responseTime = System.currentTimeMillis() - startTime;
+
+    // Feed monitoring info
+    AppOperation monitoredInfo = new AppOperation(AppOperation.Operation.RUN, availability,
+        httpCode, responseTime);
+
+    return monitoredInfo;
+  }
+
+  @Override
+  protected AppOperation delete() {
+    // Invoke the OCCI service and measure response time
+    int httpCode = 200;
+    boolean availability = true;
+    long startTime = System.currentTimeMillis();
+    try {
+      if (!occiClient.delete(vmId)) {
+        httpCode = 400;
+      }
+    } catch (CommunicationException e) {
+      logger.error("Error deleting vm " + vmId, e);
+      httpCode = 500;
+      availability = false;
+    }
+    long responseTime = System.currentTimeMillis() - startTime;
+
+    // Feed monitoring info
+    AppOperation monitoredInfo = new AppOperation(AppOperation.Operation.DELETE, availability,
+        httpCode, responseTime);
+
+    return monitoredInfo;
   }
 
   @Override
   public ZabbixMetrics getMetrics() {
-    return getOcciMonitoringInfo().getMetrics();
+
+    ZabbixMetrics metrics = new ZabbixMetrics();
+    metrics.setHostName(getHostName());
+    metrics.setTimestamp(System.currentTimeMillis());
+
+    if (creationFailResults != null) {
+      metrics.setMetrics(creationFailResults.getMetrics());
+    } else {
+
+      long startTime = System.currentTimeMillis();
+      Map<AppOperation.Operation, AppOperation> operations = super.executeLifecycle();
+      long responseTime = System.currentTimeMillis() - startTime;
+
+      final OcciProbeResult global = new OcciProbeResult(true, 200, responseTime);
+
+      boolean globalAvailability = true;
+      int globalResult = 200;
+
+      this.result.entrySet().forEach(entry -> {
+        AppOperation value = entry.getValue();
+        global.setGlobalAvailability(global.getGlobalAvailability() && value.isResult());
+        global.setGlobalResult(Math.max(global.getGlobalResult(), value.getStatus()));
+
+        if (!AppOperation.Operation.CLEAR.equals(value.getOperation())) {
+          String prefix = null;
+          switch (entry.getKey()) {
+            case CREATE:
+              prefix = "occi.createvm";
+              break;
+            case RUN:
+              prefix = "occi.inspectvm";
+              break;
+            case DELETE:
+              prefix = "occi.deletevm";
+              break;
+            default:
+              break;
+          }
+
+
+          metrics.getMetrics().put(prefix + "[availability]",
+              BooleanUtils.toIntegerObject(value.isResult()).toString());
+
+          metrics.getMetrics().put(prefix + "[responseTime]",
+              Long.toString(value.getResponseTime()));
+
+          metrics.getMetrics().put(prefix + "[result]", Integer.toString(value.getStatus()));
+        }
+
+
+      });
+
+      metrics.getMetrics().putAll(global.getMetrics());
+    }
+
+
+
+    return metrics;
   }
 }

@@ -16,6 +16,7 @@ public interface OcciProbeTags {
   String ZABBIX_SENDER = "zabbix.sender.location";
   String ZABBIX_WRAPPER = "zabbix.wrapper.location";
   String CMDB_URL = "cmdb.location";
+  String OCCI_OS_PROJECT = "occi.project";
   String IAM_LOCATION = "iam.location";
   String IAM_USERNAME = "iam.username";
   String IAM_PASSWORD = "iam.password";

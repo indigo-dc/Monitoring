@@ -10,8 +10,53 @@ import java.util.Map;
  */
 public abstract class LifecycleCollector implements MetricsCollector {
 
+  protected Map<AppOperation.Operation, AppOperation> result = new HashMap<>();
+
+  protected void addOperation(AppOperation operation) {
+    result.put(operation.getOperation(), operation);
+  }
+
+  protected Map<AppOperation.Operation, AppOperation> executeLifecycle() {
+
+    AppOperation clear = clear();
+    addOperation(clear);
+
+    if (clear.isResult()) {
+
+      AppOperation created = create();
+      addOperation(created);
+
+      if (created.isResult()) {
+
+        AppOperation getAppResponse = retrieve();
+        addOperation(getAppResponse);
+        if (getAppResponse.isResult()) {
+
+          AppOperation delete = delete();
+          addOperation(delete);
+
+        } else {
+          addOperation(new AppOperation(AppOperation.Operation.DELETE,false,503,0));
+        }
+
+      } else {
+        addOperation(new AppOperation(AppOperation.Operation.RUN,false,503,0));
+        addOperation(new AppOperation(AppOperation.Operation.DELETE,false,503,0));
+      }
+    } else {
+      addOperation(new AppOperation(AppOperation.Operation.CREATE,false,503,0));
+      addOperation(new AppOperation(AppOperation.Operation.RUN,false,503,0));
+      addOperation(new AppOperation(AppOperation.Operation.DELETE,false,503,0));
+    }
+
+    return result;
+  }
+
   @Override
   public ZabbixMetrics getMetrics() {
+
+    Map<AppOperation.Operation, AppOperation> execution = executeLifecycle();
+
     String hostName = getHostName();
 
     ZabbixMetrics result = new ZabbixMetrics();
@@ -19,36 +64,7 @@ public abstract class LifecycleCollector implements MetricsCollector {
 
     Map<String, String> metrics = new HashMap<>();
 
-    AppOperation clear = clear();
-    metrics.putAll(clear.getMetrics());
-
-    if (clear.isResult()) {
-
-      AppOperation created = create();
-      metrics.putAll(created.getMetrics());
-
-      if (created.isResult()) {
-
-        AppOperation getAppResponse = retrieve();
-        metrics.putAll(getAppResponse.getMetrics());
-        if (getAppResponse.isResult()) {
-
-          AppOperation delete = delete();
-          metrics.putAll(delete.getMetrics());
-
-        } else {
-          metrics.putAll(new AppOperation(AppOperation.Operation.DELETE,false,503,0).getMetrics());
-        }
-
-      } else {
-        metrics.putAll(new AppOperation(AppOperation.Operation.RUN,false,503,0).getMetrics());
-        metrics.putAll(new AppOperation(AppOperation.Operation.DELETE,false,503,0).getMetrics());
-      }
-    } else {
-      metrics.putAll(new AppOperation(AppOperation.Operation.CREATE,false,503,0).getMetrics());
-      metrics.putAll(new AppOperation(AppOperation.Operation.RUN,false,503,0).getMetrics());
-      metrics.putAll(new AppOperation(AppOperation.Operation.DELETE,false,503,0).getMetrics());
-    }
+    execution.entrySet().forEach(entry -> metrics.putAll(entry.getValue().getMetrics()));
 
     result.setMetrics(metrics);
     return result;
