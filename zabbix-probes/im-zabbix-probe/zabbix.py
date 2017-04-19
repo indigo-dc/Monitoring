@@ -6,7 +6,7 @@ import sys
 import base64
 
 from requests.exceptions import ConnectionError
-from loadconfigs import LoadZabbixConfig
+from loadconfigs import LoadIMZabbixConfig
 
 try:
     from ConfigParser import ConfigParser
@@ -14,12 +14,11 @@ except ImportError:
     # Python 3
     from configparser import ConfigParser
 
-zconf = LoadZabbixConfig()
+zconf = LoadIMZabbixConfig()
 ZABBIX_USER = zconf.ZABBIX_USER
 ZABBIX_PASSWORD = zconf.ZABBIX_PASSWORD
 ZABBIX_URI = zconf.ZABBIX_URI
 ZABBIX_TEMPLATE = zconf.ZABBIX_TEMPLATE
-#AGENT_DELAY = int(zconf.AGENT_DELAY)
 
 def request_zabbix(json_request):
 
@@ -27,8 +26,6 @@ def request_zabbix(json_request):
 
     try:
         respost = requests.post(zconf.ZABBIX_URI, data=json.dumps(json_request), headers=zconf.ZABBIX_HEADERS)
-        #print"Response Code:", str(respost.status_code)
-    	#print"text: [%s]" %respost.text
         logging.info(str(respost.text))
 
         if not len(respost.text):
@@ -44,12 +41,10 @@ def request_zabbix(json_request):
             return json_respost
     except ConnectionError as e:
         logging.error(e)
-        #print str(e)
         return None
 
 
 def send_data(item,data):
-    #print "--- send_data -------" + str(data)
     if len(str(data))<1:
         return None
     if len(item)<1:
@@ -69,10 +64,8 @@ def send_data(item,data):
 
     try:
         message = '<req>\n<host>' + host.encode('base64','strict') + '</host>\n<key>' + key.encode('base64','strict') + '</key>\n<data>' + data.encode('base64','strict') + '</data>\n</req>\n'
-        #print >>sys.stderr, 'enviando "%s"' % message
         sock.sendall(message)
         data = sock.recv(1024)
-        #print >>sys.stderr, 'recibiendo "%s"' % data
     finally:
         sock.close()
 
@@ -120,7 +113,6 @@ def getItemsList(token,id):
         for i in range(l):
             key = str(json_respost['result'][i]['name'])
             itemList[key] =  str(json_respost['result'][i]['itemid'])
-            # print "getItemsList:: "+ str(key)+" => "+str(itemList[key])
         return itemList
     else:
         return None
@@ -143,7 +135,6 @@ def createTemplate(token,tname,groupid,hostidtolink):
 
     if json_respost is not None:
         restemid = json_respost['result']['templateids'][0]
-        #print "createTemplate ",restemid
         logging.info( "createTemplate::result= "+str(restemid))
         return restemid
     else:
@@ -215,8 +206,6 @@ def getTemplateId(token,template_name):
     }
 
     json_respost = request_zabbix(template_get_json)
-    #print "getTemplateId for ---> "+template_name
-    #print"json_respost = ",json_respost
 
     l = len(json_respost['result'])
 
@@ -225,7 +214,6 @@ def getTemplateId(token,template_name):
 
     if json_respost is not None:
         tid = json_respost['result'][0]['templateid']
-        #logging.info( "getTemplateId::result= "+str(tid))
         return tid
     else:
         logging.error( "getTemplateId::result= None!!! ")
@@ -240,8 +228,6 @@ def get_zabbix_itemlist(token,template):
             # get list of items from template
             itemsInZabbix = {}
             itemsInZabbix = getItemsList(token,templateid)
-            #for eachitem in itemsInZabbix:
-                #print "get_zabbix_itemlist:: item: " + eachitem + " = " + itemsInZabbix[eachitem]
         else:
             logging.error( "No template option.")
             return None
@@ -256,8 +242,7 @@ def send_data_zabbix(monitorItemsDict):
     # login to zabbix
     ztoken = getZbxAuthenToken(ZABBIX_USER,ZABBIX_PASSWORD)
     if ztoken is not None:
-        #print "Zabbix token seems good."
-        valtype = 4
+
         # Type of the item: 2 (Zabbix trapper)
         paramtype = 2
 
@@ -267,7 +252,6 @@ def send_data_zabbix(monitorItemsDict):
         templateid = getTemplateId(ztoken,ZABBIX_TEMPLATE)
 
         if templateid is None:
-            #print "Hay que crear el template."
             templateid = createTemplate(ztoken,ZABBIX_TEMPLATE,1,hostid)
 
         listItemsZabbix = []
@@ -275,7 +259,11 @@ def send_data_zabbix(monitorItemsDict):
 
         # send data
         for singleitem,singledata in monitorItemsDict.items():
-            #print "--send--> ",singleitem,':',singledata
+            if singleitem in ['create_inf', 'start_inf', 'create_vm','delete_inf','list_inf']:
+                valtype = 3
+            else:
+                valtype = 4
+
             try:
                 itemid = listItemsZabbix[singleitem]
             except KeyError:
