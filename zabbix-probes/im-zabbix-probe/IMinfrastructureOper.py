@@ -19,8 +19,8 @@ def requestIM(method,url,data,headers,verify):
 
     if method == 'POST':
         try:
-			r = requests.post(url, data=data, headers=headers, verify=verify)
-			rq = ResponseIM(r.status_code,r.text)
+		r = requests.post(url, data=data, headers=headers, verify=verify)
+		rq = ResponseIM(r.status_code,r.text)
         except requests.ConnectionError, e:
             logging.error( "* ConnectionError exception at method "+method+": " + str(e))
             rq = ResponseIM(111,e)
