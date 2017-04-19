@@ -1,27 +1,21 @@
 import time
 import json
 import base64
-from loadconfigs import LoadIMConfig
+from loadconfigs import LoadIMZabbixConfig
 import requests
 import logging
 
-imconf = LoadIMConfig()
+imconf = LoadIMZabbixConfig()
 BASIC_RADL = imconf.IM_RADL
 URL_BASE = imconf.IM_URLBASE
 URL_REFRESH = imconf.AUTH_URLREFRESH
 
 class ResponseIM:
 	def __init__(self,statuscode, info):
-		# print "ResponseIM.statuscode: ",statuscode
-		# print "ResponseIM.info: ",info
 		self.statuscode = statuscode
 		self.info = info
 
 def requestIM(method,url,data,headers,verify):
-    # print "------------------------------------------"
-    # print "requestIM: ",url
-    # print "method: ",method
-    # print "------------------------------------------"
 
     if method == 'POST':
         try:
@@ -90,8 +84,6 @@ def create_infrastructure(IMHEADERS):
 	# hold on a little bit for the IM to get ready
 	time.sleep(3)
 	r = requestIM('POST',URL_BASE, BASIC_RADL, IMHEADERS, False)
-	# print "r.statuscode: ",r.statuscode
-	# print "r.info:",r.info
 
 	if r.statuscode==200:
 		try:
@@ -114,9 +106,8 @@ def create_infrastructure(IMHEADERS):
 
 
 def start_infrastructure(IMHEADERS,uri_inf_id):
-	# start
+
 	time.sleep(3)
-	#print "inside start_infrastructure..."
 	r = requestIM('PUT', uri_inf_id+'/start',{} , IMHEADERS, False)
 
 	if r.statuscode==200:
@@ -139,7 +130,6 @@ def create_vm(IMHEADERS,uri_inf_id):
 
 	time.sleep(3)
 	r = requestIM('POST', uri_inf_id, BASIC_RADL, IMHEADERS, False)
-	#r = requests.post(uri_inf_id, data=BASIC_RADL, headers=IMHEADERS, verify=False)
 
 	if r.statuscode == 200:
 		ret = ResponseIM(r.statuscode,'Creation of VM is OK')
@@ -157,12 +147,9 @@ def create_vm(IMHEADERS,uri_inf_id):
 
 
 def delete_infrastructure(IMHEADERS,uri_inf_id):
-	# eliminar infraestructura
-	#print "inside delete_infrastructure..."
+
 	time.sleep(3)
 	r = requestIM('DELETE', uri_inf_id, {}, IMHEADERS, False)
-	#r = requests.delete(uri_inf_id, headers=IMHEADERS, verify=False)
-	#print r.info
 
 	if r.statuscode == 200:
 		ret = ResponseIM(r.statuscode,'delete_infrastructure is OK')
