@@ -16,39 +16,46 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 from loadconfigs import Datacodejson
-from loadconfigs import LoadZabbixConfig
-from loadconfigs import LoadIMConfig
+from loadconfigs import LoadIMZabbixConfig
+
 
 #global
 monitorItems = {}
 
-def log_setup():
+def log_setup(loglevel):
 	log_handler = RotatingFileHandler(
 		'./log/probeim.log',
 		maxBytes=1048576,
 		backupCount=5)
-	formatter = logging.Formatter('%(asctime)s - %(levelname)s: %(message)s','%b %d %H:%M:%S')
+
+	formatter = logging.Formatter('%(asctime)s - %(levelname)s: %(message)s -- %(filename)s::%(funcName)s line 	%(lineno)d','%b %d %H:%M:%S')
 	formatter.converter = time.gmtime
 	log_handler.setFormatter(formatter)
 	logger = logging.getLogger()
 	logger.addHandler(log_handler)
-	logger.setLevel(logging.WARNING)
-	#logger.setLevel(logging.INFO)
+
+	if loglevel == 'ERROR':
+		lvl = 40
+	elif loglevel == 'WARNING':
+		lvl = 30
+	elif loglevel == 'INFO':
+		lvl = 20
+	elif loglevel == 'DEBUG':
+		lvl = 10
+	else:
+		lvl = 30
+
+	logger.setLevel(lvl)
 
 
 def main(TOKEN,IMHEADERS):
 
-	# load conf
-	zconf = LoadZabbixConfig()
-	global AGENT_DELAY
-	AGENT_DELAY = int(zconf.AGENT_DELAY)
+	# local
+	monitorItemsDict = {}
 
 	global GLOBAL_ACCESS_TOKEN
 	global GLOBAL_TOKEN
 	global GLOBAL_IMHEADERS
-
-	# local
-	monitorItemsDict = {}
 
 	monitorItemsDict['create_inf']= 0
 	monitorItemsDict['start_inf']= 0
@@ -63,24 +70,24 @@ def main(TOKEN,IMHEADERS):
 	url_infr = ci.info
 
 	if ci.statuscode == 401:
-	    # refresh token
-	    monitorItemsDict['num_error']= ci.statuscode
-	    monitorItemsDict['msg_error']= str(ci.info)
-	    logging.info("Need token refresh")
-	    newtoken = tokenmng.get_newtoken(CLIENT_ID,IMinfrastructureOper.URL_REFRESH,TOKEN,extra)
-	    GLOBAL_ACCESS_TOKEN = newtoken.token['access_token']
-	    GLOBAL_TOKEN = tokenmng.update_tokenjson(GLOBAL_ACCESS_TOKEN,REFRESH_TOKEN)
-	    GLOBAL_IMHEADERS = tokenmng.update_imheaders(GLOBAL_ACCESS_TOKEN)
+		# refresh token
+		monitorItemsDict['num_error']= ci.statuscode
+		monitorItemsDict['msg_error']= str(ci.info)
+		logging.info("Need token refresh")
+		newtoken = tokenmng.get_newtoken(CLIENT_ID,IMinfrastructureOper.URL_REFRESH,TOKEN,extra)
+		GLOBAL_ACCESS_TOKEN = newtoken.token['access_token']
+		GLOBAL_TOKEN = tokenmng.update_tokenjson(GLOBAL_ACCESS_TOKEN,REFRESH_TOKEN)
+		GLOBAL_IMHEADERS = tokenmng.update_imheaders(GLOBAL_ACCESS_TOKEN)
 
 	elif ci.statuscode == 111:
-	    logging.error(str(ci.info))
+	    logging.error("Could NOT start CREATION INFRASTRUCTURE process: " +str(ci.info))
 	    monitorItemsDict['num_error']= ci.statuscode
 	    monitorItemsDict['msg_error']= str(ci.info)
 	    return monitorItemsDict
 
 	elif ci.statuscode == 200:
 	    monitorItemsDict['create_inf'] = 1
-	    # START INFRASTRUCTURE
+	    # START INFRASTRUCTUREWARNING
 	    si = IMinfrastructureOper.start_infrastructure(IMHEADERS,url_infr)
 
 	    if si.statuscode == 200:
@@ -103,27 +110,26 @@ def main(TOKEN,IMHEADERS):
 
 	                if di.statuscode == 200:
 	                    monitorItemsDict['delete_inf'] = 1
-	                    logging.info("Todo el proceso se ha completado satisfactoriamente")
+	                    logging.info("All operations have been completed successfully.")
 	                else:
-	                    logging.error("No se pudo borrar infraestructura")
+	                    logging.error("Infrastructure could NOT be DELETED")
 	                    monitorItemsDict['num_error']= di.statuscode
 	                    monitorItemsDict['msg_error']= str(di.info)
 	            else:
-	                logging.error("No se pudo crear VM")
+	                logging.error("VM could NOT be CREATED")
 	                monitorItemsDict['num_error']= cv.statuscode
 	                monitorItemsDict['msg_error']= str(cv.info)
 	        else:
-	            logging.error( "No se pudo listar infraestructura")
+	            logging.error( "Infrastructure could NOT be LISTED")
 	            monitorItemsDict['num_error']= li.statuscode
 	            monitorItemsDict['msg_error']= str(li.info)
 	    else:
-	        logging.error("No se pudo iniciar infraestructura")
+	        logging.error("Infrastructure could NOT be STARTED")
 	        monitorItemsDict['num_error']= si.statuscode
-	        monitorItemsDict['msg_error']= str(cs.info)
+	        monitorItemsDict['msg_error']= str(si.info)
 	else:
-	    logging.error("no se pudo crear infraestructura")
+	    logging.error("Infrastructure could NOT be CREATED")
 
-	#print "end main"
 	return monitorItemsDict
 
 
@@ -131,7 +137,16 @@ def main(TOKEN,IMHEADERS):
 
 if __name__ == '__main__':
 
-	log_setup()
+	# load conf
+	zconf = LoadIMZabbixConfig()
+	global AGENT_DELAY
+	AGENT_DELAY = int(zconf.AGENT_DELAY)
+
+	global LOGLEVEL
+	LOGLEVEL = zconf.LOGLEVEL
+	log_setup(LOGLEVEL)
+
+	logging.info("Initializing --------------")
 
 	# Parse input arguments
 	parser = argparse.ArgumentParser(description='Monitorize IM operations.')
@@ -151,11 +166,6 @@ if __name__ == '__main__':
 	GLOBAL_ACCESS_TOKEN = json_globals["GLOBAL_ACCESS_TOKEN"]
 	REFRESH_TOKEN = json_globals["REFRESH_TOKEN"]
 
-	# print"CLIENT_ID: ",CLIENT_ID
-	# print"CLIENT_SECRET: ",CLIENT_SECRET
-	# print"GLOBAL_ACCESS_TOKEN: ",GLOBAL_ACCESS_TOKEN
-	# print"REFRESH_TOKEN: ",REFRESH_TOKEN
-
 	extra = {
 	    'client_id': CLIENT_ID,
 	    'client_secret': CLIENT_SECRET,
@@ -167,8 +177,9 @@ if __name__ == '__main__':
 	stepin = True;
 
 	while stepin:
-	    monitorItems = main(GLOBAL_TOKEN,GLOBAL_IMHEADERS)
-	    zabbix.send_data_zabbix(monitorItems)
+		monitorItems = {}
+		monitorItems = main(GLOBAL_TOKEN,GLOBAL_IMHEADERS)
+		zabbix.send_data_zabbix(monitorItems)
 		time.sleep(AGENT_DELAY)
 
 print "bye!"
