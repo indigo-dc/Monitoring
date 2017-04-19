@@ -3,10 +3,11 @@ import time
 import sys
 import requests
 from requests.exceptions import ConnectionError
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 from requests_oauthlib import OAuth2Session, TokenUpdated
 
 import logging
-# from logging.handlers import RotatingFileHandler
 
 
 def get_newtoken(client_id,urlref,token,refresh_header):
@@ -20,13 +21,33 @@ def get_newtoken(client_id,urlref,token,refresh_header):
         auto_refresh_kwargs=refresh_header)
 
         r = session.get(urlref)
-        logging.info(str(r))
+
     except TokenUpdated as e:
         logging.info("TokenUpdated exception")
         return e
 
+def get_authorization_header_from_file(filename):
+    tmpfile = open(filename,'r')
+    vtxt = tmpfile.readlines()
+    tmpfile.close()
+    return vtxt
+
 def update_imheaders(tokenstring):
-    authoriz = "id = os; type = OpenNebula; host = http://onecloud.i3m.upv.es:2633; token = "+tokenstring+"\\n id = im; type = InfrastructureManager; token = " + tokenstring + " ;"
+
+    vlines = get_authorization_header_from_file('./conf/authorizationHeader.txt')
+    authoriz = ''
+    i=0;
+
+    for line in vlines:
+        i+=1
+        line = line.rstrip()
+        authoriz += line + " token = " + tokenstring
+
+        if len(vlines) > i:
+            authoriz +="\\n  "
+
+    authoriz +=" ;"
+    #authoriz = "id = os; type = OpenNebula; host = http://onecloud.i3m.upv.es:2633;"+" token = " + tokenstring + "\\n "+ " id = im; type = InfrastructureManager;"+" token = " + tokenstring + " ;"
 
     UPD_HEADERS = {
         "Content-Type" : "text/plain",
@@ -56,10 +77,10 @@ def gettokeninfo_from_file(token_file):
         filehandler.close()
         return filecont
     except IOError as e:
-        print "I/O error({0}): {1}".format(e.errno, e.strerror)
+        logging.error("I/O error({0}): {1}".format(e.errno, e.strerror))
         sys.exit()
     except:
-        print "Unexpected error:", sys.exc_info()[0]
+        logging.error("Unexpected error:", sys.exc_info()[0])
         raise
         return None
 
