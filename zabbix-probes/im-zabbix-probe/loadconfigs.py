@@ -23,66 +23,65 @@ class Datacodejson:
 		self.jsondata = jsondata
 
 
-class LoadZabbixConfig(ConfigParser):
+class LoadIMZabbixConfig(ConfigParser):
     def __init__(self):
 
-        zabbixcfg = ConfigParser()
-        zabbixcfg.read(["conf/zabbix.cfg"])
+        imzabbixcfg = ConfigParser()
+        imzabbixcfg.read(["conf/imzabbix.conf"])
 
-        if zabbixcfg.has_option("connection","uri"):
-        	self.ZABBIX_URI = zabbixcfg.get("connection","uri")
+        if imzabbixcfg.has_option("zabbix","uri"):
+        	self.ZABBIX_URI = imzabbixcfg.get("zabbix","uri")
         else:
-        	logging.error( "There is no uri option into connection section.")
+        	logging.error( "There is no uri option into zabbix section.")
 
-        if zabbixcfg.has_option("connection","server_add"):
-        	self.ZABBIX_SERVER = zabbixcfg.get("connection","server_add")
+        if imzabbixcfg.has_option("zabbix","server_add"):
+        	self.ZABBIX_SERVER = imzabbixcfg.get("zabbix","server_add")
         else:
-        	logging.error( "There is no server_add option into connection section.")
+        	logging.error( "There is no server_add option into zabbix section.")
 
-        if zabbixcfg.has_option("connection","username"):
-        	if zabbixcfg.has_option("connection","password"):
-        		self.ZABBIX_USER = zabbixcfg.get("connection","username")
-        		self.ZABBIX_PASSWORD = zabbixcfg.get("connection","password")
+        if imzabbixcfg.has_option("zabbix","username"):
+        	if imzabbixcfg.has_option("zabbix","password"):
+        		self.ZABBIX_USER = imzabbixcfg.get("zabbix","username")
+        		self.ZABBIX_PASSWORD = imzabbixcfg.get("zabbix","password")
         	else:
-        		logging.error("There is no password option into connection section.")
+        		logging.error("There is no password option into zabbix section.")
         else:
-        	logging.error( "There is no username option into connection section.")
+        	logging.error( "There is no username option into zabbix section.")
 
-        if zabbixcfg.has_option("hosts","template"):
-        	self.ZABBIX_TEMPLATE = zabbixcfg.get("hosts","template")
+        if imzabbixcfg.has_option("zabbix","template"):
+        	self.ZABBIX_TEMPLATE = imzabbixcfg.get("zabbix","template")
         else:
-        	logging.error( "There is no template option into hosts section.")
+        	logging.error( "There is no template option into zabbix section.")
 
-        if zabbixcfg.has_option("hosts","monitoredhost"):
-        	self.ZABBIX_MONITORED_HOST = zabbixcfg.get("hosts","monitoredhost")
+        if imzabbixcfg.has_option("zabbix","monitoredhost"):
+        	self.ZABBIX_MONITORED_HOST = imzabbixcfg.get("zabbix","monitoredhost")
         else:
-        	logging.error( "There is no monitoredhost option into hosts section.")
+        	logging.error( "There is no monitoredhost option into zabbix section.")
 
-        if zabbixcfg.has_option("connection","agent_delay"):
-        	self.AGENT_DELAY = zabbixcfg.get("connection","agent_delay")
+        if imzabbixcfg.has_option("zabbix","agent_delay"):
+        	self.AGENT_DELAY = imzabbixcfg.get("zabbix","agent_delay")
         else:
         	self.AGENT_DELAY = 300
 
-        self.ZABBIX_HEADERS = {'content-type': 'application/json-rpc'}
-
-
-class LoadIMConfig(ConfigParser):
-
-    def __init__(self):
-        imcfg = ConfigParser()
-        imcfg.read(["conf/auth.cfg"])
-
-        if imcfg.has_option("im","radl"):
-        	self.IM_RADL = imcfg.get("im","radl")
+        if imzabbixcfg.has_option("im","radl"):
+        	self.IM_RADL = imzabbixcfg.get("im","radl")
         else:
         	logging.error( "There is no radl option into im section.")
 
-        if imcfg.has_option("im","urlbase"):
-        	self.IM_URLBASE = imcfg.get("im","urlbase")
+        if imzabbixcfg.has_option("im","urlbase"):
+        	self.IM_URLBASE = imzabbixcfg.get("im","urlbase")
         else:
         	logging.error( "There is no urlbase option into im section.")
 
-        if imcfg.has_option("iam","urlrefresh"):
-        	self.AUTH_URLREFRESH = imcfg.get("iam","urlrefresh")
+        if imzabbixcfg.has_option("iam","urlrefresh"):
+        	self.AUTH_URLREFRESH = imzabbixcfg.get("iam","urlrefresh")
         else:
-        	logging.error( "There is no urlrefresh option into auth section.")
+        	logging.error( "There is no urlrefresh option into iam section.")
+
+        if imzabbixcfg.has_option("log","loglevel"):
+        	self.LOGLEVEL = imzabbixcfg.get("log","loglevel")
+        else:
+        	logging.error( "There is no loglevel option into log section.")
+
+
+        self.ZABBIX_HEADERS = {'content-type': 'application/json-rpc'}
