@@ -10,3 +10,4 @@
 * [Deployment and Administration guide](doc/admin.md)
 * [User guide](doc/user.md)
 * [Probe development guide](doc/probe_development.md)
+* [IM probe](zabbix-probes/im-zabbix-probe/doc/im-zabbix-agent.md)
