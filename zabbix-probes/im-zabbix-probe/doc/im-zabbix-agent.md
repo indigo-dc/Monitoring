@@ -23,58 +23,61 @@ File loadconfigs.py contains classes that help to bring configuration data to th
 
 
 In zabbix section:	
-Uri	the api url to make requests
-Username	the zabbix username used for authentication in order to get a token
-Password	the zabbix password used for authentication
-server_add	IP address where zabbix server is running
-agent_delay	Time in seconds for each loop that catches data
-Template	the name of template used for IM measurements
-monitoredhost	the hostname of the monitored host
+|Uri|	the api url to make requests|
+|Username|	the zabbix username used for authentication in order to get a token|
+|Password|	the zabbix password used for authentication|
+|server_add|	IP address where zabbix server is running|
+|agent_delay|	Time in seconds for each loop that catches data|
+|Template|	the name of template used for IM measurements|
+|monitoredhost|	the hostname of the monitored host|
 
 In im section	
-Urlbase	the IM api url to make requests
-Radl	the radl configuration for IM to create a VM.
+|Urlbase	|the IM api url to make requests|
+|Radl|	the radl configuration for IM to create a VM.|
 
 In iam section	
-urlrefresh	the api url to request a new token from a refresh token
+|urlrefresh	|the api url to request a new token from a refresh token|
 
 In log section	
-Loglevel	the severity of logs. This can take the following values: ERROR, WARNING, INFO, DEBUG
-Default values is WARNING. 
+|Loglevel|	the severity of logs. This can take the following values: ERROR, WARNING, INFO, DEBUG
+Default values is WARNING. |
 
 
-•	authorizationHeader.txt
- 
-id = os; type = OpenNebula; host = http://onecloud.i3m.upv.es:2633;
-id = im; type = InfrastructureManager;
+* authorizationHeader.txt
+
+Example from /conf [here](https://github.com/indigo-dc/Monitoring/blob/master/zabbix-probes/im-zabbix-probe/conf/authorizationHeader.txt)
 
 
 ## 1.4	DATA SOURCES
 
-METHOD /URL 	Items
-GET /infrastructures	List_inf
-POST /infrastructures	Create_inf
-PUT /infrastructures/<infId>/start	Start_inf
-POST /infrastructures/<infId>
-body:	RADL document	Create_vm
-DELETE /infrastructures/<infId	Delete_inf
+
+| METHOD /URL| Items|
+| ------ | ------ |
+| GET /infrastructures| List_inf |
+| POST /infrastructures| Create_inf |
+| PUT /infrastructures/<infId>/start | Start_inf |
+| POST /infrastructures/<infId>
+ body:	RADL document | Create_vm |
+| DELETE /infrastructures/<infId|Delete_inf |
+
 
 To connect to IM an appropriated header must be set.
+|
 HEADERS = {
         "Content-Type" : "text/plain",
         "Accept": "application/json",
         "Authorization" : authoriz
     }
+|
 
-Where the authoriz field comes from authorizationHeader.txt file:
- authoriz = "id = os; type = OpenNebula; host = http://onecloud.i3m.upv.es:2633; token = "+tokenstring+"\\n id = im; type = InfrastructureManager; token = " + tokenstring + " ;"
+Where the authoriz field comes from [authorizationHeader.txt](https://github.com/indigo-dc/Monitoring/blob/master/zabbix-probes/im-zabbix-probe/conf/authorizationHeader.txt) file.
 
-And tokenstring is a valid token given by IAM.
 
 ## 1.5	EXECUTING THE AGENT
 The main script is probeim.py and this needs (mandatory) a client id ('-i','--client_id), the client secret ('-s','--client_secret),  a token ('-t','--token) and a refresh token ('-r','--token_refresh), given by the IAM for authentication purposes.  
-
+|
  python probeim.py -i $CLIENT_ID -s $CLIENT_SECRET -t $TOKEN -r $REFRESH
+|
 
 ## 1.6	DOCKER CONTAINER
 
