@@ -28,28 +28,33 @@ File [loadconfigs.py] contains classes that help to bring configuration data to 
 Example from /conf [here](https://github.com/indigo-dc/Monitoring/blob/master/zabbix-probes/im-zabbix-probe/conf/imzabbix.conf)
 
 In zabbix section:	
-| Section | zabbix |
+
+
+| Section| zabbix|
 | ------ | ------ |
-| Uri |	the api url to make requests |
-| Username |	the zabbix username used for authentication in order to get a token |
-| Password |	the zabbix password used for authentication |
-| server_add |	IP address where zabbix server is running |
-| agent_delay |	Time in seconds for each loop that catches data |
-| Template |	the name of template used for IM measurements |
-| monitoredhost |	the hostname of the monitored host |
+| Uri | the api url to make requests |
+| Username| the zabbix username used for authentication in order to get a token |
+| Password | the zabbix password used for authentication |
+| server_add | IP address where zabbix server is running |
+| agent_delay| Time in seconds for each loop that catches data |
+| Template | the name of template used for IM measurements |
+| monitoredhost | the hostname of the monitored host |
 
 In im section	
+
 | Section | im |
 | ------ | ------ |
 | Urlbase	| the IM api url to make requests |
 | Radl |	the radl configuration for IM to create a VM. |
 
 In iam section	
+
 | Section | iam |
 | ------ | ------ |
 | urlrefresh	| the api url to request a new token from a refresh token|
 
 In log section	
+
 | Section | log |
 | ------ | ------ |
 | Loglevel |	the severity of logs. This can take the following values: ERROR, WARNING, INFO, DEBUG
