@@ -15,19 +15,17 @@ The agent is composed by a principal python script named probeim.py, four suppor
 
 ### 3.1	SCRIPTS
 
-File [probeim.py] is the executable script that gathers all measured data and sends it to zabbix. 
-File [zabbix.py] contains functionalities related to interaction with zabbix API. Here we can authenticate against zabbix obtaining a valid token; get a list of all monitored items; create items; get template and item identifiers. 
-File [IMinfrastructureOper.py] contains functionalities related to interaction with IM environment through its API. Here we can throw actions like creating infrastructure, listing infrastructure, creating VM, deleting infrastructure, and get the status of each of these actions. 
-File [tokenmng.py] has functions that connect with IAM to request a token from a refresh token, so client remains authenticated to be able to launch operations over IM. 
-File [loadconfigs.py] contains classes that help to bring configuration data to the agent and are used to connect to Zabbix, IAM and IM.
+* File [probeim.py](https://github.com/indigo-dc/Monitoring/blob/master/zabbix-probes/im-zabbix-probe/probeim.py) is the executable script that gathers all measured data and sends it to zabbix. 
+* File [zabbix.py](https://github.com/indigo-dc/Monitoring/blob/master/zabbix-probes/im-zabbix-probe/zabbix.py) contains functionalities related to interaction with zabbix API. Here we can authenticate against zabbix obtaining a valid token; get a list of all monitored items; create items; get template and item identifiers. 
+* File [IMinfrastructureOper.py](https://github.com/indigo-dc/Monitoring/blob/master/zabbix-probes/im-zabbix-probe/IMinfrastructureOper.py) contains functionalities related to interaction with IM environment through its API. Here we can throw actions like creating infrastructure, listing infrastructure, creating VM, deleting infrastructure, and get the status of each of these actions. 
+* File [tokenmng.py](https://github.com/indigo-dc/Monitoring/blob/master/zabbix-probes/im-zabbix-probe/tokenmng.py) has functions that connect with IAM to request a token from a refresh token, so client remains authenticated to be able to launch operations over IM. 
+* File [loadconfigs.py](https://github.com/indigo-dc/Monitoring/blob/master/zabbix-probes/im-zabbix-probe/loadconfigs.py) contains classes that help to bring configuration data to the agent and are used to connect to Zabbix, IAM and IM.
 
 ### 3.2	CONFIGURATION
 
 * imzabbix.conf
 
 Example from /conf [here](https://github.com/indigo-dc/Monitoring/blob/master/zabbix-probes/im-zabbix-probe/conf/imzabbix.conf)
-
-In zabbix section:	
 
 
 | Section| zabbix|
@@ -40,20 +38,17 @@ In zabbix section:
 | Template | the name of template used for IM measurements |
 | monitoredhost | the hostname of the monitored host |
 
-In im section	
 
 | Section | im |
 | ------ | ------ |
 | Urlbase	| the IM api url to make requests |
 | Radl |	the radl configuration for IM to create a VM. |
 
-In iam section	
 
 | Section | iam |
 | ------ | ------ |
 | urlrefresh	| the api url to request a new token from a refresh token|
 
-In log section	
 
 | Section | log |
 | ------ | ------ |
