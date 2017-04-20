@@ -13,6 +13,17 @@ The monitorization agent is a client-side software, that connects with IM to cap
 
 The agent is composed by a principal python script named probeim.py, four support libraries named loadconfigs.py, tokenmng.py, IMinfrastructureOper.py and zabbix.py and a directory conf with two configuration files, imzabbix.conf and authorizationHeader.txt.
 
+```sh
+├── conf
+│   ├── imzabbix.conf
+│   └── authorizationHeader.txt
+├── loadconfigs.py
+├── probeim.py
+├── IMinfrastructureOper.py
+├── tokenmng.py
+└── zabbix.py
+```
+
 ### 3.1	SCRIPTS
 
 * File [probeim.py](https://github.com/indigo-dc/Monitoring/blob/master/zabbix-probes/im-zabbix-probe/probeim.py) is the executable script that gathers all measured data and sends it to zabbix. 
@@ -30,19 +41,19 @@ Example from /conf [here](https://github.com/indigo-dc/Monitoring/blob/master/za
 
 | Section| zabbix|
 | ------ | ------ |
-| Uri | the api url to make requests |
-| Username| the zabbix username used for authentication in order to get a token |
-| Password | the zabbix password used for authentication |
+| uri | the api url to make requests |
+| username| the zabbix username used for authentication in order to get a token |
+| password | the zabbix password used for authentication |
 | server_add | IP address where zabbix server is running |
 | agent_delay| Time in seconds for each loop that catches data |
-| Template | the name of template used for IM measurements |
+| template | the name of template used for IM measurements |
 | monitoredhost | the hostname of the monitored host |
 
 
 | Section | im |
 | ------ | ------ |
-| Urlbase	| the IM api url to make requests |
-| Radl |	the radl configuration for IM to create a VM. |
+| urlbase	| the IM api url to make requests |
+| radl |	the radl configuration for IM to create a VM. |
 
 
 | Section | iam |
@@ -52,7 +63,7 @@ Example from /conf [here](https://github.com/indigo-dc/Monitoring/blob/master/za
 
 | Section | log |
 | ------ | ------ |
-| Loglevel |	the severity of logs. This can take the following values: ERROR, WARNING, INFO, DEBUG
+| loglevel |	the severity of logs. This can take the following values: ERROR, WARNING, INFO, DEBUG
 Default values is WARNING. |
 
 * authorizationHeader.txt
