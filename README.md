@@ -93,5 +93,6 @@ The first release of the Monitoring Framework provides three probes for monitori
 * [A Heapster probe, which retrieves information about the containers and pods running in a Kubernetes cluster;](doc/heapster.md)
 * [A Mesos cluster probe which will check the status and working conditions of the general Mesos cluster as well as the health status of the Chronos and Marathon instances.](doc/mesos.md)
 * [A Openstack probe, which checks whether the Openstack API exposed by an Infrastructure Provider works as expected;](doc/OPENSTACK.md)
+* [A IM (Infrastructure Manager) probe, which check that platform is working well by requesting for simple operations and getting the expected response.](zabbix-probes/im-zabbix-probe/doc/im-zabbix-agent.md)
 
 The documentation for installation, configuration and running of each probe is described in their own page. To develop new probes, please see the [probe development guide](doc/probe_development.md).
