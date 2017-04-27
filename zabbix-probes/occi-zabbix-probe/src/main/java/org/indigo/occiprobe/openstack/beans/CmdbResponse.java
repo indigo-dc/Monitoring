@@ -1,5 +1,7 @@
 package org.indigo.occiprobe.openstack.beans;
 
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 /**
@@ -7,16 +9,17 @@ import java.util.List;
  */
 public class CmdbResponse<T> {
 
-  Integer total_rows;
+  @SerializedName("total_rows")
+  Integer totalRows;
   Integer offset;
   List<T> rows;
 
-  public Integer getTotal_rows() {
-    return total_rows;
+  public Integer getTotalRows() {
+    return totalRows;
   }
 
-  public void setTotal_rows(Integer total_rows) {
-    this.total_rows = total_rows;
+  public void setTotalRows(Integer totalRows) {
+    this.totalRows = totalRows;
   }
 
   public Integer getOffset() {

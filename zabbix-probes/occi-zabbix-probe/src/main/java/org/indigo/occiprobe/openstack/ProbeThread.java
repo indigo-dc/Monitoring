@@ -24,7 +24,6 @@ import com.indigo.zabbix.utils.IamClient;
 import com.indigo.zabbix.utils.PropertiesManager;
 
 import io.github.hengyunabc.zabbix.sender.SenderResult;
-import io.github.hengyunabc.zabbix.sender.ZabbixSender;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,8 +33,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * This class aims at implementing the management of the threads to be used for 
@@ -49,7 +46,6 @@ public class ProbeThread {
   private static final Log logger = LogFactory.getLog(ProbeThread.class);
 
   // A handle to the unique Singleton instance.
-  private final ScheduledExecutorService scheduler;
   private static ProbeThread _instance = null;
   private long interval = 200;
   private long initialDelay = 10;
@@ -58,16 +54,10 @@ public class ProbeThread {
   private CmdbClient myClient;
   
   private ProbeThread() {
-    // Build element for thread and tasks scheduling
-    scheduler = Executors.newScheduledThreadPool(numThreads);
     myClient = new CmdbClient();
-    //mySender = ZabbixSender.instance();
   }
   
-  private ProbeThread(ScheduledExecutorService mock, ZabbixSender senderMock, CmdbClient cmdbMock) {
-    // Build element for thread and tasks scheduling
-    scheduler = mock;
-    //mySender = senderMock;
+  private ProbeThread(CmdbClient cmdbMock) {
     myClient = cmdbMock;
   }
   
@@ -90,9 +80,8 @@ public class ProbeThread {
    * unit testing purposes.
    * @return The current single instance of the ProbeThread 
    */
-  public static synchronized ProbeThread instance(ScheduledExecutorService mock,
-      ZabbixSender senderMock, CmdbClient cmdbMock) {
-    _instance = new ProbeThread(mock, senderMock, cmdbMock);
+  public static synchronized ProbeThread instance(CmdbClient cmdbMock) {
+    _instance = new ProbeThread(cmdbMock);
     System.out.println("A new instance of the testing Monitoring Probe thread was created!");
     
     return _instance;
@@ -130,7 +119,7 @@ public class ProbeThread {
         if (result.success()) {
           System.out.println("Successfully sent metrics for host " + providerId);
         } else {
-          System.out.println("Error sending metrics for host "+ providerId);
+          System.out.println("Error sending metrics for host " + providerId);
         }
       } catch (Exception e) {
         System.out.println("Error while getting OCCI metrics from provider");
@@ -145,42 +134,5 @@ public class ProbeThread {
     System.out.println("OCCI Monitoring Probe finished!");
   }
   
-  /**
-   * Stops and cleans all the required elements once the monitoring operations
-   * are finished.
-   */
-  public void stopThread() {
-    System.out.println("Destroying the monitoring thread...");
-    scheduler.shutdownNow();
-  }
-  
-  /**
-   * Typical main method for testing.
-   * @param args Typical args
-   */
-  public static void main(String[] args) {
-    // Retrieve input arguments
-     
-    // Start the monitoring process
-    try {
-      PropertiesManager.loadProperties("occiprobe.properties");
 
-      OAuthJSONAccessTokenResponse response = IamClient.getAccessToken();
-
-      String accessToken = response.getAccessToken();
-
-      /*MonitoringThread thread = new MonitoringThread(accessToken, "cloud.ifca.es",
-          "https://cloud.ifca.es:8787/occi1.1/", "https://keystone.ifca.es:5000/");*/
-
-      MonitoringThread thread = new MonitoringThread(accessToken, "nimbus.ngc.ingrid.pt",
-          "https://nimbus.ncg.ingrid.pt:8787/occi1.2", "https://nimbus.ncg.ingrid.pt:5000");
-
-      SenderResult results = thread.run();
-
-
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-
-  }
 }

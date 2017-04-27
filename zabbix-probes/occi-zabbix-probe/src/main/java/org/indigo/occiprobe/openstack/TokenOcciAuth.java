@@ -1,9 +1,9 @@
 package org.indigo.occiprobe.openstack;
 
-import org.apache.http.message.BasicHeader;
-
 import cz.cesnet.cloud.occi.api.http.HTTPConnection;
 import cz.cesnet.cloud.occi.api.http.auth.NoAuthentication;
+
+import org.apache.http.message.BasicHeader;
 
 /**
  * Created by jose on 4/04/17.

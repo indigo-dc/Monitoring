@@ -1,19 +1,22 @@
 package org.indigo.occiprobe.openstack.beans;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Created by jose on 8/02/17.
  */
 public class ProviderInfo {
 
-  String provider_id;
+  @SerializedName("provider_id")
+  String providerId;
   String type;
 
-  public String getProvider_id() {
-    return provider_id;
+  public String getProviderId() {
+    return providerId;
   }
 
-  public void setProvider_id(String provider_id) {
-    this.provider_id = provider_id;
+  public void setProviderId(String providerId) {
+    this.providerId = providerId;
   }
 
   public String getType() {

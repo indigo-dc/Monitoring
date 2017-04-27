@@ -106,7 +106,10 @@ public class OcciProbeResult {
     return globalResponseTime;
   }
 
-
+  /**
+   * Get a map of zabbix metrics from the object information
+   * @return A map of global zabbix metrics.
+   */
   public Map<String, String> getMetrics() {
 
     Map<String, String> values = new HashMap<>();

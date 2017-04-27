@@ -26,14 +26,6 @@ import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.ZabbixMetrics;
 import com.indigo.zabbix.utils.beans.AppOperation;
 
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
-
 import cz.cesnet.cloud.occi.Model;
 import cz.cesnet.cloud.occi.api.EntityBuilder;
 import cz.cesnet.cloud.occi.api.exception.CommunicationException;
@@ -42,6 +34,16 @@ import cz.cesnet.cloud.occi.api.http.HTTPClient;
 import cz.cesnet.cloud.occi.core.Entity;
 import cz.cesnet.cloud.occi.core.Mixin;
 import cz.cesnet.cloud.occi.core.Resource;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+
+
 
 /**
  * It takes care of the interactions to be performed with Cloud Providers whose base platform

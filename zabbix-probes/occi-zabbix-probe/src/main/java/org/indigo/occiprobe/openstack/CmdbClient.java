@@ -35,8 +35,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.client.Client;
-
 /**
  * The CmdbClient class is in charge of the interactions between the probe and
  * the CMDB component. Such component provides information about the available
@@ -67,8 +65,8 @@ public class CmdbClient {
    * This is a constructor for unit testing purposes.
    * @param mock Mock of the Jersey Client class
    */
-  public CmdbClient(Client mock) {
-    //client = mock;
+  public CmdbClient(CmdbFeignClient mock) {
+    this.cmdbClient = mock;
   }
   
   /**
@@ -140,6 +138,10 @@ public class CmdbClient {
     return myProvider;
   }
 
+  /**
+   * Get a list of OCCI providers.
+   * @return List of providers with and OCCI endpoint.
+   */
   public List<CloudProviderInfo> getFeasibleProvidersInfo() {
 
     CmdbResponse response = cmdbClient.services();
@@ -152,10 +154,13 @@ public class CmdbClient {
           // First filter only services which are of type OpenStack
           .filter(service ->
          service.getDoc() != null && service.getDoc().getData() != null
-            && OPENSTACK_TYPE.equals(service.getDoc().getData().getService_type()))
+            && OPENSTACK_TYPE.equals(service.getDoc().getData().getServiceType()))
 
           // For any of such services, get the full information of the associated provider
-          .map(service -> getProviderData(service.getDoc().getData().getProvider_id()))
+          .map(service -> getProviderData(service.getDoc().getData().getProviderId()))
+
+          // Get only the ones with OCCI information
+          .filter(serviceInfo -> serviceInfo.getOcciEndpoint() != null)
 
           // Collect results
           .collect(Collectors.toList());

@@ -1,21 +1,25 @@
 package org.indigo.occiprobe.openstack.beans;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Created by jose on 8/02/17.
  */
 public class DocDataType {
 
-  String service_type;
+  @SerializedName("service_type")
+  String serviceType;
   String endpoint;
-  String provider_id;
+  @SerializedName("provider_id")
+  String providerId;
   String type;
 
-  public String getService_type() {
-    return service_type;
+  public String getServiceType() {
+    return serviceType;
   }
 
-  public void setService_type(String service_type) {
-    this.service_type = service_type;
+  public void setServiceType(String serviceType) {
+    this.serviceType = serviceType;
   }
 
   public String getEndpoint() {
@@ -26,12 +30,12 @@ public class DocDataType {
     this.endpoint = endpoint;
   }
 
-  public String getProvider_id() {
-    return provider_id;
+  public String getProviderId() {
+    return providerId;
   }
 
-  public void setProvider_id(String provider_id) {
-    this.provider_id = provider_id;
+  public void setProviderId(String providerId) {
+    this.providerId = providerId;
   }
 
   public String getType() {
