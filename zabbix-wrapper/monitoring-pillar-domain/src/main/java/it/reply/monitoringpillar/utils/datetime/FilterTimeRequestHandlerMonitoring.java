@@ -169,7 +169,7 @@ public class FilterTimeRequestHandlerMonitoring {
       throws IllegalArgumentException {
     Long dateFromEncoded = null;
     Long dateToEncoded = null;
-
+    
     if ((requestTime.getDateFrom() == null || requestTime.getDateTo() == null)
         && (requestTime.getFrom() != null || requestTime.getTo() != null)) {
       dateFromEncoded = requestTime.getFrom();
@@ -195,7 +195,7 @@ public class FilterTimeRequestHandlerMonitoring {
     } else if (dateFromEncoded < ninetyDays) {
       throw new IllegalArgumentException("No history available for the set time");
     } else {
-      throw new IllegalArgumentException("Wrong date format");
+      throw new IllegalArgumentException("Wrong date format: not acccepted dateFrom");
     }
   }
 

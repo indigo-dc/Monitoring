@@ -9,8 +9,9 @@ The Monitoring Framework is divided in several main parts:
 
 This repository contains the supporting scripts for the Zabbix server (in order to perform automatic backups of the Zabbix database and configuration), the wrapper to be deployed with Zabbix (as a way to facilitate integration) and the probes released in the first version: a probe for monitoring OCCI interfaces of Infrastructure Providers and a probe for monitoring the Kubernetes cluster where the Indigo platform is deployed (by means of the Heapster tool).
 
-1. Zabbix Wrapper
-=================
+
+1 Zabbix Wrapper
+================
 
 1.1 Main Features
 -----------------
@@ -80,16 +81,17 @@ docker logs -f `docker run -d --name=indigo-zabbix-wrapper -e ZABBIX_URL=http://
 1.4 Configuration
 ----------------- 
 The only configuration needed for the project is concerned with the parameters to be passed when launching docker run command as the following:
- 1. `ZABBIX_URL`: zabbix url in the format http://{domain-name}/api_jsonrpc.php
- 2. `ZABBIX_USERNAME`: Zabbix username
- 3. `ZABBIX_PASSWORD`: Zabbix password
+  1. `ZABBIX_URL`: zabbix url in the format http://{domain-name}/api_jsonrpc.php
+  2. `ZABBIX_USERNAME`: Zabbix username
+  3. `ZABBIX_PASSWORD`: Zabbix password
 
-2. Zabbix Probes
+2 Zabbix Probes
 ================
 
 The first release of the Monitoring Framework provides three probes for monitoring concrete aspects of the Indigo Platform:
 * [A OCCI probe, which checks whether the OCCI API exposed by an Infrastructure Provider works as expected;](doc/OCCI.md)
 * [A Heapster probe, which retrieves information about the containers and pods running in a Kubernetes cluster;](doc/heapster.md)
 * [A Mesos cluster probe which will check the status and working conditions of the general Mesos cluster as well as the health status of the Chronos and Marathon instances.](doc/mesos.md)
+* [A Openstack probe, which checks whether the Openstack API exposed by an Infrastructure Provider works as expected;](doc/OPENSTACK.md)
 
 The documentation for installation, configuration and running of each probe is described in their own page. To develop new probes, please see the [probe development guide](doc/probe_development.md).

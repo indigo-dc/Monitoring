@@ -1,0 +1,13 @@
+cloud-providers-zones:
+    #####################
+    #  INFN Bari
+    ######################
+  - name: provider-RECAS-BARI
+    password: "<pswd>"
+    username: "<usr>"
+    tenant: INDIGO_DEMO
+
+  - name: NCG-INGRID-PT
+    password: 
+    username: 
+    tenant: 
