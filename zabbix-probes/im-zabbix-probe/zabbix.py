@@ -45,6 +45,7 @@ def request_zabbix(json_request):
 
 
 def send_data(item,data):
+
     if len(str(data))<1:
         return None
     if len(item)<1:
@@ -64,8 +65,11 @@ def send_data(item,data):
 
     try:
         message = '<req>\n<host>' + host.encode('base64','strict') + '</host>\n<key>' + key.encode('base64','strict') + '</key>\n<data>' + data.encode('base64','strict') + '</data>\n</req>\n'
+        #print "host:"+host+" - key:"+key+" - data:"+str(data)
         sock.sendall(message)
         data = sock.recv(1024)
+        #print "Recibe:"+str(data)
+        #print >>sys.stderr, 'recibiendo "%s"' % data
     finally:
         sock.close()
 
@@ -245,6 +249,7 @@ def send_data_zabbix(monitorItemsDict):
 
         # Type of the item: 2 (Zabbix trapper)
         paramtype = 2
+        valtype = 4
 
         hostid = getHostId(ztoken,zconf.ZABBIX_MONITORED_HOST)
 
@@ -259,10 +264,6 @@ def send_data_zabbix(monitorItemsDict):
 
         # send data
         for singleitem,singledata in monitorItemsDict.items():
-            if singleitem in ['create_inf', 'start_inf', 'create_vm','delete_inf','list_inf']:
-                valtype = 3
-            else:
-                valtype = 4
 
             try:
                 itemid = listItemsZabbix[singleitem]
