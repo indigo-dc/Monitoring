@@ -1,0 +1,1 @@
+{"jsonrpc":"2.0","result":"ABCDEF0123456789","id":1}
