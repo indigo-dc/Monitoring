@@ -4,7 +4,7 @@ import sys
 import base64
 import ConfigParser
 import argparse
-import  zabbix
+import zabbix
 import onedata
 import time
 
@@ -50,11 +50,18 @@ def initializing():
 	args = parser.parse_args()
 
 	global token
+	global urlheader
 
 	if args.token == None:
-		token = zconf.TOKEN
+		try:
+			token = zconf.TOKEN
+		except AttributeError:
+			print "You can use -t or --token option. Eg: -t=$MY_ONEDATA_TOKEN or --token=$MY_ONEDATA_TOKEN"
+			sys.exit()
 	else:
 		token = args.token
+
+	urlheader = {"macaroon" : token }
 
 	if args.user == None:
 		try:
@@ -81,8 +88,6 @@ def initializing():
 
 def main():
 
-
-
 	if token is not None:
 
 		# obtain list of items stored into zabbix
@@ -104,12 +109,12 @@ def main():
 
 		# get list of onedata spaces
 		spac_list = []
-		spac_list = onedata.get_list_of_spaces()
+		spac_list = onedata.get_list_of_spaces(urlheader)
 
 		if spac_list is not None:
 			# gather data from onedata
 			for each_space in spac_list:
-			    Data = onedata.get_onedata_itemdata_by_space(each_space)
+			    Data = onedata.get_onedata_itemdata_by_space(each_space,urlheader)
 			    for singleitem in Data:
 			        valtype = int(onedata.itemValueType[singleitem])
 			        try:
