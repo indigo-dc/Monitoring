@@ -19,8 +19,6 @@ except ImportError:
 from loadconfigs import LoadOnedataZabbixConfig
 
 zconf = LoadOnedataZabbixConfig()
-LOGLEVEL = zconf.LOGLEVEL
-log_setup(LOGLEVEL)
 
 def request_zabbix(json_request):
 
