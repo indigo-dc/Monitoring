@@ -4,8 +4,8 @@ import time
 import socket
 import sys
 import base64
-import loadconfigs
-#from loadconfigs import LoadOnedataZabbixConfig
+#import loadconfigs
+from loadconfigs import LoadOnedataZabbixConfig,Datacodejson
 #from loadconfigs import Datacodejson
 
 import logging
@@ -65,11 +65,14 @@ def request_onedata(url):
 		try:
 			r_json = json.loads(r.text)
 		except ValueError:
-			logging.error("Unable to parse json: "+str(r.text))
+			logging.error("Unable to parse json. Url: "+url)
+			#print "Unable to parse json. Url: "+str(url)
+			ret = Datacodejson(111,'Unable to parse json')
+			return ret
 
 		if r.status_code == 200:
 			#print"Data: [%s]" %r.text
-			reqdata = r.text
+			#reqdata = r.text
 			ret = Datacodejson(r.status_code,r_json)
 			return ret
 		elif r.status_code == 401:
@@ -462,8 +465,8 @@ def get_onedata_itemdata_by_space(each_space):
 # ---------------------------------------------------------
 
 odconf = LoadOnedataZabbixConfig()
-LOGLEVEL = odconf.LOGLEVEL
-log_setup(LOGLEVEL)
+#LOGLEVEL = odconf.LOGLEVEL
+#log_setup(LOGLEVEL)
 
 HOST_PROVIDER = odconf.HOST_PROVIDER
 HOST_ZONE = odconf.HOST_ZONE
