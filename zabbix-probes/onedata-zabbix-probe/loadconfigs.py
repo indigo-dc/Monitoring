@@ -28,8 +28,6 @@ class LoadOnedataZabbixConfig(ConfigParser):
 				self.error = "There is no password option into zabbix section."
 		else:
 			self.error = "There is no username option into zabbix section."
-			print "noooooooo"
-
 
 		if config.has_option("zabbix","uri"):
 			self.ZABBIX_URI = config.get("zabbix","uri")
@@ -63,10 +61,9 @@ class LoadOnedataZabbixConfig(ConfigParser):
 
 		if config.has_option("onedata","token"):
 			self.TOKEN = config.get("onedata","token")
+            #self.urlheader = {"macaroon" : self.TOKEN }
 		else:
 			self.error = "There is no token option into onedata section."
-
-		self.urlheader = {"macaroon" : self.TOKEN }
 
 		if config.has_option("onedata","portZone"):
 			self.PORTONEZONE = config.get("onedata","portZone")
