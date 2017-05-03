@@ -25,4 +25,4 @@ WORKDIR /opt/onedata_zabbix_agent
 
 # Set the default command to execute when creating a new container
 # Run agent
-CMD python onedata_zabbix_agent.py
+CMD python onedata_zabbix_agent.py -u $ZABBIX_USER -p $ZABBIX_PASSWORD -t $TOKEN
