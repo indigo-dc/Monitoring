@@ -268,3 +268,4 @@ def get_zabbix_itemlist(token,template):
         logging.error( "No token.")
         return None
     return itemsInZabbix
+
