@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8" inherit-compiler-output="false">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
     <content url="file://$MODULE_DIR$">
@@ -12,6 +12,14 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="Maven: org.glassfish.jersey.core:jersey-client:2.22" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.jersey.core:jersey-common:2.22" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.jersey.bundles.repackaged:jersey-guava:2.22" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.hk2:hk2-api:2.4.0-b31" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.hk2:hk2-utils:2.4.0-b31" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.hk2.external:aopalliance-repackaged:2.4.0-b31" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.hk2.external:javax.inject:2.4.0-b31" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.hk2:hk2-locator:2.4.0-b31" level="project" />
     <orderEntry type="library" name="Maven: it.infn.ba.indigo:chronos-client:0.0.1-BETA.1" level="project" />
     <orderEntry type="library" name="Maven: com.netflix.feign:feign-core:8.14.1" level="project" />
     <orderEntry type="library" name="Maven: com.netflix.feign:feign-gson:8.14.1" level="project" />
@@ -29,17 +37,17 @@
     <orderEntry type="library" scope="RUNTIME" name="Maven: ch.qos.logback:logback-classic:1.0.13" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: ch.qos.logback:logback-core:1.0.13" level="project" />
     <orderEntry type="library" name="Maven: junit:junit:4.12" level="project" />
-    <orderEntry type="library" name="Maven: org.glassfish.jersey.core:jersey-client:2.22" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.jersey.core:jersey-client:2.25.1" level="project" />
     <orderEntry type="library" name="Maven: javax.ws.rs:javax.ws.rs-api:2.0.1" level="project" />
-    <orderEntry type="library" name="Maven: org.glassfish.jersey.core:jersey-common:2.22" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.jersey.core:jersey-common:2.25.1" level="project" />
     <orderEntry type="library" name="Maven: javax.annotation:javax.annotation-api:1.2" level="project" />
-    <orderEntry type="library" name="Maven: org.glassfish.jersey.bundles.repackaged:jersey-guava:2.22" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.jersey.bundles.repackaged:jersey-guava:2.25.1" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.hk2:osgi-resource-locator:1.0.1" level="project" />
-    <orderEntry type="library" name="Maven: org.glassfish.hk2:hk2-api:2.4.0-b31" level="project" />
-    <orderEntry type="library" name="Maven: org.glassfish.hk2:hk2-utils:2.4.0-b31" level="project" />
-    <orderEntry type="library" name="Maven: org.glassfish.hk2.external:aopalliance-repackaged:2.4.0-b31" level="project" />
-    <orderEntry type="library" name="Maven: org.glassfish.hk2.external:javax.inject:2.4.0-b31" level="project" />
-    <orderEntry type="library" name="Maven: org.glassfish.hk2:hk2-locator:2.4.0-b31" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.hk2:hk2-api:2.5.0-b32" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.hk2:hk2-utils:2.5.0-b32" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.hk2.external:aopalliance-repackaged:2.5.0-b32" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.hk2.external:javax.inject:2.5.0-b32" level="project" />
+    <orderEntry type="library" name="Maven: org.glassfish.hk2:hk2-locator:2.5.0-b32" level="project" />
     <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.6.2" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.mockito:mockito-all:2.0.2-beta" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.powermock:powermock-api-mockito:1.6.4" level="project" />

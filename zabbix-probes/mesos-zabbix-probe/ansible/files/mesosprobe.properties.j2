@@ -1,0 +1,21 @@
+zabbix.ip={{ zabbix_ip }}
+zabbix.wrapper.location={{ zabbix_wrapper_location }}
+
+mesos.master.endpoint={{ mesos_master_endpoint }}
+
+mesos.metric=master/uptime_secs
+mesos.metric=master/tasks_lost
+mesos.metric=master/slaves_active
+mesos.metric=master/cpus_percent
+mesos.metric=master/elected
+mesos.metric=master/dropped_messages
+mesos.metric=master/frameworks_inactive
+mesos.metric=master/frameworks_disconnected
+
+chronos.endpoint={{ chronos_endpoint }}
+chronos.username={{ chronos_username }}
+chronos.password={{ chronos_password }}
+
+marathon.endpoint={{ marathon_endpoint }}
+marathon.username={{ marathon_username }}
+marathon.password={{ marathon_password }}
