@@ -57,78 +57,61 @@ def main(TOKEN,IMHEADERS):
 	global GLOBAL_TOKEN
 	global GLOBAL_IMHEADERS
 
-	monitorItemsDict['create_inf']= 0
-	monitorItemsDict['start_inf']= 0
-	monitorItemsDict['create_vm']= 0
-	monitorItemsDict['delete_inf']= 0
-	monitorItemsDict['list_inf']= 0
-	monitorItemsDict['num_error']= 0
-	monitorItemsDict['msg_error']= 0
-
 	# CREATE INFRASTRUCTURE
 	ci = IMinfrastructureOper.create_infrastructure(IMHEADERS)
 	url_infr = ci.info
 
 	if ci.statuscode == 401:
 		# refresh token
-		monitorItemsDict['num_error']= ci.statuscode
-		monitorItemsDict['msg_error']= str(ci.info)
+		monitorItemsDict['imstatus']= '0 - '+str(ci.info)
 		logging.info("Need token refresh")
 		newtoken = tokenmng.get_newtoken(CLIENT_ID,IMinfrastructureOper.URL_REFRESH,TOKEN,extra)
 		GLOBAL_ACCESS_TOKEN = newtoken.token['access_token']
+		#print "GLOBAL_ACCESS_TOKEN = " +GLOBAL_ACCESS_TOKEN
 		GLOBAL_TOKEN = tokenmng.update_tokenjson(GLOBAL_ACCESS_TOKEN,REFRESH_TOKEN)
 		GLOBAL_IMHEADERS = tokenmng.update_imheaders(GLOBAL_ACCESS_TOKEN)
 
 	elif ci.statuscode == 111:
 	    logging.error("Could NOT start CREATION INFRASTRUCTURE process: " +str(ci.info))
-	    monitorItemsDict['num_error']= ci.statuscode
-	    monitorItemsDict['msg_error']= str(ci.info)
+	    monitorItemsDict['imstatus']= '0 - '+ str(ci.info)
 	    return monitorItemsDict
 
 	elif ci.statuscode == 200:
-	    monitorItemsDict['create_inf'] = 1
 	    # START INFRASTRUCTUREWARNING
 	    si = IMinfrastructureOper.start_infrastructure(IMHEADERS,url_infr)
 
 	    if si.statuscode == 200:
 
-	        monitorItemsDict['start_inf'] = 1
 	        time.sleep(1)
 	        # LIST INFRASTRUCTURE
 	        li = IMinfrastructureOper.list_infrastructure(IMHEADERS)
 
 	        if li.statuscode == 200:
-	            monitorItemsDict['list_inf'] = 1
 	            # CREATE VM
 	            cv = IMinfrastructureOper.create_vm(IMHEADERS,url_infr)
 
 	            if cv.statuscode == 200:
-
-	                monitorItemsDict['create_vm'] = 1
 	                # DELETE INFRASTRUCTURE
 	                di = IMinfrastructureOper.delete_infrastructure(IMHEADERS,url_infr)
 
 	                if di.statuscode == 200:
-	                    monitorItemsDict['delete_inf'] = 1
-	                    logging.info("All operations have been completed successfully.")
+						monitorItemsDict['imstatus'] = 1
+						logging.info("All operations have been completed successfully.")
 	                else:
 	                    logging.error("Infrastructure could NOT be DELETED")
-	                    monitorItemsDict['num_error']= di.statuscode
-	                    monitorItemsDict['msg_error']= str(di.info)
+	                    monitorItemsDict['imstatus']= '0 - '+ str(di.info)
 	            else:
 	                logging.error("VM could NOT be CREATED")
-	                monitorItemsDict['num_error']= cv.statuscode
-	                monitorItemsDict['msg_error']= str(cv.info)
+	                monitorItemsDict['imstatus']= '0 - '+ str(cv.info)
 	        else:
 	            logging.error( "Infrastructure could NOT be LISTED")
-	            monitorItemsDict['num_error']= li.statuscode
-	            monitorItemsDict['msg_error']= str(li.info)
+	            monitorItemsDict['imstatus']= '0 - '+str(li.info)
 	    else:
 	        logging.error("Infrastructure could NOT be STARTED")
-	        monitorItemsDict['num_error']= si.statuscode
-	        monitorItemsDict['msg_error']= str(si.info)
+	        monitorItemsDict['imstatus']= '0 - '+str(si.info)
 	else:
-	    logging.error("Infrastructure could NOT be CREATED")
+		logging.error("Infrastructure could NOT be CREATED")
+		monitorItemsDict['imstatus']= '0 - '+ str(ci.info)
 
 	return monitorItemsDict
 
