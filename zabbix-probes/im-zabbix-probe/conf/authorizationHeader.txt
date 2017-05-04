@@ -1,0 +1,2 @@
+id = os; type = OpenNebula; host = http://onecloud.i3m.upv.es:2633;
+id = im; type = InfrastructureManager;
