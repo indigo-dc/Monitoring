@@ -1,0 +1,1 @@
+{"jsonrpc":"2.0","result":[{"applicationid":"461","name":"ONEPROVIDER","hostid":"10106","templateids":[]},{"applicationid":"459","name":"ONEZONE","hostid":"10106","templateids":[]}],"id":1}

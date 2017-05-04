@@ -1,0 +1,140 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: zabbix-db
+  labels:
+    app: zabbix
+    tier: db
+spec:
+  ports:
+  - port: 3306
+    targetPort: 3306
+    name: zabbix-db
+  selector:
+    name: zabbix-db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zabbix-web
+  labels:
+    app: zabbix
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    name: zabbix-web
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zabbix-server
+  labels:
+    app: zabbix
+spec:
+  ports:
+  - port: 10051
+    targetPort: 10051
+    name: zabbix-trapper
+  selector:
+    name: zabbix-server
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: zabbix-web
+  labels:
+    app: zabbix
+    tier: frontend
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: zabbix-web
+        app: zabbix
+    spec:
+      containers:
+        - name: zabbix-web
+          image: zabbix/zabbix-web-apache-mysql
+          ports:
+          - containerPort: 80
+          env:
+          - name: MYSQL_USER
+            value: zabbix
+          - name: MYSQL_PASSWORD
+            value: my_password
+          - name: DB_SERVER_HOST
+            value: zabbix-db
+          - name: ZBX_SERVER_HOST
+            value: zabbix-server
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: zabbix-db
+  labels:
+    app: zabbix
+    tier: zabbix-db
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: zabbix-db
+        app: zabbix
+        tier: zabbix-db
+    spec:
+      containers:
+        - name: zabbix-db
+          image: mysql/mysql-server
+          ports:
+          - containerPort: 3306
+            name: zabbix-db
+          env:
+          - name: MYSQL_USER
+            value: zabbix
+          - name: MYSQL_PASSWORD
+            value: my_password
+          - name: MYSQL_DATABASE
+            value: zabbix
+          - name: MYSQL_ROOT_PASSWORD
+            value: my_password
+          volumeMounts:
+          - name: zabbix-db-storage
+            mountPath: /var/lib/mysql
+      volumes:
+      - name: zabbix-db-storage
+        persistentVolumeClaim:
+          claimName: zabbix
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: zabbix-server
+  labels:
+    app: zabbix
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        name: zabbix-server
+        app: zabbix
+    spec:
+      containers:
+        - name: zabbix-server
+          image: zabbix/zabbix-server-mysql
+          ports:
+          - containerPort: 10051
+            name: zabbix-trapper
+          env:
+          - name: MYSQL_USER
+            value: zabbix
+          - name: MYSQL_PASSWORD
+            value: my_password
+          - name: DB_SERVER_HOST
+            value: zabbix-db
+          - name: MYSQL_DATABASE
+            value: zabbix

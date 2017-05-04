@@ -1,0 +1,1 @@
+{"jsonrpc":"2.0","result":[{"templateid":"10106"}],"id":1}
