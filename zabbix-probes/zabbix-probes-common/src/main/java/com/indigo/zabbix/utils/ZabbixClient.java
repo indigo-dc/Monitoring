@@ -128,7 +128,7 @@ public class ZabbixClient {
               /*
                * Sometimes zabbix fails to process data the first time it's sent.
                * Specially when the host is first registered. The reason why? It's a mystery and
-               * given the huge amount of feedback we have to debug the situation,
+               * given the huge amount of feedback we have to debug the situation <ironic_mode_off>,
                * let's just try to send it once again before failing.
                */
               sendResult = sender.send(toSend);
