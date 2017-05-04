@@ -1,11 +1,11 @@
 package com.indigo.zabbix.utils;
 
-import java.io.IOException;
+import io.github.hengyunabc.zabbix.sender.SenderResult;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import io.github.hengyunabc.zabbix.sender.SenderResult;
+import java.io.IOException;
 
 /**
  * Created by jose on 11/21/16.
