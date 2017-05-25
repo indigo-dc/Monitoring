@@ -135,6 +135,12 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='Monitorize IM operations.')
 	parser.add_argument('-i','--client_id',     help='ID Client credential',        required=True)
 	parser.add_argument('-s','--client_secret', help='SECRET Client credential',    required=True)
+
+	parser.add_argument('-u','--zabbix_user',     help='Zabbix user credential', required=True)
+	parser.add_argument('-p','--zabbix_password', help='Zabbix password credential', required=True)
+	parser.add_argument('-a','--zabbix_url',      help='Zabbix URL API', required=True)
+	parser.add_argument('-v','--zabbix_server',   help='Zabbiz server IP', required=True)
+
 	parser.add_argument('-f','--token_file',    help='Filename of JSON token file')
 	parser.add_argument('-t','--token',         help='STRING of access token')
 	parser.add_argument('-r','--token_refresh', help='STRING of refresh token')
@@ -143,6 +149,12 @@ if __name__ == '__main__':
 	# get client credential and token
 	logging.info("Initializing --------------")
 	json_globals = tokenmng.getClientTokenInfoFromArgs(args)
+
+	json_zabbix_credentials = {}
+	json_zabbix_credentials["zabbix_user"] = args.zabbix_user
+	json_zabbix_credentials["zabbix_password"] = args.zabbix_password
+	json_zabbix_credentials["zabbix_url"] = args.zabbix_url
+	json_zabbix_credentials["zabbix_server"] = args.zabbix_server
 
 	CLIENT_ID = json_globals["CLIENT_ID"]
 	CLIENT_SECRET = json_globals["CLIENT_SECRET"]
@@ -162,7 +174,7 @@ if __name__ == '__main__':
 	while stepin:
 		monitorItems = {}
 		monitorItems = main(GLOBAL_TOKEN,GLOBAL_IMHEADERS)
-		zabbix.send_data_zabbix(monitorItems)
+		zabbix.send_data_zabbix(monitorItems,json_zabbix_credentials)
 		time.sleep(AGENT_DELAY)
 
 print "bye!"
