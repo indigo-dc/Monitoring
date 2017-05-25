@@ -92,16 +92,47 @@ HEADERS = {
  ```
 Where the authoriz field comes from [authorizationHeader.txt](https://github.com/indigo-dc/Monitoring/blob/master/zabbix-probes/im-zabbix-probe/conf/authorizationHeader.txt) file.
 
-## 5	EXECUTING THE AGENT
+## 5	DOCKER CONTAINER
 
-The main script is probeim.py and this needs (mandatory) a client id ('-i','--client_id), the client secret ('-s','--client_secret),  a token ('-t','--token) and a refresh token ('-r','--token_refresh), given by the IAM for authentication purposes. 
+Create or download a [Dockerfile](https://github.com/indigo-dc/Monitoring/blob/master/zabbix-probes/im-zabbix-probe/Dockerfile)  Use your Docker user and a name you want for your image.
+
+Download and execute the [script](https://github.com/indigo-dc/Monitoring/blob/master/zabbix-probes/im-zabbix-probe/get-access-token.sh) used to request to IM an access token. You need your client credentials, IAM user and password.
 
 ```sh
-python probeim.py -i $CLIENT_ID -s $CLIENT_SECRET -t $TOKEN -r $REFRESH
+[root@localhost imzabbix]# sh get-access-token.sh 
+
+{"access_token":"eyJraWQiOiJyc2E...","token_type":"Bearer","refresh_token":"eyJhbGciOiJub25lIn0.eyJqd...","expires_in":3599,"scope":"address phone openid email profile offline_access","id_token":"eyJraWQiOi..."}
+[root@localhost imzabbix]# 
+
+```
+Build an image from the directory where your Dockerfile is located.
+
+```sh
+[root@localhost imzabbix]# ls Dockerfile 
+Dockerfile
+[root@localhost imzabbix]# docker build -t <dockeruser>/<my_built_image> .
+Sending build context to Docker daemon 692.2 kB
+Step 1 : FROM centos
+ ---> 0584b3d2cf6d
+...
+Successfully built afe963948e10
+[root@localhost imzabbix]# 
+
 ```
 
-## 6	DOCKER CONTAINER
+After image was created, set up required parameters and run the docker container.
 
-Download and extract the IM-zabbix agent directory (e.g. ./imzabbix). Create a [Dockerfile](https://github.com/indigo-dc/Monitoring/blob/master/zabbix-probes/im-zabbix-probe/Dockerfile) at the same level of agent directory, and run the command to build the docker image. Use your Docker user and a name you want for your image (don’t forget the dot at the end).  
+```sh
+[root@localhost imzabbix]# ZABBIX_PASSWORD=zabbix
+[root@localhost imzabbix]# ZABBIX_SERVER=172.17.0.3
+[root@localhost imzabbix]# ZABBIX_API_URL=http://172.17.0.4/api_jsonrpc.php
+[root@localhost imzabbix]# ZABBIX_USER=Admin
+[root@localhost imzabbix]# CLIENT_ID=d573b18e-7a59-4bed-bbbb-ebad2b5f8299
+[root@localhost imzabbix]# CLIENT_SECRET=NxFfYvk19hiKuuLo50OO44nuwShRsV45UrvivWUwvF-4Szdadu2fuh7BwHLuttbZFeQYhYmEbbxdfSDrJajdNg
+[root@localhost imzabbix]# TOKEN=eyJraWQiOiJyc2E...
+[root@localhost imzabbix]# REFRESH=REFRESH=eyJhbGciOiJub25lIn0.eyJqd...
+[root@localhost imzabbix]#
+[root@localhost imzabbix]# docker run --name MY_IMZABBIX_CONTAINER -e CLIENT_ID=$CLIENT_ID -e CLIENT_SECRET=$CLIENT_SECRET -e TOKEN=$TOKEN -e REFRESH=$REFRESH -e ZABBIX_USER=$ZABBIX_USER -e ZABBIX_PASSWORD=$ZABBIX_PASSWORD -e ZABBIX_SERVER=$ZABBIX_SERVER -e ZABBIX_API_URL=$ZABBIX_API_URL -d <dockeruser>/<my_built_image>
 
-After image was created, run the docker container.
+```
+
