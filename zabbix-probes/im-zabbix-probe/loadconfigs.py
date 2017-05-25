@@ -29,25 +29,6 @@ class LoadIMZabbixConfig(ConfigParser):
         imzabbixcfg = ConfigParser()
         imzabbixcfg.read(["conf/imzabbix.conf"])
 
-        if imzabbixcfg.has_option("zabbix","uri"):
-        	self.ZABBIX_URI = imzabbixcfg.get("zabbix","uri")
-        else:
-        	logging.error( "There is no uri option into zabbix section.")
-
-        if imzabbixcfg.has_option("zabbix","server_add"):
-        	self.ZABBIX_SERVER = imzabbixcfg.get("zabbix","server_add")
-        else:
-        	logging.error( "There is no server_add option into zabbix section.")
-
-        if imzabbixcfg.has_option("zabbix","username"):
-        	if imzabbixcfg.has_option("zabbix","password"):
-        		self.ZABBIX_USER = imzabbixcfg.get("zabbix","username")
-        		self.ZABBIX_PASSWORD = imzabbixcfg.get("zabbix","password")
-        	else:
-        		logging.error("There is no password option into zabbix section.")
-        else:
-        	logging.error( "There is no username option into zabbix section.")
-
         if imzabbixcfg.has_option("zabbix","template"):
         	self.ZABBIX_TEMPLATE = imzabbixcfg.get("zabbix","template")
         else:
