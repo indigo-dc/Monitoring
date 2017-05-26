@@ -17,33 +17,10 @@ class LoadOnedataZabbixConfig(ConfigParser):
 		config = ConfigParser()
 		config.read(["conf/onedata-zabbix.cfg"])
 
-		# zabbix section
-
-		if config.has_option("zabbix","username"):
-			self.ZABBIX_USER = config.get("zabbix","username")
-
-			if config.has_option("zabbix","password"):
-				self.ZABBIX_PASSWORD = config.get("zabbix","password")
-			else:
-				self.error = "There is no password option into zabbix section."
-		else:
-			self.error = "There is no username option into zabbix section."
-
-		if config.has_option("zabbix","uri"):
-			self.ZABBIX_URI = config.get("zabbix","uri")
-		else:
-			self.error = "There is no uri option into zabbix section."
-
-
 		if config.has_option("zabbix","template"):
 			self.ZABBIX_TEMPLATE = config.get("zabbix","template")
 		else:
 			self.error = "There is no template option into zabbix section."
-
-		if config.has_option("zabbix","server_add"):
-			self.ZABBIX_SERVER = config.get("zabbix","server_add")
-		else:
-			self.error = "There is no server_add option into zabbix section."
 
 		if config.has_option("zabbix","monitoredhost"):
 			self.ZABBIX_MONITORED_HOST = config.get("zabbix","monitoredhost")
@@ -58,12 +35,6 @@ class LoadOnedataZabbixConfig(ConfigParser):
 		self.ZABBIX_HEADERS = {'content-type': 'application/json-rpc'}
 
 		# onedata section
-
-		if config.has_option("onedata","token"):
-			self.TOKEN = config.get("onedata","token")
-            #self.urlheader = {"macaroon" : self.TOKEN }
-		else:
-			self.error = "There is no token option into onedata section."
 
 		if config.has_option("onedata","portZone"):
 			self.PORTONEZONE = config.get("onedata","portZone")
@@ -113,6 +84,13 @@ class LoadOnedataZabbixConfig(ConfigParser):
 
 		if config.has_option("items","oneprovider_space_namespace_connected_users"):
 			self.oneprovider_space_namespace_connected_users = config.get("items","oneprovider_space_namespace_connected_users")
+
+		# iam section
+
+		if config.has_option("iam","urlrefresh"):
+			self.AUTH_URLREFRESH = config.get("iam","urlrefresh")
+		else:
+			logging.error( "There is no urlrefresh option into iam section.")
 
 		# log section
 
