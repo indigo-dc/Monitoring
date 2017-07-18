@@ -59,8 +59,33 @@ The Openstack probe requires to modify the openstackprobe.properties (inserted i
 * wait.real.vm.creation - Provides the user to get information about the real creation response time of a machine or just the immediate response from the client
 * is-iam-authenticated - If set to true the probe trye authetnticating itself to Openstack via IAM 
 * zabbix.wrapper.location - The endpoint where zabbix wrapper exposes APIs at.
+Here it is how it appears:
+```
+java.keystore=/usr/lib/jvm/java-8-oracle/jre/lib/security/cacerts
+zabbix.ip=<zabbix-server-endpoint>
+zabbix.wrapper.location=<zabbix-wrapper-webapp-endpoint>
+cmdb.location=http://<cmdb-endpoint>/cmdb
+wait.real.vm.creation=true
+is-iam-authenticated=false
+```
 
-If skypping Iam authentication to providers, just make sure to insert the credentials of openstack tenant (where the probe tries creating, deleting and inspecting the instances) inside oszones.yml file located at the same path as openstackprobe.properties.
+If skypping Iam authentication to providers, just make sure to insert the credentials of openstack tenant (where the probe tries creating, deleting and inspecting the instances) inside oszones.yml file located at the same path as openstackprobe.properties. The following shows how it is supposed to be completed:
+
+```
+cloud-providers-zones:
+    #####################
+    #  INFN Bari
+    ######################
+  - name: provider-RECAS-BARI
+    password: <pswd>
+    username: <usr>
+    tenant: <tenant_name>
+
+  - name: NCG-INGRID-PT
+    password:
+    username:
+    tenant:
+```
 
 5 Packages Update
 -------------------
