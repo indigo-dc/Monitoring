@@ -6,9 +6,7 @@ import java.util.concurrent.TimeoutException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.openstack4j.api.exceptions.ClientResponseException;
 import org.openstack4j.api.exceptions.ConnectionException;
-import org.openstack4j.api.exceptions.ResponseException;
 import org.openstack4j.model.compute.Server;
 
 import com.indigo.zabbix.utils.LifecycleCollector;
@@ -26,6 +24,7 @@ public class OpenstackCollector extends LifecycleCollector {
     // private OpenStackClient openstackClient;
 	public String provider;
 	public String keystoneEndpoint;
+	public String accessToken;
 
 	private static final Logger log = LogManager.getLogger(OpenstackCollector.class);
 	protected OpenstackProbeResult probeResult;
@@ -48,11 +47,11 @@ public class OpenstackCollector extends LifecycleCollector {
 	 * @param keystoneURL
 	 *            String representing the Keystone API URL
 	 */
-	protected OpenstackCollector(String providerId, String keystoneUrl) throws IllegalArgumentException {
+	protected OpenstackCollector(String accessToken, String providerId, String keystoneUrl) throws IllegalArgumentException {
 		provider = providerId;
 		keystoneEndpoint = keystoneUrl;
 
-		openstackClient = new OpenStackClient(keystoneEndpoint, provider);
+		openstackClient = new OpenStackClient(accessToken, keystoneEndpoint, provider);
 
 		keystoneEndpoint = keystoneUrl;
 	}

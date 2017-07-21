@@ -20,12 +20,9 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.openstackprobe.openstack;
 
-import static org.junit.Assert.assertSame;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
-import java.net.ConnectException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,7 +39,6 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,11 +50,9 @@ import org.openstack4j.api.compute.ComputeService;
 import org.openstack4j.api.compute.FlavorService;
 import org.openstack4j.api.compute.ServerService;
 import org.openstack4j.api.image.ImageService;
-import org.openstack4j.model.compute.ActionResponse;
 import org.openstack4j.model.compute.Flavor;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.compute.ServerCreate;
-import org.openstack4j.model.identity.Token;
 import org.openstack4j.model.image.Image;
 
 import com.indigo.zabbix.utils.PropertiesManager;
@@ -78,10 +72,10 @@ public class MonitoringTest {
 	private FlavorService flavorServiceMocked;
 	private OSClient mockOSClient;
 	private OpenStackClient osclient;
-	private Token mockToken;
+//	private Token mockToken;
 	private ComputeService computeMocked;
 	private ImageService imageServiceMocked;
-	private ActionResponse actionMocked;
+//	private ActionResponse actionMocked;
 
 	private String imageId;
 	private String flavorId;
@@ -133,20 +127,20 @@ public class MonitoringTest {
 		// Define mock response for POST (complete result)
 		Mockito.when(invocationBuilder.post(null)).thenReturn(responsePost);
 		Mockito.when(responsePost.getStatus()).thenReturn(200);
-		Mockito.when(responsePost.readEntity(String.class)).thenReturn(
-				"Openstack-Location: http://cloud.recas.ba.infn.it:8774/compute/78d9ecb64353402bb621b569891c633a");
+//		Mockito.when(responsePost.readEntity(String.class)).thenReturn(
+//				"Openstack-Location: http://cloud.recas.ba.infn.it:8774/compute/78d9ecb64353402bb621b569891c633a");
 
 		// Define mock response for GET (complete result)
 		Mockito.when(invocationBuilder.get()).thenReturn(responseGet);
 		Mockito.when(responseGet.getStatus()).thenReturn(200);
-		Mockito.when(responseGet.readEntity(String.class)).thenReturn("");
+//		Mockito.when(responseGet.readEntity(String.class)).thenReturn("");
 
 		// Define mock response for DELETE (complete result)
 		Mockito.when(invocationBuilder.delete()).thenReturn(responseDelete);
 		Mockito.when(responseDelete.getStatus()).thenReturn(204);
-		Mockito.when(responseDelete.readEntity(String.class)).thenReturn("");
-		ActionResponse actionMocked = Mockito.mock(ActionResponse.class);
-		Mockito.when(actionMocked.isSuccess()).thenReturn(true);
+//		Mockito.when(responseDelete.readEntity(String.class)).thenReturn("");
+//		ActionResponse actionMocked = Mockito.mock(ActionResponse.class);
+//		Mockito.when(actionMocked.isSuccess()).thenReturn(true);
 
 		// Define the main mock classes for unavailability error
 		mockClientFailure = Mockito.mock(Client.class);
@@ -161,20 +155,20 @@ public class MonitoringTest {
 		// Define mock responses for POST (unavailability error)
 		Mockito.when(invocationBuilderFailure.post(null)).thenReturn(responsePostFailure);
 		Mockito.when(responsePostFailure.getStatus()).thenReturn(404);
-		Mockito.when(responsePostFailure.readEntity(String.class)).thenReturn("");
+//		Mockito.when(responsePostFailure.readEntity(String.class)).thenReturn("");
 
 		// Define KeystoneMock
 		keystoneMock = Mockito.mock(V2.class);
 		mockOSClient = Mockito.mock(OSClient.class);
 		computeMocked = Mockito.mock(ComputeService.class);
-		mockToken = Mockito.mock(Token.class);
+//		mockToken = Mockito.mock(Token.class);
 		Mockito.when(keystoneMock.endpoint(Mockito.anyString())).thenReturn(keystoneMock);
 		Mockito.when(keystoneMock.credentials(Mockito.anyString(), Mockito.anyString())).thenReturn(keystoneMock);
 		Mockito.when(keystoneMock.tenantName(Mockito.anyString())).thenReturn(keystoneMock);
-		Mockito.when(keystoneMock.authenticate()).thenReturn(mockOSClient);
-		Mockito.when(mockOSClient.getToken()).thenReturn(mockToken);
+//		Mockito.when(keystoneMock.authenticate()).thenReturn(mockOSClient);
+//		Mockito.when(mockOSClient.getToken()).thenReturn(mockToken);
 		Mockito.when(mockOSClient.compute()).thenReturn(computeMocked);
-		Mockito.when(mockToken.getId()).thenReturn(token);
+//		Mockito.when(mockToken.getId()).thenReturn(token);
 
 		// Mock Image
 		// Define main relationships for the Client class Images
@@ -212,7 +206,7 @@ public class MonitoringTest {
 	    		+ "\"type\":\"image\",\"data\":{\"image_id\":\"867bdfd7-7a97-4ef5-bfa8-9f7d05958239\","
 	    		+ "\"image_name\":\"linux-ubuntu-14.04-mesos-vmi\",\"architecture\":\"x86_64\",\"type\":\"linux\","
 	    		+ "\"distribution\":\"ubuntu\",\"version\":\"14.04\",\"service\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\"}}}]}";
-	    Mockito.when(responseGet.readEntity(String.class)).thenReturn(listImagesResponse);
+//	    Mockito.when(responseGet.readEntity(String.class)).thenReturn(listImagesResponse);
 		mockOSImage = Mockito.mock(Image.class);
 		imageServiceMocked = Mockito.mock(ImageService.class);
 		Mockito.when(mockOSClient.images()).thenReturn(imageServiceMocked);
@@ -254,7 +248,7 @@ public class MonitoringTest {
 		servers.add(serverMocked);
 
 		// Mock the delete operation
-		Mockito.when(serverServiceMocked.delete("vmIdTest")).thenReturn(actionMocked);
+//		Mockito.when(serverServiceMocked.delete("vmIdTest")).thenReturn(actionMocked);
 
 		resultMap.put("availability", 1);
 		resultMap.put("httpCode", 200);
@@ -270,7 +264,7 @@ public class MonitoringTest {
 		component.setMockClient(mockClient);
 		component.setOsClientMocked(mockOSClient);
 		component.setMockKeystone(keystoneMock);
-		component.setTokenMoked(mockToken);
+//		component.setTokenMoked(mockToken);
 		component.setTokenId(token);
 		component.setComputeserviceMocked(computeMocked);
 		component.setFlavorServiceMocked(flavorServiceMocked);

@@ -9,6 +9,12 @@ public interface ProbesTags {
   String ZABBIX_HOST = "zabbix.ip";
   String ZABBIX_PORT = "zabbix.port";
   String LOG_CONFIG = "log.config";
+  
+  String IAM_LOCATION = "iam.location";
+  String IAM_USERNAME = "iam.username";
+  String IAM_PASSWORD = "iam.password";
+  String IAM_CLIENTID = "iam.clientid";
+  String IAM_CLIENTSECRET = "iam.clientsecret";
 
 }
 

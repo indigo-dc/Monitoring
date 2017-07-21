@@ -38,6 +38,8 @@ public class CmdbClient {
 	private static final String VERSION_2 = "v2.0";
 	private static final String VERSION_3 = "v3";
 	private static final String OCCI_DEFAULT_PORT = "8787";
+	
+//	private CmdbFeignClient cmdbClient = null;
 
 	private static final Logger log = LogManager.getLogger(CmdbClient.class);
 
@@ -56,6 +58,21 @@ public class CmdbClient {
 		ClientConfig cc = new ClientConfig();
 		client = JerseyClientBuilder.newClient(cc);
 	}
+	
+	
+	/**
+	 * FEIGN
+	 */
+//	public CmdbClient() {
+//		try {
+//			PropertiesManager.loadProperties(OpenstackProbeTags.CONFIG_FILE);
+//		} catch (IOException e) {
+//			log.debug("Unable to load property file: {}", OpenstackProbeTags.CONFIG_FILE, e);
+//		}
+//		cmdbUrl = PropertiesManager.getProperty(OpenstackProbeTags.CMDB_URL);
+//		// Create the Client
+//		cmdbClient = ProbeClientFactory.getClient(CmdbFeignClient.class, cmdbUrl);
+//	}
 
 	/**
 	 * This is a constructor for unit testing purposes.
@@ -78,13 +95,24 @@ public class CmdbClient {
 		// Call to CMDB API
 		WebTarget target = client.target(cmdbUrl + "/provider/list");
 		Invocation.Builder invocationBuilder = target.request();
+//		Response responsetest = invocationBuilder.head();
 		Response response = invocationBuilder.get();
-		String message = response.readEntity(String.class);
+//		Response responseTest2 = invocationBuilder.trace();
+		String message = response.getEntity().toString();
+//		String message =  response.readEntity(String.class);
 
 		// Retrieve the providers list
 		JsonElement jelement = new JsonParser().parse(message);
 		JsonObject parsedRes = jelement.getAsJsonObject();
 		JsonArray listArray = parsedRes.getAsJsonArray("rows");
+		
+		// Retrieve the services list
+//	    JsonElement jelement = cmdbClient.providerList();
+//	    JsonObject parsedRes = jelement.getAsJsonObject();
+//	    JsonArray listArray = parsedRes.getAsJsonArray("rows");
+//	    if (listArray.isJsonNull() || listArray.size() == 0) {
+//	      return null;
+//	    }
 
 		ArrayList<String> providersList = new ArrayList<String>();
 		Iterator<JsonElement> myIter = listArray.iterator();
@@ -107,13 +135,21 @@ public class CmdbClient {
 		WebTarget target = client.target(cmdbUrl + "/image/list");
 		Invocation.Builder invocationBuilder = target.request();
 		Response response = invocationBuilder.get();
-		String message = response.readEntity(String.class);
-
+		String message = response.toString();
+//		String message = response.readEntity(String.class);
+//
 		// Retrieve the providers list
 		JsonElement jelement = new JsonParser().parse(message);
 		JsonObject parsedRes = jelement.getAsJsonObject();
 		JsonArray listArray = parsedRes.getAsJsonArray("rows");
 
+//		JsonElement jelement = cmdbClient.providerImages();
+//	    JsonObject parsedRes = jelement.getAsJsonObject();
+//	    JsonArray listArray = parsedRes.getAsJsonArray("rows");
+//	    if (listArray.isJsonNull() || listArray.size() == 0) {
+//	      return null;
+//	    }
+		
 		ArrayList<String> imageList = new ArrayList<>();
 		Iterator<JsonElement> myIter = listArray.iterator();
 		while (myIter.hasNext()) {
@@ -147,17 +183,23 @@ public class CmdbClient {
 		WebTarget target = client.target(providerUrl);
 		Invocation.Builder invocationBuilder = target.request();
 		Response response = invocationBuilder.get();
-		String message = response.readEntity(String.class);
+		String message = response.toString();
+//		String message = response.readEntity(String.class);
 
-		// log.info(message);
-
+//		JsonElement jelement = cmdbClient.servicesPerProvider(providerId);
+//	    JsonObject parsedRes = jelement.getAsJsonObject();
+//	    JsonArray listArray = parsedRes.getAsJsonArray("rows");
+//	    if (listArray.isJsonNull() || listArray.size() == 0) {
+//	      return null;
+//	    }
+		
 		// Retrieve the services list
-		JsonElement jelement = new JsonParser().parse(message);
-		JsonObject parsedRes = jelement.getAsJsonObject();
-		JsonArray listArray = parsedRes.getAsJsonArray("rows");
-		if (listArray.isJsonNull() || listArray.size() == 0) {
-			return null;
-		}
+				JsonElement jelement = new JsonParser().parse(message);
+				JsonObject parsedRes = jelement.getAsJsonObject();
+				JsonArray listArray = parsedRes.getAsJsonArray("rows");
+				if (listArray.isJsonNull() || listArray.size() == 0) {
+					return null;
+				}
 
 		String novaEndpoint = null;
 		String keystoneEndpoint = null;

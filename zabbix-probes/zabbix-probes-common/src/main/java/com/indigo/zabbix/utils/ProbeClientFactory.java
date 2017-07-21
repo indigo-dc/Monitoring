@@ -9,7 +9,7 @@ import feign.gson.GsonEncoder;
  */
 public class ProbeClientFactory {
 
-  protected static <T> T getClient(Class<T> clientClass, String baseUrl) {
+  public static <T> T getClient(Class<T> clientClass, String baseUrl) {
     return Feign.builder()
         .decoder(new GsonDecoder())
         .encoder(new GsonEncoder())

@@ -24,6 +24,11 @@ public interface OpenstackProbeTags {
   public static final String WAIT_FOR_CREATION = "wait.real.vm.creation";
   public static final String IAM_AUTHENTICATION = "is-iam-authenticated";
   
+  public static final  String IAM_LOCATION = "iam.location";
+  public static final  String IAM_USERNAME = "iam.username";
+  public static final  String IAM_PASSWORD = "iam.password";
+  public static final  String OPENSTACK_PROJECT = "openstack.project";
+  
   public static String CONFIG_FILE = "openstackprobe.properties";
   String OPENSTACK_METRIC = "os.metric"; 
   

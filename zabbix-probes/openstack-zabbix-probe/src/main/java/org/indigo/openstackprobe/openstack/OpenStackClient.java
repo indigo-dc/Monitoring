@@ -38,23 +38,23 @@ import org.apache.logging.log4j.Logger;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.openstack4j.api.Builders;
-import org.openstack4j.api.OSClient;
+import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.client.IOSClientBuilder.V2;
 import org.openstack4j.api.compute.ComputeService;
 import org.openstack4j.api.compute.FlavorService;
 import org.openstack4j.api.compute.ServerService;
-import org.openstack4j.api.exceptions.ClientResponseException;
 import org.openstack4j.api.exceptions.ConnectionException;
 import org.openstack4j.api.image.ImageService;
-import org.openstack4j.model.compute.ActionResponse;
+import org.openstack4j.model.common.ActionResponse;
 import org.openstack4j.model.compute.Flavor;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.compute.ServerCreate;
-import org.openstack4j.model.identity.Token;
+import org.openstack4j.model.identity.v3.Token;
 import org.openstack4j.model.image.Image;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.openstack.OSFactory;
 
+import com.indigo.zabbix.utils.KeystoneClient;
 import com.indigo.zabbix.utils.PropertiesManager;
 
 /**
@@ -82,7 +82,8 @@ public class OpenStackClient {
 	private List<? extends Flavor> flavors = new ArrayList<>();
 	private List<? extends Server> servers = new ArrayList<>();
 	private final String INSTANCE_NAME = OpenstackProbeTags.INSTANCE_NAME;
-	private OSClient osClient;
+//	private OSClient osClient;
+	private OSClientV3 osClient;
 	private V2 myKeystoneClient;
 	private Token token;
 	private ComputeService computeService;
@@ -96,6 +97,8 @@ public class OpenStackClient {
 	private OpenstackConfiguration osconfig;
 	String vmId;
 	OpenstackComponent component;
+	String tokenId;
+	
 
 	private static final String HTTP_RESPONSE_CODE = "httpCode";
 	private static final String AVAILABILITY_STATUS = "availability";
@@ -116,10 +119,11 @@ public class OpenStackClient {
 	 * @param providerName
 	 *            String with the identifier of the Cloud Provider
 	 */
-	public OpenStackClient(String keystoneLocation, String providerName) {
+	public OpenStackClient(String accessToken, String keystoneLocation, String providerName) {
 
 		if (!Boolean.parseBoolean(PropertiesManager.getProperty(OpenstackProbeTags.IAM_AUTHENTICATION))
-				|| providerName.toLowerCase().contains("recas")) {
+//				|| providerName.toLowerCase().contains("recas")
+				) {
 			log.info("getting openstack credentials from property file for provider" + providerName);
 			try {
 				PropertiesManager.loadProperties(OpenstackProbeTags.CONFIG_FILE);
@@ -131,6 +135,14 @@ public class OpenStackClient {
 
 		} else {
 			// use the Client IAM t authenticate to openstack instance
+			 // Retrieve properties
+		    String project = PropertiesManager.getProperty(OpenstackProbeTags.OPENSTACK_PROJECT);
+
+		    String openstackToken = new KeystoneClient(keystoneLocation).getScopedToken(accessToken, project);
+		    baseKeystoneUrl = openstackToken;
+
+		    tokenId = openstackToken;
+		     
 		}
 
 		providerId = providerName;
@@ -145,7 +157,7 @@ public class OpenStackClient {
 		// Create the Clients
 		ClientConfig cc = new ClientConfig();
 		client = JerseyClientBuilder.newClient(cc);
-		myKeystoneClient = OSFactory.builder();
+//		myKeystoneClient = OSFactory.builder();
 
 		// Prepare access URLs
 		baseKeystoneUrl = keystoneLocation.contains("https") ? keystoneLocation
@@ -168,8 +180,8 @@ public class OpenStackClient {
 		myKeystoneClient = component.getMockKeystone();
 		flavor = component.getMockFlavor();
 		image = component.getMockImage();
-		osClient = component.getOsClientMocked();
-		token = component.getTokenMoked();
+//		osClient = component.getOsClientMocked();
+//		token = component.getTokenMoked();
 		baseKeystoneUrl = component.getBaseKeystoneUrlMocked();
 		openStackUser = component.getOpenStackUserMocked();
 		openStackPwd = component.getOpenStackPwdMocked();
@@ -374,11 +386,15 @@ public class OpenStackClient {
 	// return tokenId;
 	// }
 
-	private OSClient getOSAuth() {
+	private OSClientV3 getOSAuth() {
+//		private OSClient getOSAuth() {
 		// More general Authentication
 
-		osClient = myKeystoneClient.endpoint(baseKeystoneUrl).credentials(openStackUser, openStackPwd)
-				.tenantName(tenantName).authenticate();
+//		osClient = myKeystoneClient.endpoint(baseKeystoneUrl).credentials(openStackUser, openStackPwd)
+//				.tenantName(tenantName).authenticate();
+		
+		
+		OSClientV3 osClient = OSFactory.builderV3().endpoint(baseKeystoneUrl).token(tokenId).authenticate();		
 
 		return osClient;
 	}
