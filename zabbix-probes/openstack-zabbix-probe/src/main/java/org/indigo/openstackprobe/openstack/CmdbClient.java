@@ -6,19 +6,14 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.JerseyClientBuilder;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.indigo.zabbix.utils.ProbeClientFactory;
 import com.indigo.zabbix.utils.PropertiesManager;
 
 /**
@@ -38,12 +33,30 @@ public class CmdbClient {
 	private static final String VERSION_2 = "v2.0";
 	private static final String VERSION_3 = "v3";
 	private static final String OCCI_DEFAULT_PORT = "8787";
+	
+	private CmdbFeignClient cmdbClient = null;
 
 	private static final Logger log = LogManager.getLogger(CmdbClient.class);
 
 	/**
 	 * It constructs an object of the CmdbClient type, retrieving certain
 	 * properties and initializing a Jersey client.
+	 */
+//	public CmdbClient() {
+//		try {
+//			PropertiesManager.loadProperties(OpenstackProbeTags.CONFIG_FILE);
+//		} catch (IOException e) {
+//			log.debug("Unable to load property file: {}", OpenstackProbeTags.CONFIG_FILE, e);
+//		}
+//		cmdbUrl = PropertiesManager.getProperty(OpenstackProbeTags.CMDB_URL);
+//		// Create the Client
+//		ClientConfig cc = new ClientConfig();
+//		client = JerseyClientBuilder.newClient(cc);
+//	}
+	
+	
+	/**
+	 * FEIGN
 	 */
 	public CmdbClient() {
 		try {
@@ -53,8 +66,7 @@ public class CmdbClient {
 		}
 		cmdbUrl = PropertiesManager.getProperty(OpenstackProbeTags.CMDB_URL);
 		// Create the Client
-		ClientConfig cc = new ClientConfig();
-		client = JerseyClientBuilder.newClient(cc);
+		cmdbClient = ProbeClientFactory.getClient(CmdbFeignClient.class, cmdbUrl);
 	}
 
 	/**
@@ -76,15 +88,23 @@ public class CmdbClient {
 	 */
 	public String[] getProvidersList() {
 		// Call to CMDB API
-		WebTarget target = client.target(cmdbUrl + "/provider/list");
-		Invocation.Builder invocationBuilder = target.request();
-		Response response = invocationBuilder.get();
-		String message = response.readEntity(String.class);
-
-		// Retrieve the providers list
-		JsonElement jelement = new JsonParser().parse(message);
-		JsonObject parsedRes = jelement.getAsJsonObject();
-		JsonArray listArray = parsedRes.getAsJsonArray("rows");
+//		WebTarget target = client.target(cmdbUrl + "/provider/list");
+//		Invocation.Builder invocationBuilder = target.request();
+//		Response response = invocationBuilder.get();
+////		String message = response.readyEntity(String.class).;
+//
+//		 Retrieve the providers list
+//		JsonElement jelement = new JsonParser().parse(message);
+//		JsonObject parsedRes = jelement.getAsJsonObject();
+//		JsonArray listArray = parsedRes.getAsJsonArray("rows");
+		
+		// Retrieve the services list
+	    JsonElement jelement = cmdbClient.providerList();
+	    JsonObject parsedRes = jelement.getAsJsonObject();
+	    JsonArray listArray = parsedRes.getAsJsonArray("rows");
+	    if (listArray.isJsonNull() || listArray.size() == 0) {
+	      return null;
+	    }
 
 		ArrayList<String> providersList = new ArrayList<String>();
 		Iterator<JsonElement> myIter = listArray.iterator();
@@ -104,16 +124,24 @@ public class CmdbClient {
 
 	public String[] getImageList() {
 		// Call to CMDB API
-		WebTarget target = client.target(cmdbUrl + "/image/list");
-		Invocation.Builder invocationBuilder = target.request();
-		Response response = invocationBuilder.get();
-		String message = response.readEntity(String.class);
+//		WebTarget target = client.target(cmdbUrl + "/image/list");
+//		Invocation.Builder invocationBuilder = target.request();
+//		Response response = invocationBuilder.get();
+//		String message = response.toString();
+////		String message = response.readEntity(String.class);
+////
+//		// Retrieve the providers list
+//		JsonElement jelement = new JsonParser().parse(message);
+//		JsonObject parsedRes = jelement.getAsJsonObject();
+//		JsonArray listArray = parsedRes.getAsJsonArray("rows");
 
-		// Retrieve the providers list
-		JsonElement jelement = new JsonParser().parse(message);
-		JsonObject parsedRes = jelement.getAsJsonObject();
-		JsonArray listArray = parsedRes.getAsJsonArray("rows");
-
+		JsonElement jelement = cmdbClient.providerImages();
+	    JsonObject parsedRes = jelement.getAsJsonObject();
+	    JsonArray listArray = parsedRes.getAsJsonArray("rows");
+	    if (listArray.isJsonNull() || listArray.size() == 0) {
+	      return null;
+	    }
+		
 		ArrayList<String> imageList = new ArrayList<>();
 		Iterator<JsonElement> myIter = listArray.iterator();
 		while (myIter.hasNext()) {
@@ -143,21 +171,27 @@ public class CmdbClient {
 	 */
 	public CloudProviderInfo getProviderData(String providerId) {
 		// Call to CMDB API
-		String providerUrl = cmdbUrl + "/provider/id/" + providerId + "/has_many/services?include_docs=true";
-		WebTarget target = client.target(providerUrl);
-		Invocation.Builder invocationBuilder = target.request();
-		Response response = invocationBuilder.get();
-		String message = response.readEntity(String.class);
+//		String providerUrl = cmdbUrl + "/provider/id/" + providerId + "/has_many/services?include_docs=true";
+//		WebTarget target = client.target(providerUrl);
+//		Invocation.Builder invocationBuilder = target.request();
+//		Response response = invocationBuilder.get();
+//		String message = response.toString();
+//		String message = response.readEntity(String.class);
 
-		// log.info(message);
-
+		JsonElement jelement = cmdbClient.servicesPerProvider(providerId);
+	    JsonObject parsedRes = jelement.getAsJsonObject();
+	    JsonArray listArray = parsedRes.getAsJsonArray("rows");
+	    if (listArray.isJsonNull() || listArray.size() == 0) {
+	      return null;
+	    }
+		
 		// Retrieve the services list
-		JsonElement jelement = new JsonParser().parse(message);
-		JsonObject parsedRes = jelement.getAsJsonObject();
-		JsonArray listArray = parsedRes.getAsJsonArray("rows");
-		if (listArray.isJsonNull() || listArray.size() == 0) {
-			return null;
-		}
+//				JsonElement jelement = new JsonParser().parse(message);
+//				JsonObject parsedRes = jelement.getAsJsonObject();
+//				JsonArray listArray = parsedRes.getAsJsonArray("rows");
+//				if (listArray.isJsonNull() || listArray.size() == 0) {
+//					return null;
+//				}
 
 		String novaEndpoint = null;
 		String keystoneEndpoint = null;
@@ -241,13 +275,16 @@ public class CmdbClient {
 		for (int i = 0; i < providersList.length; i++) {
 			// Retrieve all the info
 			CloudProviderInfo currentInfo = getProviderData(providersList[i]);
-
+			
+			log.info("Got information about provider: " + providersList[i]);
 			// Now check it is compliant with our requirements
 			if (currentInfo != null) {
 				int cloudType = currentInfo.getCloudType();
 				if (cloudType == CloudProviderInfo.OPENSTACK) {
+					log.info("Found candidate provider" + providersList[i] + " to be monitored by Openstack probe");
 					myResult.add(currentInfo);
-				}
+				}else
+				log.info("Provider" + providersList[i] + " not suitable for being processed by Openstack probe");
 			}
 		}
 

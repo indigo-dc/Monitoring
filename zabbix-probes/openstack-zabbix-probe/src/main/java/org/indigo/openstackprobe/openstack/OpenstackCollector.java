@@ -2,16 +2,14 @@ package org.indigo.openstackprobe.openstack;
 
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.openstack4j.api.exceptions.ClientResponseException;
 import org.openstack4j.api.exceptions.ConnectionException;
-import org.openstack4j.api.exceptions.ResponseException;
 import org.openstack4j.model.compute.Server;
 
 import com.indigo.zabbix.utils.LifecycleCollector;
+import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.beans.AppOperation;
 
 /**
@@ -26,6 +24,7 @@ public class OpenstackCollector extends LifecycleCollector {
     // private OpenStackClient openstackClient;
 	public String provider;
 	public String keystoneEndpoint;
+	public String accessToken;
 
 	private static final Logger log = LogManager.getLogger(OpenstackCollector.class);
 	protected OpenstackProbeResult probeResult;
@@ -48,13 +47,12 @@ public class OpenstackCollector extends LifecycleCollector {
 	 * @param keystoneURL
 	 *            String representing the Keystone API URL
 	 */
-	protected OpenstackCollector(String providerId, String keystoneUrl) throws IllegalArgumentException {
+	protected OpenstackCollector(String accessToken, String providerId, String keystoneUrl) throws IllegalArgumentException {
 		provider = providerId;
 		keystoneEndpoint = keystoneUrl;
+		
+		openstackClient = new OpenStackClient(accessToken, keystoneUrl, providerId);
 
-		openstackClient = new OpenStackClient(keystoneEndpoint, provider);
-
-		keystoneEndpoint = keystoneUrl;
 	}
 
 	/**
@@ -63,12 +61,14 @@ public class OpenstackCollector extends LifecycleCollector {
 	 * 
 	 * @return OpenstackProbeResult
 	 */
-	private OpenstackProbeResult getOSProbeResult() {
+	protected OpenstackProbeResult getOSProbeResult() {
 		if (probeResult == null)
 			try {
-				probeResult = openstackClient.getOpenstackMonitoringInfo();
-				return probeResult;
-			} catch (TimeoutException | InterruptedException te) {
+				String project = (provider.toLowerCase().contains("recas")) ? "INDIGO_DEMO" : PropertiesManager.getProperty(OpenstackProbeTags.OPENSTACK_PROJECT) ;
+				probeResult = openstackClient.getOpenstackMonitoringInfo(project);
+				
+//			} catch (TimeoutException | InterruptedException te) {
+			} catch (Exception te) {
 				log.debug("Unable to get the information about the provider " + provider + "" + te);
 			}
 		return probeResult;
@@ -132,7 +132,7 @@ public class OpenstackCollector extends LifecycleCollector {
 	 * @param currentTime
 	 * @return AppOperation
 	 */
-	private AppOperation getResultForConnectionException(ConnectionException ce, long currentTime) {
+	private AppOperation getResultForConnectionException(Exception ce, long currentTime) {
 		long respTime = new Date().getTime() - currentTime;
 		log.debug("Unable to connect to provider: " + provider + " " + ce.getMessage());
 		return new AppOperation(AppOperation.Operation.DELETE, false, 404, respTime);
@@ -173,7 +173,7 @@ public class OpenstackCollector extends LifecycleCollector {
 					return new AppOperation(AppOperation.Operation.CLEAR, true, 204, respTime);
 				}
 			}
-		} catch (ConnectionException ce) {
+		} catch (Exception ce) {
 			return getResultForConnectionException(ce, currentTime);
 		}
 		long respTime = new Date().getTime() - currentTime;

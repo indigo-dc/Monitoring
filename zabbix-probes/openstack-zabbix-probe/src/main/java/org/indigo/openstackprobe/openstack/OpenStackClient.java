@@ -39,22 +39,25 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.openstack4j.api.Builders;
 import org.openstack4j.api.OSClient;
+import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.client.IOSClientBuilder.V2;
+import org.openstack4j.api.client.IOSClientBuilder.V3;
 import org.openstack4j.api.compute.ComputeService;
 import org.openstack4j.api.compute.FlavorService;
 import org.openstack4j.api.compute.ServerService;
-import org.openstack4j.api.exceptions.ClientResponseException;
 import org.openstack4j.api.exceptions.ConnectionException;
 import org.openstack4j.api.image.ImageService;
-import org.openstack4j.model.compute.ActionResponse;
+import org.openstack4j.model.common.ActionResponse;
+import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.compute.Flavor;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.compute.ServerCreate;
-import org.openstack4j.model.identity.Token;
+import org.openstack4j.model.identity.v3.Token;
 import org.openstack4j.model.image.Image;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.openstack.OSFactory;
 
+import com.indigo.zabbix.utils.KeystoneClient;
 import com.indigo.zabbix.utils.PropertiesManager;
 
 /**
@@ -82,8 +85,12 @@ public class OpenStackClient {
 	private List<? extends Flavor> flavors = new ArrayList<>();
 	private List<? extends Server> servers = new ArrayList<>();
 	private final String INSTANCE_NAME = OpenstackProbeTags.INSTANCE_NAME;
-	private OSClient osClient;
-	private V2 myKeystoneClient;
+	// private OSClient osClient;
+	private OSClientV3 osClientV3;
+	private OSClient osClientV2;
+	private Object osClient;
+	private V2 myKeystoneClientV2;
+	private V3 keystoneclientV3;
 	private Token token;
 	private ComputeService computeService;
 	private FlavorService flavorService;
@@ -96,6 +103,7 @@ public class OpenStackClient {
 	private OpenstackConfiguration osconfig;
 	String vmId;
 	OpenstackComponent component;
+	String tokenId;
 
 	private static final String HTTP_RESPONSE_CODE = "httpCode";
 	private static final String AVAILABILITY_STATUS = "availability";
@@ -116,11 +124,10 @@ public class OpenStackClient {
 	 * @param providerName
 	 *            String with the identifier of the Cloud Provider
 	 */
-	public OpenStackClient(String keystoneLocation, String providerName) {
+	public OpenStackClient(String accessToken, String keystoneLocation, String providerName) {
 
-		if (!Boolean.parseBoolean(PropertiesManager.getProperty(OpenstackProbeTags.IAM_AUTHENTICATION))
-				|| providerName.toLowerCase().contains("recas")) {
-			log.info("getting openstack credentials from property file for provider" + providerName);
+		if (!Boolean.parseBoolean(PropertiesManager.getProperty(OpenstackProbeTags.IAM_AUTHENTICATION))) {
+			log.info("getting openstack credentials from property file for provider " + providerName);
 			try {
 				PropertiesManager.loadProperties(OpenstackProbeTags.CONFIG_FILE);
 			} catch (IOException e) {
@@ -128,32 +135,57 @@ public class OpenStackClient {
 			}
 
 			checkCredentials(providerName);
+			myKeystoneClientV2 = OSFactory.builderV2();
+			buildClientV2(myKeystoneClientV2);
 
 		} else {
-			// use the Client IAM t authenticate to openstack instance
+			// use the Client IAM to authenticate to openstack instance
+			// Retrieve properties
+			String project = (providerName.toLowerCase().contains("recas")) ? "INDIGO_DEMO" : PropertiesManager.getProperty(OpenstackProbeTags.OPENSTACK_PROJECT) ;
+			String openstackToken = new KeystoneClient(keystoneLocation).getScopedToken(accessToken, project);
+			baseKeystoneUrl = keystoneLocation;
+			tokenId = openstackToken;
+			keystoneclientV3 = OSFactory.builderV3();
+			buildClientV3(keystoneclientV3, project);
 		}
 
 		providerId = providerName;
-
-		// Disable issue with SSL Handshake in Java 7 and indicate certificates
-		// keystore
+//		// Disable issue with SSL Handshake in Java 7 and indicate certificates
+//		// keystore
+//		System.setProperty("jsse.enableSNIExtension", "false");
+//		String certificatesTrustStorePath = PropertiesManager.getProperty(OpenstackProbeTags.JAVA_KEYSTORE);
+//		System.setProperty("javax.net.ssl.trustStore", certificatesTrustStorePath);
+//		System.setProperty("javax.net.ssl.keyStorePassword", "changeit");
+//
+//		// Create the Clients
+//		ClientConfig cc = new ClientConfig();
+//		client = JerseyClientBuilder.newClient(cc);
+		// myKeystoneClient = OSFactory.builder();
+	}
+	
+	private void buildClientV3(V3 keystoneclient, String project){
+		setCertificate();
+		// Create the Clients
+		ClientConfig cc = new ClientConfig();
+		client = JerseyClientBuilder.newClient(cc);
+		// myKeystoneClient = OSFactory.builder();
+		
+		osClient = getOSAuthIam(keystoneclient, project);
+	}
+	
+	private void buildClientV2(V2 keystoneclient){
+		setCertificate();
+		// Create the Clients
+		ClientConfig cc = new ClientConfig();
+		client = JerseyClientBuilder.newClient(cc);
+		osClient = getOSAuth(myKeystoneClientV2);
+	}
+	
+	private void setCertificate(){
 		System.setProperty("jsse.enableSNIExtension", "false");
 		String certificatesTrustStorePath = PropertiesManager.getProperty(OpenstackProbeTags.JAVA_KEYSTORE);
 		System.setProperty("javax.net.ssl.trustStore", certificatesTrustStorePath);
 		System.setProperty("javax.net.ssl.keyStorePassword", "changeit");
-
-		// Create the Clients
-		ClientConfig cc = new ClientConfig();
-		client = JerseyClientBuilder.newClient(cc);
-		myKeystoneClient = OSFactory.builder();
-
-		// Prepare access URLs
-		baseKeystoneUrl = keystoneLocation.contains("https") ? keystoneLocation
-				: keystoneLocation.replace("http", "https");
-		// Try to connect to openstack with any authentication method. If
-		// unsuccessful, it won't be taken in consideration as a CloudProvider
-		// by the collector.
-		getOSAuth();
 	}
 
 	/**
@@ -165,11 +197,11 @@ public class OpenStackClient {
 	public OpenStackClient(OpenstackComponent component) {
 
 		client = component.getMockClient();
-		myKeystoneClient = component.getMockKeystone();
+		myKeystoneClientV2 = component.getMockKeystone();
 		flavor = component.getMockFlavor();
 		image = component.getMockImage();
-		osClient = component.getOsClientMocked();
-		token = component.getTokenMoked();
+		// osClient = component.getOsClientMocked();
+		// token = component.getTokenMoked();
 		baseKeystoneUrl = component.getBaseKeystoneUrlMocked();
 		openStackUser = component.getOpenStackUserMocked();
 		openStackPwd = component.getOpenStackPwdMocked();
@@ -186,6 +218,48 @@ public class OpenStackClient {
 		servers = component.getServersMocks();
 		vmId = component.getServerMocked().getId();
 		// tokenId = component.getTokenId();
+	}
+
+	public Boolean validateIamClient(String accessToken, String providerId, String keystoneUrl) {
+		try {
+			// use the Client IAM t authenticate to openstack instance
+			// Retrieve properties
+			String project = PropertiesManager.getProperty(OpenstackProbeTags.OPENSTACK_PROJECT);
+
+			String openstackToken = new KeystoneClient(keystoneUrl).getScopedToken(accessToken, project);
+			baseKeystoneUrl = keystoneUrl;
+			tokenId = openstackToken;
+
+			keystoneclientV3 = OSFactory.builderV3();
+			osClient = getOSAuthIam(keystoneclientV3, project);
+
+			return true;
+		} catch (Exception ex) {
+			log.error("Impossible to build Openstack client for provider: " + providerId);
+			return false;
+		}
+	}
+	
+	/**
+	 * It asks the token to Openstack.
+	 * 
+	 * @return token String
+	 * @throws ConnectionException
+	 */
+	private OSClientV3 getOSAuthIam(V3 keystoneclient, String project) {
+
+		osClientV3 = keystoneclient.endpoint(baseKeystoneUrl).token(tokenId)
+				.scopeToProject(Identifier.byName(project),
+						Identifier.byName("default"))
+				.authenticate();
+		return osClientV3;
+	}
+	
+	private OSClient getOSAuth(V2 keystoneclient) {
+
+		 osClientV2 = myKeystoneClientV2.endpoint(baseKeystoneUrl).credentials(openStackUser, openStackPwd)
+		 .tenantName(tenantName).authenticate();
+		 return osClientV2;
 	}
 
 	/**
@@ -222,13 +296,15 @@ public class OpenStackClient {
 	 */
 	public OpenStackClient(Client mockClient, V2 mockKeystone, String mockFlavorId, String mockImageId) {
 		client = mockClient;
-		myKeystoneClient = mockKeystone;
+		myKeystoneClientV2 = mockKeystone;
 		flavorId = mockFlavorId;
 		imageId = mockImageId;
 	}
 
-	protected List<? extends Flavor> getInternalFlavor() {
-		return osClient.compute().flavors().list();
+	protected List<? extends Flavor> getInternalFlavor(Object osClient) {
+		
+		return (osClient.equals(osClientV3)) ?  osClientV3.compute().flavors().list()  :  osClientV2.compute().flavors().list();
+		
 	}
 
 	/**
@@ -239,7 +315,7 @@ public class OpenStackClient {
 	 */
 	public String getFlavor() {
 		if (flavors.isEmpty()) {
-			flavors = getInternalFlavor();
+			flavors = getInternalFlavor(osClient);
 		}
 		for (Flavor flavor : flavors) {
 			if (flavor.getName().toLowerCase().contains("small")) {
@@ -252,8 +328,11 @@ public class OpenStackClient {
 		throw new NotFoundException("Unable to find any flavor in Openstack");
 	}
 
-	protected List<? extends Image> getInternalOsImage() {
-		return osClient.images().list();
+	protected List<? extends Image> getInternalOsImage(Object osClient) {
+		
+		List<? extends Image> images = (osClient.equals(osClientV3)) ?  osClientV3.images().list()  :  osClientV2.images().list();
+		
+		return images;
 	}
 
 	/**
@@ -265,7 +344,7 @@ public class OpenStackClient {
 	public String getOsImage() {
 
 		if (images.isEmpty()) {
-			images = getInternalOsImage();
+			images = getInternalOsImage(osClient);
 		}
 		for (Image image : images) {
 			for (String imageIdCmdb : getImagesFromCmdb()) {
@@ -287,13 +366,21 @@ public class OpenStackClient {
 
 	protected ServerCreate createOsServer(String instanceName) {
 		// Create the instance by using openstack4J rather than plain APIs
-		flavorId = getFlavor();
-		imageId = getOsImage();
+		try {
+			flavorId = getFlavor();
+
+			imageId = getOsImage();
+
+		} catch (Exception ex) {
+			log.error("Impossible to get data about the instance: " + instanceName + " " + ex.getMessage());
+		}
 		return Builders.server().name(instanceName).flavor(flavorId).image(imageId).build();
 	}
 
-	protected void bootOsServer(ServerCreate sc) {
-		osClient.compute().servers().boot(sc);
+	protected void bootOsServer(ServerCreate sc, Object osClient) {
+		if(osClient.equals(osClientV3)) 
+			osClientV3.compute().servers().boot(sc);
+		else osClientV2.compute().servers().boot(sc);
 	}
 
 	/**
@@ -304,7 +391,7 @@ public class OpenStackClient {
 	 * @throws InterruptedException
 	 * @throws TimeoutException
 	 */
-	public CreateVmResult createVm() {
+	public CreateVmResult createVm(Object osClient) {
 
 		String instanceName = INSTANCE_NAME + new BigInteger(37, new SecureRandom()).toString(16);
 
@@ -314,7 +401,7 @@ public class OpenStackClient {
 		long startTime = System.currentTimeMillis();
 
 		// Create the machine
-		bootOsServer(sc);
+		bootOsServer(sc, osClient);
 
 		// resultMap = new HashMap<>();
 		long responseTime;
@@ -360,30 +447,6 @@ public class OpenStackClient {
 	}
 
 	/**
-	 * It asks the token to Openstack.
-	 * 
-	 * @return token String
-	 * @throws ConnectionException
-	 */
-	// protected String getTokenId() throws ConnectionException {
-	// // Authenticate
-	// tokenId =
-	// myKeystoneClient.endpoint(baseKeystoneUrl).credentials(openStackUser,
-	// openStackPwd)
-	// .tenantName(tenantName).authenticate().getToken().getId();
-	// return tokenId;
-	// }
-
-	private OSClient getOSAuth() {
-		// More general Authentication
-
-		osClient = myKeystoneClient.endpoint(baseKeystoneUrl).credentials(openStackUser, openStackPwd)
-				.tenantName(tenantName).authenticate();
-
-		return osClient;
-	}
-
-	/**
 	 * Manage the Response status of server in case of creation.
 	 * 
 	 * @param server
@@ -400,8 +463,8 @@ public class OpenStackClient {
 		return manageResult(resultServerStatus);
 	}
 
-	protected List<? extends Server> getServerOsList() {
-		return osClient.compute().servers().list();
+	protected List<? extends Server> getServerOsList(Object osClient) {
+		return (osClient.equals(osClientV3)) ?  osClientV3.compute().servers().list()  :  osClientV2.compute().servers().list();
 	}
 
 	/**
@@ -423,13 +486,13 @@ public class OpenStackClient {
 		boolean created = false;
 		Map<Server.Status, Server> serverResultMap = new HashMap<>();
 		// List<? extends Server>
-		servers = getServerOsList();
+		servers = getServerOsList(osClient);
 		for (Server serverInstance : servers) {
 			if (serverInstance.getName().equalsIgnoreCase(instanceName)) {
 				while (System.currentTimeMillis() < stopPollingTime
 						&& !serverInstance.getStatus().equals(Server.Status.ERROR)
 						&& !serverInstance.getStatus().equals(Server.Status.ACTIVE)) {
-					if (getDiagnosedServer(serverInstance)) {
+					if (getDiagnosedServer(serverInstance, osClient)) {
 						serverResultMap.put(Server.Status.ACTIVE, serverInstance);
 						created = true;
 						break;
@@ -442,7 +505,7 @@ public class OpenStackClient {
 				if (serverInstance.getStatus().equals(Server.Status.ERROR)
 						|| serverInstance.getStatus().equals(Server.Status.BUILD)
 								&& System.currentTimeMillis() > stopPollingTime
-								&& !getDiagnosedServer(serverInstance)) {
+								&& !getDiagnosedServer(serverInstance, osClient)) {
 					serverResultMap.put(serverInstance.getStatus(), serverInstance);
 					return serverResultMap;
 				}
@@ -472,7 +535,7 @@ public class OpenStackClient {
 		boolean deleted = false;
 		int i = 1;
 		// List<? extends Server>
-		servers = getServerOsList();
+		servers = getServerOsList(osClient);
 		for (Server serverInstance : servers) {
 			if (!serverInstance.getId().equalsIgnoreCase(vmId) && i++ == servers.size()) {
 				while (System.currentTimeMillis() < stopPollingTime) {
@@ -514,7 +577,7 @@ public class OpenStackClient {
 		boolean created = false;
 		Map<Server.Status, Server> serverResultMap = new HashMap<>();
 		// List<? extends Server>
-		servers = getServerOsList();
+		servers = getServerOsList(osClient);
 		for (Server serverInstance : servers) {
 			if (serverInstance.getName().equalsIgnoreCase(instanceName)) {
 				if ((!serverInstance.getStatus().equals(Server.Status.ERROR)
@@ -541,11 +604,13 @@ public class OpenStackClient {
 	 * @return a flag
 	 * @throws InterruptedException
 	 */
-	protected boolean getDiagnosedServer(Server serverInstance) throws InterruptedException {
+	protected boolean getDiagnosedServer(Server serverInstance, Object osClient) throws InterruptedException {
 
 		Thread.sleep(3000);
 		boolean isInstanceCreated = false;
-		Server serverDiagnosed = osClient.compute().servers().get(serverInstance.getId());
+		
+		Server serverDiagnosed = (osClient.equals(osClientV3)) ?  osClientV3.compute().servers().get(serverInstance.getId())  :  osClientV2.compute().servers().get(serverInstance.getId()); 
+//				osClient.compute().servers().get(serverInstance.getId());
 		// poll until the result is mappable...
 		log.info("Polling for an instance to be created...");
 		Map<Server.Status, Server> serverResultMap = new HashMap<>();
@@ -559,8 +624,9 @@ public class OpenStackClient {
 			return isInstanceCreated;
 	}
 
-	protected Server getInstanceInfo(Server serverInstance) {
-		return osClient.compute().servers().get(serverInstance.getId());
+	protected Server getInstanceInfo(Server serverInstance, Object osClient) {
+		return (osClient.equals(osClientV3)) ?  osClientV3.compute().servers().get(serverInstance.getId())  :  osClientV2.compute().servers().get(serverInstance.getId()); 
+//		return osClient.compute().servers().get(serverInstance.getId());
 	}
 
 	/**
@@ -573,9 +639,10 @@ public class OpenStackClient {
 	 * @throws TimeoutException
 	 * @throws InterruptedException
 	 */
-	private InspectVmResult inspectVm(String vmId) throws TimeoutException, InterruptedException {
+	private InspectVmResult inspectVm(String vmId, Object osClient) throws TimeoutException, InterruptedException {
 		long startTime = System.currentTimeMillis();
-		server = osClient.compute().servers().get(vmId);
+		server = (osClient.equals(osClientV3)) ?  osClientV3.compute().servers().get(vmId)  :  osClientV2.compute().servers().get(vmId); 
+//		server = osClient.compute().servers().get(vmId);
 
 		// Measure response time
 		while (server.getCreated() == null) {
@@ -602,12 +669,13 @@ public class OpenStackClient {
 	 * @throws TimeoutException
 	 * @throws InterruptedException
 	 */
-	protected DeleteVmResult deleteVm(String vmId) throws TimeoutException, InterruptedException {
+	protected DeleteVmResult deleteVm(String vmId, Object osClient) throws TimeoutException, InterruptedException {
 
 		// Measure response time
 		long startTime = System.currentTimeMillis();
 
-		ActionResponse result = osClient.compute().servers().delete(vmId);
+		ActionResponse result = (osClient.equals(osClientV3)) ?  osClientV3.compute().servers().delete(vmId) : osClientV2.compute().servers().delete(vmId);
+//		ActionResponse result = osClient.compute().servers().delete(vmId);
 		if (result.isSuccess())
 			// Just make sure the machine is really deleted
 			pollerDelete(vmId);
@@ -674,9 +742,10 @@ public class OpenStackClient {
 	/**
 	 * It retrieves the list of networks available.
 	 */
-	public void getNetworksList() {
+	public void getNetworksList(Object osClient) {
 
-		List<? extends Network> networks = osClient.networking().network().list();
+		List<? extends Network> networks = (osClient.equals(osClientV3)) ?  osClientV3.networking().network().list() : osClientV2.networking().network().list();
+//		List<? extends Network> networks = osClient.networking().network().list();
 		log.info(networks.toString());
 	}
 
@@ -690,15 +759,16 @@ public class OpenStackClient {
 	 * @throws TimeoutException
 	 * @throws InterruptedException
 	 */
-	public OpenstackProbeResult getOpenstackMonitoringInfo() throws TimeoutException, InterruptedException {
+	public OpenstackProbeResult getOpenstackMonitoringInfo(String project) throws TimeoutException, InterruptedException {
 		// Follow the full lifecycle for a VM
 		// Retrieve the operation token
 		// tokenId = getTokenId();
-		osClient = getOSAuth();
 
-		log.info("Token is valid. Continue monitoring operation...");
+		osClient = osClient.equals(osClientV3) ?  getOSAuthIam(keystoneclientV3, project) : getOSAuth(myKeystoneClientV2);
+		
+		log.info("Token obtained from "+ providerId +" is valid. Continue monitoring operation...");
 
-		CreateVmResult createVmInfo = createVm();
+		CreateVmResult createVmInfo = createVm(osClient);
 		// Map<String, Object> resultTryMap = new HashMap<>();
 		if (createVmInfo.getCreateVmAvailability() == 0) {
 			// Send failure result, since we cannot go on with the process
@@ -711,8 +781,8 @@ public class OpenStackClient {
 			return failureResult;
 		}
 
-		InspectVmResult inspectVmInfo = inspectVm(createVmInfo.getVmId());
-		DeleteVmResult deleteVmInfo = deleteVm(createVmInfo.getVmId());
+		InspectVmResult inspectVmInfo = inspectVm(createVmInfo.getVmId(), osClient);
+		DeleteVmResult deleteVmInfo = deleteVm(createVmInfo.getVmId(), osClient);
 		// Determine Global Availability
 		int globalAvailability = 1;
 		if (createVmInfo.getCreateVmAvailability() == 0 || inspectVmInfo.getInspectVmAvailability() == 0
@@ -747,7 +817,7 @@ public class OpenStackClient {
 		finalResult.addCreateVmInfo(createVmInfo);
 		finalResult.addInspectVmInfo(inspectVmInfo);
 		finalResult.addDeleteVmInfo(deleteVmInfo);
-		finalResult.setOsInstanceList(getServerOsList());
+		finalResult.setOsInstanceList(getServerOsList(osClient));
 		finalResult.addGlobalInfo(globalAvailability, globalResult, globalResponseTime);
 
 		log.info(finalResult);
@@ -759,7 +829,7 @@ public class OpenStackClient {
 
 		try {
 			if (createVmInfo.getVmId() != null)
-				deleteVm(createVmInfo.getVmId());
+				deleteVm(createVmInfo.getVmId(), osClient);
 
 		} catch (TimeoutException | InterruptedException e) {
 			log.debug("Timeout or interrupted operation when deleting the instance: " + e.getMessage());

@@ -4,13 +4,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,13 +27,10 @@ import org.openstack4j.api.OSClient;
 import org.openstack4j.api.client.IOSClientBuilder.V2;
 import org.openstack4j.api.compute.ComputeService;
 import org.openstack4j.api.image.ImageService;
-import org.openstack4j.model.compute.ActionResponse;
 import org.openstack4j.model.compute.Flavor;
-import org.openstack4j.model.identity.Token;
 import org.openstack4j.model.image.Image;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.beans.AppOperation;
 
@@ -49,14 +43,14 @@ public class ThreadsManagementTest {
 	private OpenstackCollector collectorMocked;
 	private ProviderSearch providerSearch;
 	private CloudProviderInfo providermocked;
-	private Token tokenmocked;
+//	private Token tokenmocked;
 	List<CloudProviderInfo> providersMocked = new ArrayList<>();
 	private OSClient mockOSClient;
 	private OpenStackClient osclient;
-	private Token mockToken;
+//	private Token mockToken;
 	private ComputeService computeMocked;
 	private ImageService imageServiceMocked;
-	private ActionResponse actionMocked;
+//	private ActionResponse actionMocked;
 	private OpenstackZones openstackZones;
 	CloudProvidersZone cloudProvidersZone;
 	List<CloudProvidersZone> cloudzones = new ArrayList<>();
@@ -95,14 +89,14 @@ public class ThreadsManagementTest {
 		keystoneMock = Mockito.mock(V2.class);
 		mockOSClient = Mockito.mock(OSClient.class);
 		computeMocked = Mockito.mock(ComputeService.class);
-		mockToken = Mockito.mock(Token.class);
+//		mockToken = Mockito.mock(Token.class);
 		Mockito.when(keystoneMock.endpoint(Mockito.anyString())).thenReturn(keystoneMock);
 		Mockito.when(keystoneMock.credentials(Mockito.anyString(), Mockito.anyString())).thenReturn(keystoneMock);
 		Mockito.when(keystoneMock.tenantName(Mockito.anyString())).thenReturn(keystoneMock);
-		Mockito.when(keystoneMock.authenticate()).thenReturn(mockOSClient);
-		Mockito.when(mockOSClient.getToken()).thenReturn(mockToken);
+//		Mockito.when(keystoneMock.authenticate()).thenReturn(mockOSClient);
+//		Mockito.when(mockOSClient.getToken()).thenReturn(mockToken);
 		Mockito.when(mockOSClient.compute()).thenReturn(computeMocked);
-		Mockito.when(mockToken.getId()).thenReturn(token);
+//		Mockito.when(mockToken.getId()).thenReturn(token);
 
 		// openstackclientMocked = Mockito.mock(OpenStackClient.class);
 		// PropertiesManager propmanagerMocked =
@@ -110,10 +104,10 @@ public class ThreadsManagementTest {
 		// Mockito.doThrow(IOException.class).when(propmanagerMocked);
 		// PropertiesManager.loadProperties("openstackprobe.properties");
 		osClientmocked = Mockito.mock(OSClient.class);
-		tokenmocked = Mockito.mock(Token.class);
+//		tokenmocked = Mockito.mock(Token.class);
 
-		Mockito.when(osClientmocked.getToken()).thenReturn(tokenmocked);
-		Mockito.when(tokenmocked.getId()).thenReturn("tokenIdtest");
+//		Mockito.when(osClientmocked.getToken()).thenReturn(tokenmocked);
+//		Mockito.when(tokenmocked.getId()).thenReturn("tokenIdtest");
 
 		System.setProperty("jsse.enableSNIExtension", "false");
 		System.setProperty("javax.net.ssl.trustStore", "C:/Program Files/Java/jdk1.8.0_121/jre/lib/security/cacerts");
@@ -141,7 +135,7 @@ public class ThreadsManagementTest {
 		String listResponse = "{\"total_rows\":738,\"offset\":20,\"rows\":["
 				+ "{\"id\":\"provider-100IT\",\"key\":[\"provider\"],\"value\":{\"name\":\"100IT\"}},"
 				+ "{\"id\":\"provider-RECAS-BARI\",\"key\":[\"provider\"],\"value\":{\"name\":\"RECAS-BARI\"}}]}";
-		Mockito.when(responseGetList.readEntity(String.class)).thenReturn(listResponse);
+//		Mockito.when(responseGetList.readEntity(String.class)).thenReturn(listResponse);
 
 		// Define mock response for GET details (complete result)
 		Mockito.when(invocationBuilderDetails.get()).thenReturn(responseGetDetails);
@@ -158,7 +152,7 @@ public class ThreadsManagementTest {
 				+ "\"endpoint\":\"http://cloud.recas.ba.infn.it:8774/\"},\"type\":\"service\"}},"
 				+ "{\"id\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\",\"key\":[\"provider-RECAS-BARI\",\"services\"],\"value\":{\"provider_id\":\"provider-RECAS-BARI\",\"type\":\"compute\"},\"doc\":{\"_id\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\",\"_rev\":\"1-256d36283315ea9bb045e6d5038657b6\",\"data\":{\"service_type\":\"eu.egi.cloud.vm-management.openstack\",\"endpoint\":\"http://cloud.recas.ba.infn.it:5000/v2.0\",\"provider_id\":\"provider-RECAS-BARI\",\"type\":\"compute\"},\"type\":\"service\"}},"
 				+ "{\"id\":\"7efc59c5db69ea67c5100de0f73ab567\",\"key\":[\"provider-RECAS-BARI\",\"services\"],\"value\":{\"provider_id\":\"provider-RECAS-BARI\",\"type\":\"storage\"},\"doc\":{\"_id\":\"7efc59c5db69ea67c5100de0f73ab567\",\"_rev\":\"4-6e2921c359fb76118616e26c7de76397\",\"data\":{\"service_type\":\"eu.egi.cloud.storage-management.oneprovider\",\"endpoint\":\"E1u8A4FgR6C1UgbD2JOoP9OQIG43q-zDsXkx1PoaaI4\",\"provider_id\":\"provider-RECAS-BARI\",\"type\":\"storage\"},\"type\":\"service\"}}]}";
-		Mockito.when(responseGetDetails.readEntity(String.class)).thenReturn(detailResponse);
+//		Mockito.when(responseGetDetails.readEntity(String.class)).thenReturn(detailResponse);
 
 		// Define main relationships for the Client class Images
 		Mockito.when(mockCmdb.target(Mockito.endsWith("/image/list"))).thenReturn(targetList);
@@ -195,7 +189,7 @@ public class ThreadsManagementTest {
 				+ "\"type\":\"image\",\"data\":{\"image_id\":\"867bdfd7-7a97-4ef5-bfa8-9f7d05958239\","
 				+ "\"image_name\":\"linux-ubuntu-14.04-mesos-vmi\",\"architecture\":\"x86_64\",\"type\":\"linux\","
 				+ "\"distribution\":\"ubuntu\",\"version\":\"14.04\",\"service\":\"4401ac5dc8cfbbb737b0a02575e6f4bc\"}}}]}";
-		Mockito.when(responseGetList.readEntity(String.class)).thenReturn(listImagesResponse);
+//		Mockito.when(responseGetList.readEntity(String.class)).thenReturn(listImagesResponse);
 
 		// Define mocks for CMDB failure
 		mockCmdbFail = Mockito.mock(Client.class);
@@ -216,7 +210,7 @@ public class ThreadsManagementTest {
 		Mockito.when(invocationBuilderListFail.get()).thenReturn(responseGetListFail);
 		Mockito.when(responseGetListFail.getStatus()).thenReturn(200);
 		String listResponseFail = "{\"total_rows\":0,\"offset\":20,\"rows\":[]}";
-		Mockito.when(responseGetListFail.readEntity(String.class)).thenReturn(listResponseFail);
+//		Mockito.when(responseGetListFail.readEntity(String.class)).thenReturn(listResponseFail);
 
 		// Define mock response for GET details (complete result)
 		Mockito.when(invocationBuilderDetailsFail.get()).thenReturn(responseGetDetailsFail);
@@ -226,7 +220,7 @@ public class ThreadsManagementTest {
 		// +
 		// "{\"id\":\"4401ac5dc8cfbbb737b0a025758cfd60\",\"key\":[\"provider-RECAS-BARI\",\"services\"],\"value\":{\"sitename\":\"RECAS-BARI\",\"provider_id\":\"provider-RECAS-BARI\",\"hostname\":\"cloud.recas.ba.infn.it\",\"type\":\"compute\"},\"doc\":{\"_id\":\"4401ac5dc8cfbbb737b0a025758cfd60\",\"_rev\":\"2-6540bc334d76090c53399c7bd5bc0aae\",\"data\":{\"primary_key\":\"8015G0\",\"hostname\":\"cloud.recas.ba.infn.it\",\"gocdb_portal_url\":\"https://goc.egi.eu/portal/index.php?Page_Type=Service&id=8015\",\"hostdn\":\"/C=IT/O=INFN/OU=Host/L=Bari/CN=cloud.recas.ba.infn.it\",\"beta\":\"N\",\"service_type\":\"eu.egi.cloud.vm-management.noocci\",\"core\":null,\"in_production\":\"Y\",\"node_monitored\":\"Y\",\"sitename\":\"RECAS-BARI\",\"country_name\":\"Italy\",\"country_code\":\"IT\",\"roc_name\":\"NGI_IT\",\"scopes\":{\"scope\":[\"EGI\",\"wlcg\",\"lhcb\"]},\"extensions\":null,\"type\":\"compute\",\"provider_id\":\"provider-RECAS-BARI\",\"endpoint\":\"http://cloud.recas.ba.infn.it:8774/\"},\"type\":\"service\"}}]}";
 		String detailResponseFail = "{\"total_rows\":60,\"offset\":49,\"rows\":[]}";
-		Mockito.when(responseGetDetailsFail.readEntity(String.class)).thenReturn(detailResponseFail);
+//		Mockito.when(responseGetDetailsFail.readEntity(String.class)).thenReturn(detailResponseFail);
 
 		// Mock CMDB client
 		cmdbClientMock = Mockito.mock(CmdbClient.class);
@@ -255,7 +249,7 @@ public class ThreadsManagementTest {
 		global.addCreateVmInfo(create);
 		global.addInspectVmInfo(inspect);
 		global.addDeleteVmInfo(delete);
-		Mockito.when(mockOpenstack.getOpenstackMonitoringInfo()).thenReturn(global);
+		Mockito.when(mockOpenstack.getOpenstackMonitoringInfo("recas")).thenReturn(global);
 
 		// Mock the list of providers
 		providermocked = Mockito.mock(CloudProviderInfo.class);
@@ -270,7 +264,7 @@ public class ThreadsManagementTest {
 		OpenStackClient osclientMocked = Mockito.mock(OpenStackClient.class);
 		CreateVmResult createVmResultmocked = Mockito.mock(CreateVmResult.class);
 		Mockito.when(createVmResultmocked.getVmId()).thenReturn("vmid");
-		Mockito.when(osclientMocked.createVm()).thenReturn(createVmResultmocked);
+//		Mockito.when(osclientMocked.createVm()).thenReturn(createVmResultmocked);
 
 		// Mock the final results
 		hostThreadMocked = Mockito.mock(OpenstackThread.class);
@@ -312,8 +306,8 @@ public class ThreadsManagementTest {
 				.loadProperties(new InputStreamReader(this.getClass().getResourceAsStream("/testprobe.properties")));
 
 		OpenstackConfiguration.zone = "/testoszones.yml";
-		providerSearch = new ProviderSearch(providersMocked, collectorMocked, cmdbClientMock, providermocked,
-				osClientmocked);
+//		providerSearch = new ProviderSearch(providersMocked, collectorMocked, cmdbClientMock, providermocked,
+//				osClientmocked);
 		List<OpenstackCollector> collectorlist = providerSearch.getCollectorResults();
 		collectorlist.add(collectorMocked);
 		OpenstackThread mockThread = new OpenstackThread(collectorlist);

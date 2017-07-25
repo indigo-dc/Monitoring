@@ -66,7 +66,7 @@ public class KeystoneClient {
         OpenstackProjectsInfo.Project found = null;
 
         if (projects != null) {
-          found = projects.stream().filter(project -> projectName.equals(project.getName()))
+          found = projects.stream().filter(project -> projectName.equalsIgnoreCase(project.getName()))
               .findFirst().orElse(null);
         }
 

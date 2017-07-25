@@ -13,7 +13,6 @@ import org.openstack4j.api.compute.ServerService;
 import org.openstack4j.api.image.ImageService;
 import org.openstack4j.model.compute.Flavor;
 import org.openstack4j.model.compute.Server;
-import org.openstack4j.model.identity.Token;
 import org.openstack4j.model.image.Image;
 
 /**
@@ -35,8 +34,8 @@ public class OpenstackComponent {
 	/** The mock keystone. */
 	private V2 mockKeystone;
 	
-	/** The token moked. */
-	private Token tokenMoked;
+//	/** The token moked. */
+//	private Token tokenMoked;
 	
 	/** The token Id moked. */
 	private String tokenId;
@@ -161,23 +160,23 @@ public class OpenstackComponent {
 		this.mockKeystone = mockKeystone;
 	}
 	
-	/**
-	 * Sets the token moked.
-	 *
-	 * @param tokenMoked the new token moked
-	 */
-	public void setTokenMoked(Token tokenMoked) {
-		this.tokenMoked = tokenMoked;
-	}
-
-	/**
-	 * Gets the token moked.
-	 *
-	 * @return the token moked
-	 */
-	public Token getTokenMoked() {
-		return tokenMoked;
-	}
+//	/**
+//	 * Sets the token moked.
+//	 *
+//	 * @param tokenMoked the new token moked
+//	 */
+//	public void setTokenMoked(Token tokenMoked) {
+//		this.tokenMoked = tokenMoked;
+//	}
+//
+//	/**
+//	 * Gets the token moked.
+//	 *
+//	 * @return the token moked
+//	 */
+//	public Token getTokenMoked() {
+//		return tokenMoked;
+//	}
 
 	/**
 	 * Sets the token moked.

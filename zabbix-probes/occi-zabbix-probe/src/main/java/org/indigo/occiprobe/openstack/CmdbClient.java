@@ -20,20 +20,19 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
-import com.indigo.zabbix.utils.ProbeClientFactory;
-import com.indigo.zabbix.utils.PropertiesManager;
-
-import org.indigo.occiprobe.openstack.beans.CmdbResponse;
-import org.indigo.occiprobe.openstack.beans.ServiceType;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import org.indigo.occiprobe.openstack.beans.CmdbResponse;
+import org.indigo.occiprobe.openstack.beans.ServiceType;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.indigo.zabbix.utils.ProbeClientFactory;
+import com.indigo.zabbix.utils.PropertiesManager;
 
 /**
  * The CmdbClient class is in charge of the interactions between the probe and
