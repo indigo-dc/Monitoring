@@ -18,12 +18,12 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 @email francisco.nieto@atos.net
 **/
 
-package org.indigo.openstackprobe.openstack;
+package com.indigo.zabbix.utils;
 
 /**
  * This class holds information about a Cloud provider which was found by getting
  * data from the CMDB. It contains the main fields for the probe (provider identifier,
- * nova endpoint and Keystone endpoint) and also includes other fields that can be used
+ * OCCI endpoint and Keystone endpoint) and also includes other fields that can be used
  * for filtering those providers to monitor.
  * @author ATOS
  *
@@ -33,7 +33,7 @@ public class CloudProviderInfo {
   public static final int OPENSTACK = 0;
   public static final int OPENNEBULA = 1;
   
-  private String novaEndpoint;
+  private String occiEndpoint;
   private String keystoneEndpoint;
   private int cloudType;
   private boolean isMonitored;
@@ -45,16 +45,17 @@ public class CloudProviderInfo {
    * This is the constructor of the class. It just fills in the internal fields with the
    * information gathered from the CMDB.
    * @param provider String with the provider identifier
-   * @param nove Nova Compute endpoint as [URL/IP:Port]
+   * @param occi OCCI endpoint as [URL/IP:Port]
    * @param keystone Keystone endpoint as [URL/IP:Port]
    * @param type Integer indicating the Cloud platform, according to the constants
    * @param monitored Boolean indicating whether the provider is monitored
    * @param beta Boolean indicating whether the provider uses a beta version
    * @param production Boolean indicating whether the provider platform is in production
    */
-  public CloudProviderInfo(String provider, /*String nova,*/ String keystone, int type,
+  public CloudProviderInfo(String provider, String occi, String keystone, int type,
       boolean monitored, boolean beta, boolean production) {
     providerId = provider;
+    occiEndpoint = occi;
     keystoneEndpoint = keystone;
     cloudType = type;
     isMonitored = monitored;
@@ -71,11 +72,11 @@ public class CloudProviderInfo {
   }
   
   /**
-   * It retrieves the Openstack Nova endpoint.
-   * @return Openstack Nova endpoint as [URL/IP:Port]
+   * It retrieves the OCCI endpoint.
+   * @return OCCI endpoint as [URL/IP:Port]
    */
-  public String getNovaEndpoint() {
-    return novaEndpoint;
+  public String getOcciEndpoint() {
+    return occiEndpoint;
   }
   
   /**

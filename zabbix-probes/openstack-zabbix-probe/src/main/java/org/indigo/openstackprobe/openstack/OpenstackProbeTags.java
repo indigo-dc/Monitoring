@@ -27,7 +27,9 @@ public interface OpenstackProbeTags {
   public static final  String IAM_LOCATION = "iam.location";
   public static final  String IAM_USERNAME = "iam.username";
   public static final  String IAM_PASSWORD = "iam.password";
-  public static final  String OPENSTACK_PROJECT = "openstack.project";
+  
+  public static final  String PROVIDERS_EXCEPTIONS = "providers.exceptions"; 
+  
   
   public static String CONFIG_FILE = "openstackprobe.properties";
   String OPENSTACK_METRIC = "os.metric"; 

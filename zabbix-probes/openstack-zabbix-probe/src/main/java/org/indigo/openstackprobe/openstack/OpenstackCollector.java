@@ -9,7 +9,6 @@ import org.openstack4j.api.exceptions.ConnectionException;
 import org.openstack4j.model.compute.Server;
 
 import com.indigo.zabbix.utils.LifecycleCollector;
-import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.beans.AppOperation;
 
 /**
@@ -21,17 +20,16 @@ import com.indigo.zabbix.utils.beans.AppOperation;
  */
 public class OpenstackCollector extends LifecycleCollector {
 
-    // private OpenStackClient openstackClient;
 	public String provider;
 	public String keystoneEndpoint;
 	public String accessToken;
 
 	private static final Logger log = LogManager.getLogger(OpenstackCollector.class);
 	protected OpenstackProbeResult probeResult;
-	// = new OpenstackProbeResult(provider);
 	private static final String INSTANCE_NAME = OpenstackProbeTags.INSTANCE_NAME;
 	OpenStackClient openstackClient;
 	OpenstackComponent openstackComponent = new OpenstackComponent();
+	CheckForProviderDifference checkForProviderDifference = new CheckForProviderDifference();
 
 	/**
 	 * Default constructor.
@@ -64,10 +62,10 @@ public class OpenstackCollector extends LifecycleCollector {
 	protected OpenstackProbeResult getOSProbeResult() {
 		if (probeResult == null)
 			try {
-				String project = (provider.toLowerCase().contains("recas")) ? "INDIGO_DEMO" : PropertiesManager.getProperty(OpenstackProbeTags.OPENSTACK_PROJECT) ;
+				String project = checkForProviderDifference.checkForOpenstackProject(provider);
+				
 				probeResult = openstackClient.getOpenstackMonitoringInfo(project);
 				
-//			} catch (TimeoutException | InterruptedException te) {
 			} catch (Exception te) {
 				log.debug("Unable to get the information about the provider " + provider + "" + te);
 			}

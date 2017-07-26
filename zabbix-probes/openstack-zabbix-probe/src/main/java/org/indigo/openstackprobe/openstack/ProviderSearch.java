@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.oltu.oauth2.client.response.OAuthJSONAccessTokenResponse;
 import org.openstack4j.api.OSClient.OSClientV3;
 
+import com.indigo.zabbix.utils.CloudProviderInfo;
 import com.indigo.zabbix.utils.IamClient;
 
 /**
@@ -17,7 +18,7 @@ import com.indigo.zabbix.utils.IamClient;
  */
 public class ProviderSearch {
 
-	private static CmdbClient cmdbClient = new CmdbClient();
+	private static CmdbClientForOpenstack cmdbClient = new CmdbClientForOpenstack();
 	private static final Logger log = LogManager.getLogger(OpenStackClient.class);
 	private static List<CloudProviderInfo> providersList = new ArrayList<>();
 	private static String providerId;
@@ -37,7 +38,7 @@ public class ProviderSearch {
 	 * @param osclientMocked
 	 */
 	protected ProviderSearch(List<CloudProviderInfo> providers, OpenstackCollector collectorMocked,
-			CmdbClient cmdbMocked, CloudProviderInfo providerMocked, OSClientV3 osclientMocked) {
+			CmdbClientForOpenstack cmdbMocked, CloudProviderInfo providerMocked, OSClientV3 osclientMocked) {
 		providersList = providers;
 		collector = collectorMocked;
 		cmdbClient = cmdbMocked;

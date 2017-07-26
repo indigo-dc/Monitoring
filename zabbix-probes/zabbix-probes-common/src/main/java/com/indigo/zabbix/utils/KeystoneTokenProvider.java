@@ -16,6 +16,10 @@ public interface KeystoneTokenProvider {
   @RequestLine("GET /v3/OS-FEDERATION/identity_providers/indigo-dc/protocols/oidc/auth")
   @Headers("Authorization: Bearer {token}")
   Response getKeystoneToken(@Param("token") String accessToken);
+  
+  @RequestLine("GET /v3/OS-FEDERATION/identity_providers/indigo-dc/protocols/iamoidc/auth")
+  @Headers("Authorization: Bearer {token}")
+  Response getKeystoneTokenIamOidc(@Param("token") String accessToken);
 
   @RequestLine("GET /v3/auth/projects")
   @Headers("X-Auth-Token: {token}")

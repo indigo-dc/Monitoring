@@ -1,4 +1,4 @@
-package org.indigo.openstackprobe.openstack.beans;
+package com.indigo.zabbix.utils.beans;
 
 import java.util.List;
 

@@ -1,9 +1,8 @@
-package org.indigo.openstackprobe.openstack;
-
-import org.indigo.openstackprobe.openstack.beans.CmdbResponse;
-import org.openstack4j.api.types.ServiceType;
+package com.indigo.zabbix.utils;
 
 import com.google.gson.JsonElement;
+import com.indigo.zabbix.utils.beans.CmdbResponse;
+import com.indigo.zabbix.utils.beans.ServiceType;
 
 import feign.Param;
 import feign.RequestLine;

@@ -37,15 +37,7 @@ public class OpenstackThread extends ProbeThread<OpenstackCollector> {
 	public static void main(String[] args) {
 		collectors = ProviderSearch.getCollectorResults();
 		for (countColls = 0; countColls < collectors.size(); countColls++) {
-			try{
 			new OpenstackThread().run(OpenstackProbeTags.CONFIG_FILE);
-			}catch(Exception exc){
-				if(countColls==collectors.size()){
-					log.error(exc.getMessage());
-					break;
-					}else continue;
-				
-			}
 		}
 	}
 

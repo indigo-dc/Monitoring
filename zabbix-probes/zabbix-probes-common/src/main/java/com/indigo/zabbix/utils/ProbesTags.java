@@ -8,12 +8,15 @@ public interface ProbesTags {
   String ZABBIX_WRAPPER_ENDPOINT = "zabbix.wrapper.location";
   String ZABBIX_HOST = "zabbix.ip";
   String ZABBIX_PORT = "zabbix.port";
+  
+  String OPENSTACK_PROJECT = "openstack.project";
 
   String IAM_LOCATION = "iam.location";
   String IAM_USERNAME = "iam.username";
   String IAM_PASSWORD = "iam.password";
   String IAM_CLIENTID = "iam.clientid";
   String IAM_CLIENTSECRET = "iam.clientsecret";
+  String CMDB_URL = "cmdb.location";
 
   String LOG_CONFIG = "log.config";
 

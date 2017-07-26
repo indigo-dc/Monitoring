@@ -13,7 +13,10 @@ import org.apache.logging.log4j.Logger;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.indigo.zabbix.utils.CloudProviderInfo;
+import com.indigo.zabbix.utils.CmdbFeignClient;
 import com.indigo.zabbix.utils.ProbeClientFactory;
+import com.indigo.zabbix.utils.ProbesTags;
 import com.indigo.zabbix.utils.PropertiesManager;
 
 /**
@@ -24,7 +27,7 @@ import com.indigo.zabbix.utils.PropertiesManager;
  * @author Reply
  *
  */
-public class CmdbClient {
+public class CmdbClientForOpenstack {
 	private Client client = null;
 	private String cmdbUrl;
 	private static final String SERVICE_TYPE = "eu.egi.cloud.vm-management.openstack";
@@ -36,35 +39,18 @@ public class CmdbClient {
 	
 	private CmdbFeignClient cmdbClient = null;
 
-	private static final Logger log = LogManager.getLogger(CmdbClient.class);
-
-	/**
-	 * It constructs an object of the CmdbClient type, retrieving certain
-	 * properties and initializing a Jersey client.
-	 */
-//	public CmdbClient() {
-//		try {
-//			PropertiesManager.loadProperties(OpenstackProbeTags.CONFIG_FILE);
-//		} catch (IOException e) {
-//			log.debug("Unable to load property file: {}", OpenstackProbeTags.CONFIG_FILE, e);
-//		}
-//		cmdbUrl = PropertiesManager.getProperty(OpenstackProbeTags.CMDB_URL);
-//		// Create the Client
-//		ClientConfig cc = new ClientConfig();
-//		client = JerseyClientBuilder.newClient(cc);
-//	}
-	
+	private static final Logger log = LogManager.getLogger(CmdbClientForOpenstack.class);
 	
 	/**
-	 * FEIGN
+	 * FEIGN used into Cmdb.	 
 	 */
-	public CmdbClient() {
+	public CmdbClientForOpenstack() {
 		try {
 			PropertiesManager.loadProperties(OpenstackProbeTags.CONFIG_FILE);
 		} catch (IOException e) {
 			log.debug("Unable to load property file: {}", OpenstackProbeTags.CONFIG_FILE, e);
 		}
-		cmdbUrl = PropertiesManager.getProperty(OpenstackProbeTags.CMDB_URL);
+		cmdbUrl = PropertiesManager.getProperty(ProbesTags.CMDB_URL);
 		// Create the Client
 		cmdbClient = ProbeClientFactory.getClient(CmdbFeignClient.class, cmdbUrl);
 	}
@@ -75,7 +61,7 @@ public class CmdbClient {
 	 * @param mock
 	 *            Mock of the Jersey Client class
 	 */
-	public CmdbClient(Client mock, String cmdburlMocked) {
+	public CmdbClientForOpenstack(Client mock, String cmdburlMocked) {
 		cmdbUrl = cmdburlMocked;
 		client = mock;
 	}
@@ -87,16 +73,6 @@ public class CmdbClient {
 	 * @return Strings array with the identifiers of the providers found.
 	 */
 	public String[] getProvidersList() {
-		// Call to CMDB API
-//		WebTarget target = client.target(cmdbUrl + "/provider/list");
-//		Invocation.Builder invocationBuilder = target.request();
-//		Response response = invocationBuilder.get();
-////		String message = response.readyEntity(String.class).;
-//
-//		 Retrieve the providers list
-//		JsonElement jelement = new JsonParser().parse(message);
-//		JsonObject parsedRes = jelement.getAsJsonObject();
-//		JsonArray listArray = parsedRes.getAsJsonArray("rows");
 		
 		// Retrieve the services list
 	    JsonElement jelement = cmdbClient.providerList();
@@ -124,17 +100,6 @@ public class CmdbClient {
 
 	public String[] getImageList() {
 		// Call to CMDB API
-//		WebTarget target = client.target(cmdbUrl + "/image/list");
-//		Invocation.Builder invocationBuilder = target.request();
-//		Response response = invocationBuilder.get();
-//		String message = response.toString();
-////		String message = response.readEntity(String.class);
-////
-//		// Retrieve the providers list
-//		JsonElement jelement = new JsonParser().parse(message);
-//		JsonObject parsedRes = jelement.getAsJsonObject();
-//		JsonArray listArray = parsedRes.getAsJsonArray("rows");
-
 		JsonElement jelement = cmdbClient.providerImages();
 	    JsonObject parsedRes = jelement.getAsJsonObject();
 	    JsonArray listArray = parsedRes.getAsJsonArray("rows");
@@ -171,12 +136,6 @@ public class CmdbClient {
 	 */
 	public CloudProviderInfo getProviderData(String providerId) {
 		// Call to CMDB API
-//		String providerUrl = cmdbUrl + "/provider/id/" + providerId + "/has_many/services?include_docs=true";
-//		WebTarget target = client.target(providerUrl);
-//		Invocation.Builder invocationBuilder = target.request();
-//		Response response = invocationBuilder.get();
-//		String message = response.toString();
-//		String message = response.readEntity(String.class);
 
 		JsonElement jelement = cmdbClient.servicesPerProvider(providerId);
 	    JsonObject parsedRes = jelement.getAsJsonObject();
@@ -184,15 +143,6 @@ public class CmdbClient {
 	    if (listArray.isJsonNull() || listArray.size() == 0) {
 	      return null;
 	    }
-		
-		// Retrieve the services list
-//				JsonElement jelement = new JsonParser().parse(message);
-//				JsonObject parsedRes = jelement.getAsJsonObject();
-//				JsonArray listArray = parsedRes.getAsJsonArray("rows");
-//				if (listArray.isJsonNull() || listArray.size() == 0) {
-//					return null;
-//				}
-
 		String novaEndpoint = null;
 		String keystoneEndpoint = null;
 		int type = CloudProviderInfo.OPENSTACK;
@@ -211,11 +161,7 @@ public class CmdbClient {
 			for (JsonElement obj : listArray) {
 				JsonElement docIter = obj.getAsJsonObject().get("doc");
 				JsonElement dataIter = docIter.getAsJsonObject().get("data");
-				// JsonElement occiEndpoint =
-				// dataIter.getAsJsonObject().get("endpoint");
 				try {
-					// currentServiceType = getServiceType(dataIter,
-					// currentServiceType);
 					if (dataIter.getAsJsonObject().get("service_type").getAsString().equals(SERVICE_TYPE))
 						currentServiceType = SERVICE_TYPE;
 
@@ -231,7 +177,6 @@ public class CmdbClient {
 				return null;
 			}
 
-			// the service type represents the filter this class works on
 			if (currentServiceType.equalsIgnoreCase(SERVICE_TYPE)) {
 				keystoneEndpoint = identityEndpoint;
 
@@ -239,7 +184,6 @@ public class CmdbClient {
 				JsonElement currentProduction = currentData.get("in_production");
 				JsonElement currentMonitored = currentData.get("node_monitored");
 
-				// Retrieve the rest of info from the Nova service
 				if (currentBeta != null && currentBeta.getAsString().equalsIgnoreCase("Y")) {
 					isBeta = true;
 				}
@@ -250,7 +194,7 @@ public class CmdbClient {
 					isProduction = true;
 				}
 
-				return new CloudProviderInfo(providerId, keystoneEndpoint, type, isMonitored, isBeta, isProduction);
+				return new CloudProviderInfo(providerId, "", keystoneEndpoint, type, isMonitored, isBeta, isProduction);
 			}
 		}
 		return null;
@@ -287,7 +231,6 @@ public class CmdbClient {
 				log.info("Provider" + providersList[i] + " not suitable for being processed by Openstack probe");
 			}
 		}
-
 		return myResult;
 	}
 }

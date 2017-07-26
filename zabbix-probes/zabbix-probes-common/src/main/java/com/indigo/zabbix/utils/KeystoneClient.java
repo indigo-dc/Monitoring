@@ -1,13 +1,13 @@
 package com.indigo.zabbix.utils;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import com.indigo.zabbix.utils.beans.KeystoneScopedTokenRequest;
 import com.indigo.zabbix.utils.beans.OpenstackProjectsInfo;
 
 import feign.Response;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by jose on 4/04/17.
@@ -18,7 +18,12 @@ public class KeystoneClient {
   private final KeystoneTokenProvider keystoneClient;
 
   public KeystoneClient(String location) {
-    this.keystoneClient = ProbeClientFactory.getClient(KeystoneTokenProvider.class, location);
+	  if (location.endsWith("/v3")) {
+		location = location.replace("/v3", "");
+	  } else {
+		throw new IllegalArgumentException("Error generating Keystone client.\nOpenstack endpoint <" + location + "> provided but only v3 endpoints are supported");  
+	  }
+		this.keystoneClient = ProbeClientFactory.getClient(KeystoneTokenProvider.class, location);
   }
 
   /**
@@ -36,6 +41,9 @@ public class KeystoneClient {
    */
   public String getUnscopedToken(String accessToken) {
     Response tokenInfo = keystoneClient.getKeystoneToken(accessToken);
+    if(tokenInfo.headers().get(TOKEN_RESULT_HEADER)==null)
+	    	tokenInfo= keystoneClient.getKeystoneTokenIamOidc(accessToken);
+     
     return getTokenHeader(tokenInfo);
   }
 

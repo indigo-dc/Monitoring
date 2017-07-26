@@ -31,13 +31,14 @@ import org.openstack4j.model.compute.Flavor;
 import org.openstack4j.model.image.Image;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.indigo.zabbix.utils.CloudProviderInfo;
 import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.beans.AppOperation;
 
 public class ThreadsManagementTest {
 	private Client mockCmdb;
 	private Client mockCmdbFail;
-	private CmdbClient cmdbClientMock;
+	private CmdbClientForOpenstack cmdbClientMock;
 
 	private OpenstackThread hostThreadMocked;
 	private OpenstackCollector collectorMocked;
@@ -223,11 +224,11 @@ public class ThreadsManagementTest {
 //		Mockito.when(responseGetDetailsFail.readEntity(String.class)).thenReturn(detailResponseFail);
 
 		// Mock CMDB client
-		cmdbClientMock = Mockito.mock(CmdbClient.class);
+		cmdbClientMock = Mockito.mock(CmdbClientForOpenstack.class);
 		Mockito.when(cmdbClientMock.getProvidersList())
 				.thenReturn(new String[] { "provider-RECAS-BARI", "provider-UPV-GRyCAP" });
 		CloudProviderInfo testProvider = new CloudProviderInfo(
-				"provider-RECAS-BARI", /* "http://cloud.recas.ba.infn.it:8774/", */
+				"provider-RECAS-BARI", "", 
 				"http://cloud.recas.ba.infn.it:5000/v2.0", 0, true, false, true);
 		Mockito.when(cmdbClientMock.getProviderData(Mockito.matches("provider-RECAS-BARI"))).thenReturn(testProvider);
 		// Mockito.when(cmdbClientMock.getProviderData(Mockito.matches("provider-UPV-GRyCAP")))
@@ -306,8 +307,6 @@ public class ThreadsManagementTest {
 				.loadProperties(new InputStreamReader(this.getClass().getResourceAsStream("/testprobe.properties")));
 
 		OpenstackConfiguration.zone = "/testoszones.yml";
-//		providerSearch = new ProviderSearch(providersMocked, collectorMocked, cmdbClientMock, providermocked,
-//				osClientmocked);
 		List<OpenstackCollector> collectorlist = providerSearch.getCollectorResults();
 		collectorlist.add(collectorMocked);
 		OpenstackThread mockThread = new OpenstackThread(collectorlist);
@@ -349,7 +348,7 @@ public class ThreadsManagementTest {
 	@Test
 	public void cmdbAccessShouldFail() {
 		// Create the CMDB client with Mock
-		CmdbClient myTestClient = new CmdbClient(mockCmdbFail, cmdUrlMoked);
+		CmdbClientForOpenstack myTestClient = new CmdbClientForOpenstack(mockCmdbFail, cmdUrlMoked);
 
 		// Try to list providers and to get info from one of them
 		String[] testList = myTestClient.getProvidersList();
@@ -363,7 +362,7 @@ public class ThreadsManagementTest {
 	public void cmdbAccessShouldWorkFine() {
 		// Create the CMDB client with Mock
 		OpenStackClient mockOpenstack = Mockito.mock(OpenStackClient.class);
-		CmdbClient myTestClient = new CmdbClient(mockCmdb, cmdUrlMoked);
+		CmdbClientForOpenstack myTestClient = new CmdbClientForOpenstack(mockCmdb, cmdUrlMoked);
 
 		// Mockito.when(myTestClient.getImageList()).thenReturn(new
 		// String[]{"linux-ubuntu-14.04-vmi", "linux-ubuntu-14.04-mesos-vmi"});

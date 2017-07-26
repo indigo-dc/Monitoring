@@ -1,4 +1,4 @@
-package org.indigo.openstackprobe.openstack.beans;
+package com.indigo.zabbix.utils.beans;
 
 import com.google.gson.annotations.SerializedName;
 
