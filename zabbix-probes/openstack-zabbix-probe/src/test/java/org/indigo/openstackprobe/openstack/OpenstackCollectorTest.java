@@ -1,19 +1,15 @@
 package org.indigo.openstackprobe.openstack;
 
-import com.indigo.zabbix.utils.CloudProviderInfo;
-import com.indigo.zabbix.utils.IamClient;
-import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.beans.AppOperation;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeoutException;
-import org.apache.oltu.oauth2.client.response.OAuthJSONAccessTokenResponse;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.openstack4j.api.exceptions.ConnectionException;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.compute.ServerCreate;
+
+import java.util.concurrent.TimeoutException;
 
 public class OpenstackCollectorTest {
 
@@ -69,24 +65,21 @@ public class OpenstackCollectorTest {
 		probeMocked.getCreateVmElement();
 	}
 
-	@Test
-	public void createCollectorAndEnsureCloudProviderAuthenticationWorks() throws Exception {
-		PropertiesManager.loadProperties(OpenstackProbeTags.CONFIG_FILE);
-
-		OAuthJSONAccessTokenResponse response = IamClient.getAccessToken();
-		String accessToken = response.getAccessToken();
-		List<CloudProviderInfo> providers = new ArrayList<>();
-		providers.add(new CloudProviderInfo("provider-RECAS-BARI", "","https://cloud.recas.ba.infn.it:5000/v3", 0, true,
-				false, true));
-		providers.add(
-				new CloudProviderInfo("NCG-INGRID-PT", "","https://nimbus.ncg.ingrid.pt:5000/v3", 0, true, false, true));
-		for (CloudProviderInfo provider : providers) {
-			
-			new OpenstackCollector(accessToken, "provider-RECAS-BARI", "https://cloud.recas.ba.infn.it:5000/v3");
-			
-
-
-		}
-	}
+//	@Test
+//	public void createCollectorAndEnsureCloudProviderAuthenticationWorks() throws Exception {
+//		PropertiesManager.loadProperties(OpenstackProbeTags.CONFIG_FILE);
+//
+//		OAuthJSONAccessTokenResponse response = IamClient.getAccessToken();
+//		String accessToken = response.getAccessToken();
+//		List<CloudProviderInfo> providers = new ArrayList<>();
+//		providers.add(new CloudProviderInfo("provider-RECAS-BARI", "","https://cloud.recas.ba.infn.it:5000/v3", 0, true,
+//				false, true));
+//		providers.add(
+//				new CloudProviderInfo("NCG-INGRID-PT", "","https://nimbus.ncg.ingrid.pt:5000/v3", 0, true, false, true));
+//		for (CloudProviderInfo provider : providers) {
+//			
+//			new OpenstackCollector(accessToken, "provider-RECAS-BARI", "https://cloud.recas.ba.infn.it:5000/v3");
+//		}
+//	}
 
 }

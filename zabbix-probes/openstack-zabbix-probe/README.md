@@ -57,10 +57,20 @@ The Openstack probe requires to modify the openstackprobe.properties (inserted i
 * java.keystore - Set here the full location of the security certificates keystore
 * cmdb.location - Provide the full URL of the CMDB component, providing the information about the available providers
 * wait.real.vm.creation - Provides the user to get information about the real creation response time of a machine or just the immediate response from the client
-* is-iam-authenticated - If set to true the probe trye authetnticating itself to Openstack via IAM 
-* zabbix.wrapper.location - The endpoint where zabbix wrapper exposes APIs at.
+* is-iam-authenticated - If set to true the probe tries authenticating itself to Openstack via IAM. in this case just make sure to have filled all the fields in the property file especially the following ones:
+* iam.location - Endpoint of IAM
+* iam.username 
+* iam.password 
+* iam.clientid 
+* iam.clientsecret 
+* openstack.project - Name of the tenant where deploying the VMs 
+* providers.exceptions - Meaning there are differences in configurations amongst the cloud providers just like the following two parameters
+* iam.protocol - Stands for the method usede to get the unscoped token from openstack by using the already obtained bearer token
+* iam.identity.provider - stands for the general provider and that is as standard: indigo-dc
 
-If skypping Iam authentication to providers, just make sure to insert the credentials of openstack tenant (where the probe tries creating, deleting and inspecting the instances) inside oszones.yml file located at the same path as openstackprobe.properties.
+The probe now supports IAM authenticatiom so that with SSO it can communicate with all the Opestack supporting IAM authentication standard.
+However, if skipping Iam authentication from porperty file, just make sure to insert the credentials of openstack tenant (where the probe tries creating, deleting and inspecting the instances) inside oszones.yml file located at the same path as openstackprobe.properties.
+
 
 5 Packages Update
 -------------------
