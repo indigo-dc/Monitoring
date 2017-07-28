@@ -5,7 +5,11 @@ import com.indigo.zabbix.utils.KeystoneTokenProvider;
 import com.indigo.zabbix.utils.beans.KeystoneScopedTokenRequest;
 import com.indigo.zabbix.utils.beans.OpenstackProjectsInfo;
 
-import feign.Response;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -14,11 +18,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import feign.Response;
 
 
 /**
@@ -55,7 +55,7 @@ public class KeystoneTest {
     projects.add("project1");
     projects.add("project2");
 
-    Mockito.when(provider.getKeystoneToken(Matchers.anyString()))
+    Mockito.when(provider.getKeystoneToken(Matchers.anyString(), Matchers.anyString(), Matchers.anyString()))
         .thenAnswer(new Answer<Response>() {
           @Override
           public Response answer(InvocationOnMock invocationOnMock) throws Throwable {
@@ -109,12 +109,12 @@ public class KeystoneTest {
   public void testUnscoped() {
     KeystoneClient client = new KeystoneClient(provider);
 
-    String unscopedToken = client.getUnscopedToken(ACCESS_TOKEN);
+    String unscopedToken = client.getUnscopedToken(ACCESS_TOKEN, "indigo-dc", "oidc");
 
     assert unscopedToken != null;
     assert UNSCOPED_TOKEN.equals(unscopedToken);
 
-    unscopedToken = client.getUnscopedToken("invalid");
+    unscopedToken = client.getUnscopedToken("invalid", "", "");
     assert unscopedToken == null;
 
   }
@@ -123,16 +123,16 @@ public class KeystoneTest {
   public void testScoped() {
     KeystoneClient client = new KeystoneClient(provider);
 
-    String scoped = client.getScopedToken(ACCESS_TOKEN, "project1");
+    String scoped = client.getScopedToken(ACCESS_TOKEN, "project1", "indigo-dc","oidc");
 
     assert scoped != null;
     assert SCOPED_TOKEN.equals(scoped);
 
-    scoped = client.getScopedToken("invalid", "project1");
+    scoped = client.getScopedToken("invalid", "project1", "indigo-dc","oidc");
 
     assert scoped == null;
 
-    scoped = client.getScopedToken(ACCESS_TOKEN, "nonexistent");
+    scoped = client.getScopedToken(ACCESS_TOKEN, "nonexistent", "indigo-dc","oidc");
 
     assert scoped == null;
   }

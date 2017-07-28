@@ -1,13 +1,13 @@
 package com.indigo.zabbix.utils;
 
+import com.indigo.zabbix.utils.beans.KeystoneScopedTokenRequest;
+import com.indigo.zabbix.utils.beans.OpenstackProjectsInfo;
+import feign.Response;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import com.indigo.zabbix.utils.beans.KeystoneScopedTokenRequest;
-import com.indigo.zabbix.utils.beans.OpenstackProjectsInfo;
 
-import feign.Response;
 
 /**
  * Created by jose on 4/04/17.
@@ -39,11 +39,8 @@ public class KeystoneClient {
    * @param accessToken The access token proviced by the IAM.
    * @return A keystone unscoped token.
    */
-  public String getUnscopedToken(String accessToken) {
-    Response tokenInfo = keystoneClient.getKeystoneToken(accessToken);
-    if(tokenInfo.headers().get(TOKEN_RESULT_HEADER)==null)
-	    	tokenInfo= keystoneClient.getKeystoneTokenIamOidc(accessToken);
-     
+  public String getUnscopedToken(String accessToken, String provider, String protocol) {
+    Response tokenInfo = keystoneClient.getKeystoneToken(accessToken, provider, protocol);
     return getTokenHeader(tokenInfo);
   }
 
@@ -62,11 +59,11 @@ public class KeystoneClient {
    * @param projectName The project name to scope.
    * @return The scoped Keystone token.
    */
-  public String getScopedToken(String accessToken, String projectName) {
+  public String getScopedToken(String accessToken, String projectName, String provider,  String protocol) {
 
     if (projectName != null && accessToken != null) {
 
-      String unscopedToken = getUnscopedToken(accessToken);
+      String unscopedToken = getUnscopedToken(accessToken, provider, protocol);
 
       if (unscopedToken != null) {
         List<OpenstackProjectsInfo.Project> projects = getProjects(unscopedToken);
