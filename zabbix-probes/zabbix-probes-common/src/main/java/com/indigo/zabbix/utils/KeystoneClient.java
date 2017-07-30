@@ -18,7 +18,12 @@ public class KeystoneClient {
   private final KeystoneTokenProvider keystoneClient;
 
   public KeystoneClient(String location) {
-    this.keystoneClient = ProbeClientFactory.getClient(KeystoneTokenProvider.class, location);
+	  if (location.endsWith("/v3")) {
+		location = location.replace("/v3", "");
+	  } else {
+		throw new IllegalArgumentException("Error generating Keystone client.\nOpenstack endpoint <" + location + "> provided but only v3 endpoints are supported");
+	  }
+		this.keystoneClient = ProbeClientFactory.getClient(KeystoneTokenProvider.class, location);
   }
 
   /**
@@ -54,22 +59,22 @@ public class KeystoneClient {
    * @param projectName The project name to scope.
    * @return The scoped Keystone token.
    */
-  public String getScopedToken(String accessToken, String identityProvider, String protocol,
-                               String projectName) {
+  public String getScopedToken(String accessToken, String projectName, String provider,  String protocol) {
 
     if (accessToken != null) {
 
-      String unscopedToken = getUnscopedToken(accessToken, identityProvider, protocol);
+      String unscopedToken = getUnscopedToken(accessToken, provider, protocol);
 
       if (unscopedToken != null) {
         List<OpenstackProjectsInfo.Project> projects = getProjects(unscopedToken);
 
         OpenstackProjectsInfo.Project found = null;
+
         if (projects != null) {
           if (projectName != null) {
             found = projects.stream().filter(
                 project -> projectName.equals(project.getName()))
-                                                      .findFirst().orElse(null);
+                        .findFirst().orElse(null);
           } else {
             if (!projects.isEmpty()) {
               found = projects.get(0);

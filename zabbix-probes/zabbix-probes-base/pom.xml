@@ -82,6 +82,7 @@
     </dependencies>
 
     <build>
+    <pluginManagement>
         <!-- Configuration for creating the deb and rpm packages -->
         <plugins>
 
@@ -185,5 +186,6 @@
                 </configuration>
             </plugin>
         </plugins>
+       </pluginManagement>
     </build>
 </project>
