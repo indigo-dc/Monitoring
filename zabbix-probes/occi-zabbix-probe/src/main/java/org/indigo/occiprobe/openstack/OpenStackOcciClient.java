@@ -20,6 +20,7 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
+import com.indigo.zabbix.utils.CloudProviderInfo;
 import com.indigo.zabbix.utils.KeystoneClient;
 import com.indigo.zabbix.utils.LifecycleCollector;
 import com.indigo.zabbix.utils.PropertiesManager;

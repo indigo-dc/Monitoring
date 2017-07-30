@@ -14,7 +14,8 @@ public interface KeystoneTokenProvider {
   
   @RequestLine("GET /v3/OS-FEDERATION/identity_providers/{provider}/protocols/{protocol}/auth")
   @Headers("Authorization: Bearer {token}")
-  Response getKeystoneToken(@Param("token")String accessToken, @Param("provider") String provider, @Param("protocol") String protocol);
+  Response getKeystoneToken(@Param("token")String accessToken, @Param("provider") String provider,
+                            @Param("protocol") String protocol);
 
   @RequestLine("GET /v3/auth/projects")
   @Headers("X-Auth-Token: {token}")

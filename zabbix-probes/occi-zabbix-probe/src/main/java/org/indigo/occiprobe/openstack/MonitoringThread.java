@@ -1,5 +1,7 @@
 package org.indigo.occiprobe.openstack;
 
+import com.indigo.zabbix.utils.CloudProviderInfo;
+
 import io.github.hengyunabc.zabbix.sender.SenderResult;
 
 import org.apache.commons.logging.Log;

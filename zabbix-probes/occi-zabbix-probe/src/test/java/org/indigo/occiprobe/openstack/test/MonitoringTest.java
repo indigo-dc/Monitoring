@@ -20,6 +20,7 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack.test;
 
+import com.indigo.zabbix.utils.CloudProviderInfo;
 import com.indigo.zabbix.utils.ZabbixMetrics;
 
 import cz.cesnet.cloud.occi.Model;
@@ -29,7 +30,6 @@ import cz.cesnet.cloud.occi.core.Kind;
 import cz.cesnet.cloud.occi.core.Mixin;
 import cz.cesnet.cloud.occi.core.Resource;
 
-import org.indigo.occiprobe.openstack.CloudProviderInfo;
 import org.indigo.occiprobe.openstack.OpenStackOcciClient;
 import org.junit.Before;
 import org.junit.Test;

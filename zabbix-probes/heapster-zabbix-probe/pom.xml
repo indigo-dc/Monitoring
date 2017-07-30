@@ -7,15 +7,12 @@
 		<groupId>org.indigo</groupId>
 		<artifactId>zabbix-probes-base</artifactId>
 		<relativePath>../zabbix-probes-base</relativePath>
-		<version>1.01</version>
+		<version>1.1</version>
 	</parent>
 
   
   <inceptionYear>2016</inceptionYear>
-  <identityProvider>
-	<name>Indigo DataCloud H2020 Project</name>
-	<url>https://www.indigo-datacloud.eu/</url>
-  </identityProvider>
+
   <licenses>
 	<license>
 		<name>Apache License, Version 2.0</name>

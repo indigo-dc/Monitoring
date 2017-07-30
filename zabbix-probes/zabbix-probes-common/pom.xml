@@ -3,7 +3,7 @@
     <groupId>org.indigo</groupId>
     <artifactId>zabbix-probes-common</artifactId>
     <name>Common utilities for zabbix probes</name>
-    <version>1.01</version>
+    <version>1.1</version>
 
 
     <dependencies>

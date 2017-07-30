@@ -1,8 +1,10 @@
 package com.indigo.zabbix.utils;
 
 import com.google.gson.JsonElement;
+
 import com.indigo.zabbix.utils.beans.CmdbResponse;
 import com.indigo.zabbix.utils.beans.ServiceType;
+
 import feign.Param;
 import feign.RequestLine;
 

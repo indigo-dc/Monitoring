@@ -3,8 +3,10 @@ package com.indigo.zabbix.utils;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+
 import com.indigo.zabbix.utils.beans.CmdbResponse;
 import com.indigo.zabbix.utils.beans.ServiceType;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -22,9 +24,9 @@ public class CmdbClient {
   public static final String OPENSTACK_TYPE = "eu.egi.cloud.vm-management.openstack";
   //private Client client = null;
 
-  private CmdbFeignClient cmdbClient = null;
+  protected CmdbFeignClient cmdbClient = null;
 
-  private String cmdbUrl;
+  protected String cmdbUrl;
   
   /**
    * It constructs an object of the CmdbClient type, retrieving certain properties
@@ -44,50 +46,47 @@ public class CmdbClient {
     this.cmdbClient = mock;
   }
   
-  /**
-   * This method access the CMDB service in order to retrieve the available 
-   * data from a Cloud Provider (i.e. its location, provided services, etc.)
-   * @param providerId Represents the identifier of the Cloud provider
-   * @return An object with all the information retrieved
-   */
-  public CloudProviderInfo getProviderData(String providerId) {
-    // Call to CMDB API
-    // Retrieve the services list
-    JsonElement jelement = cmdbClient.providerInfo(providerId);
+  protected CloudProviderInfo deserializeProviderInfo(String providerId, JsonElement jelement) {
     JsonObject parsedRes = jelement.getAsJsonObject();
     JsonArray listArray = parsedRes.getAsJsonArray("rows");
     if (listArray.isJsonNull() || listArray.size() == 0) {
       return null;
     }
-    
+  
     String occiEndpoint = null;
     String keystoneEndpoint = null;
     int type = CloudProviderInfo.OPENNEBULA;
     boolean isMonitored = false;
     boolean isBeta = false;
-    boolean isProduction = false;    
-    
+    boolean isProduction = false;
+  
+    String identityProvider = "indigo-dc";
+    String protocol = "oidc";
+    String imageId = null;
+    String osFlavour = null;
+    String networkId = null;
+  
     Iterator<JsonElement> myIter = listArray.iterator();
     while (myIter.hasNext()) {
       JsonObject currentResource = myIter.next().getAsJsonObject();
       JsonObject currentDoc = currentResource.get("doc").getAsJsonObject();
       JsonObject currentData = currentDoc.get("data").getAsJsonObject();
-            
-      String currentServiceType = currentData.get("service_type").getAsString();      
+    
+      String currentServiceType = currentData.get("service_type").getAsString();
       String currentType = currentData.get("type").getAsString();
-      JsonElement jsonEndpoint = currentData.get("endpoint"); 
+      JsonElement jsonEndpoint = currentData.get("endpoint");
       String currentEndpoint = null;
       if (jsonEndpoint == null || jsonEndpoint.isJsonNull()) {
         return null;
       }
       currentEndpoint = jsonEndpoint.getAsString();
-      
+    
       if (currentServiceType.equalsIgnoreCase("eu.egi.cloud.vm-management.occi")) {
         occiEndpoint = currentEndpoint;
         JsonElement currentBeta = currentData.get("beta");
         JsonElement currentProduction = currentData.get("in_production");
         JsonElement currentMonitored = currentData.get("node_monitored");
-        
+      
         // Retrieve the rest of info from the OCCI service
         if (currentBeta != null && currentBeta.getAsString().equalsIgnoreCase("Y")) {
           isBeta = true;
@@ -98,16 +97,51 @@ public class CmdbClient {
         if (currentProduction != null && currentProduction.getAsString().equalsIgnoreCase("Y")) {
           isProduction = true;
         }
+  
+        JsonElement oidcElement = currentData.get("oidc_config");
+        if (oidcElement != null) {
+          JsonObject oidcConfig = oidcElement.getAsJsonObject();
+    
+          identityProvider = oidcConfig.get("provider_id").getAsString();
+    
+          protocol = oidcConfig.get("protocol").getAsString();
+    
+        }
+  
+        JsonElement monitoringInfoElement = currentData.get("occi_monitoring");
+        if (monitoringInfoElement != null) {
+          JsonObject monitoringInfo = monitoringInfoElement.getAsJsonObject();
+    
+          imageId = monitoringInfo.get("image_id").getAsString();
+          osFlavour = monitoringInfo.get("os_flavour").getAsString();
+          networkId = monitoringInfo.get("network_id").getAsString();
+    
+        }
+        
       } else if (currentServiceType.equalsIgnoreCase(OPENSTACK_TYPE)) {
         keystoneEndpoint = currentEndpoint;
         type = CloudProviderInfo.OPENSTACK;
       }
     }
-    
-    CloudProviderInfo myProvider = new CloudProviderInfo(providerId, occiEndpoint, 
-        keystoneEndpoint, type, isMonitored, isBeta, isProduction);
-    
+  
+    CloudProviderInfo myProvider = new CloudProviderInfo(providerId, occiEndpoint,
+                                                            keystoneEndpoint, type, isMonitored,
+                                                            isBeta, isProduction,
+                                                            identityProvider, protocol,
+                                                            imageId, osFlavour, networkId);
     return myProvider;
+  }
+  
+  /**
+   * This method access the CMDB service in order to retrieve the available 
+   * data from a Cloud Provider (i.e. its location, provided services, etc.)
+   * @param providerId Represents the identifier of the Cloud provider
+   * @return An object with all the information retrieved
+   */
+  public CloudProviderInfo getProviderData(String providerId) {
+    // Call to CMDB API
+    // Retrieve the services list
+    return deserializeProviderInfo(providerId, cmdbClient.providerInfo(providerId));
   }
 
   /**

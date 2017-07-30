@@ -4,11 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 
-import org.indigo.occiprobe.openstack.CloudProviderInfo;
-import org.indigo.occiprobe.openstack.CmdbClient;
-import org.indigo.occiprobe.openstack.CmdbFeignClient;
-import org.indigo.occiprobe.openstack.beans.CmdbResponse;
-import org.indigo.occiprobe.openstack.beans.ServiceType;
+import com.indigo.zabbix.utils.CloudProviderInfo;
+import com.indigo.zabbix.utils.CmdbClient;
+import com.indigo.zabbix.utils.CmdbFeignClient;
+import com.indigo.zabbix.utils.beans.CmdbResponse;
+import com.indigo.zabbix.utils.beans.ServiceType;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Matchers;
