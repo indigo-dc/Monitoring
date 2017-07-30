@@ -34,6 +34,9 @@ import cz.cesnet.cloud.occi.api.http.HTTPClient;
 import cz.cesnet.cloud.occi.core.Entity;
 import cz.cesnet.cloud.occi.core.Mixin;
 import cz.cesnet.cloud.occi.core.Resource;
+import cz.cesnet.cloud.occi.exception.AmbiguousIdentifierException;
+import cz.cesnet.cloud.occi.exception.InvalidAttributeValueException;
+import cz.cesnet.cloud.occi.infrastructure.IPNetworkInterface;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
@@ -59,6 +62,7 @@ public class OpenStackOcciClient extends LifecycleCollector {
 
   public static final String OCCI_OS = "http://schemas.openstack.org/template/os#";
   public static final String OCCI_RESOURCE = "http://schemas.openstack.org/template/resource#";
+  public static final String OCCI_NETWORK = "http://schemas.ogf.org/occi/infrastructure/network#";
 
   private cz.cesnet.cloud.occi.api.Client occiClient;
 
@@ -66,6 +70,8 @@ public class OpenStackOcciClient extends LifecycleCollector {
 
   private URI vmId;
 
+  private CloudProviderInfo configuration;
+  
   private OcciProbeResult creationFailResults;
 
   //private IOSClientBuilder.V3 myKeystoneClient = null;
@@ -74,22 +80,23 @@ public class OpenStackOcciClient extends LifecycleCollector {
    * Main constructor of the OpenStackOcciClient class. It retrieves some information
    * from the properties files in order to create and configure the client which 
    * will connect to the remote OCCI API of a cloud provider.
-   * @param keystoneLocation String with the full location of Keystone [IP:Port]
-   * @param occiLocation String with the root location of the OCCI API [IP:Port]
-   * @param providerName String with the identifier of the Cloud Provider
+   * @param configuration Monitoring configuration of the provider.
    */
-  public OpenStackOcciClient(String accessToken, String keystoneLocation, String occiLocation,
-                             String providerName) {
+  public OpenStackOcciClient(String accessToken, CloudProviderInfo configuration) {
 
+    this.configuration = configuration;
     creationFailResults = null;
 
     // Retrieve properties
     String project = PropertiesManager.getProperty(OcciProbeTags.OCCI_OS_PROJECT);
 
-    String occiToken = new KeystoneClient(keystoneLocation).getScopedToken(accessToken, project);
+    String occiToken = new KeystoneClient(configuration.getKeystoneEndpoint())
+                           .getScopedToken(accessToken, configuration.getIdentityProvider(),
+                               configuration.getProtocol(), project);
 
     try {
-      occiClient = new HTTPClient(URI.create(occiLocation), new TokenOcciAuth(occiToken));
+      occiClient = new HTTPClient(URI.create(configuration.getOcciEndpoint()),
+                                     new TokenOcciAuth(occiToken));
     } catch (CommunicationException e) {
 
       int code = 400;
@@ -98,7 +105,7 @@ public class OpenStackOcciClient extends LifecycleCollector {
       creationFailResults = new OcciProbeResult(availability,code,0);
     }
 
-    this.providerId = providerName;
+    this.providerId = configuration.getProviderId();
 
   }
   
@@ -106,9 +113,10 @@ public class OpenStackOcciClient extends LifecycleCollector {
    * Constructor to be used for automatic testing purposes only.
    * @param mockClient Mock of the Jersey Client class, for simulating.
    */
-  public OpenStackOcciClient(cz.cesnet.cloud.occi.api.Client mockClient, String providerId) {
+  public OpenStackOcciClient(cz.cesnet.cloud.occi.api.Client mockClient,
+                             CloudProviderInfo configuration) {
     occiClient = mockClient;
-    this.providerId = providerId;
+    this.configuration = configuration;
   }
 
   @Override
@@ -126,15 +134,7 @@ public class OpenStackOcciClient extends LifecycleCollector {
     // Call to OCCI API
 
     Model model = occiClient.getModel();
-
-    Mixin os = model.getMixins().stream()
-        .filter(mixin -> OCCI_OS.equals(mixin.getScheme().toString())).findFirst().get();
-
-    Mixin flavour = model.getMixins().stream()
-        .filter(mixin -> (OCCI_RESOURCE.equals(mixin.getScheme().toString()))
-            && mixin.getTitle().contains("small"))
-        .findFirst().get();
-
+    
     EntityBuilder builder = new EntityBuilder(model);
 
     long startTime = System.currentTimeMillis();
@@ -143,22 +143,51 @@ public class OpenStackOcciClient extends LifecycleCollector {
     boolean availability = true;
     URI vmId = null;
     try {
+  
+      List<URI> list = occiClient.list();
+      
+      Mixin os = model.findMixin(configuration.getImageId());
+  
+      Mixin flavour = null;
+      if (configuration.getOsFlavour() != null) {
+        flavour = model.findMixin(configuration.getOsFlavour());
+      }
+      
       Resource resource = builder.getResource("compute");
       resource.addMixin(os);
-      resource.addMixin(flavour);
+      if (flavour != null) {
+        resource.addMixin(flavour);
+      }
+      
+      if (configuration.getNetworkId() != null) {
+        IPNetworkInterface link = builder.getIPNetworkInterface();
+  
+        link.setTarget(configuration.getNetworkId());
+  
+        resource.addLink(link);
+      }
+      
       this.vmId = occiClient.create(resource);
     } catch (CommunicationException e) {
       logger.error("Error creating occi vm",e);
       httpCode = 500;
       availability = false;
     } catch (EntityBuildingException e) {
+      logger.error("Error creating occi vm",e);
+      httpCode = 400;
+      availability = false;
+    } catch (AmbiguousIdentifierException e) {
+      logger.error("Error creating occi vm",e);
+      httpCode = 400;
+      availability = false;
+    } catch (InvalidAttributeValueException e) {
       httpCode = 400;
       availability = false;
     }
-
+  
     long responseTime = System.currentTimeMillis() - startTime;
 
-    System.out.println("Created VM: " + vmId);
+    //System.out.println("Created VM: " + vmId);
 
     // Feed monitoring info
     AppOperation monitoredInfo = new AppOperation(AppOperation.Operation.CREATE,

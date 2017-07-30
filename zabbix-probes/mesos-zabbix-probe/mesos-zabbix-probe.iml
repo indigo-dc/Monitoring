@@ -12,9 +12,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Maven: org.apache.oltu.oauth2:org.apache.oltu.oauth2.client:1.0.2" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.oltu.oauth2:org.apache.oltu.oauth2.common:1.0.2" level="project" />
-    <orderEntry type="library" name="Maven: org.json:json:20140107" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jersey.core:jersey-client:2.22" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jersey.core:jersey-common:2.22" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jersey.bundles.repackaged:jersey-guava:2.22" level="project" />
@@ -23,7 +20,7 @@
     <orderEntry type="library" name="Maven: org.glassfish.hk2.external:aopalliance-repackaged:2.4.0-b31" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.hk2.external:javax.inject:2.4.0-b31" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.hk2:hk2-locator:2.4.0-b31" level="project" />
-    <orderEntry type="library" name="Maven: it.infn.ba.indigo:chronos-client:0.0.1-BETA.1" level="project" />
+    <orderEntry type="library" name="Maven: it.infn.ba.indigo:chronos-client:0.0.1-BETA.2" level="project" />
     <orderEntry type="library" name="Maven: com.netflix.feign:feign-core:8.14.1" level="project" />
     <orderEntry type="library" name="Maven: com.netflix.feign:feign-gson:8.14.1" level="project" />
     <orderEntry type="library" name="Maven: com.mesosphere:marathon-client:0.3.0" level="project" />

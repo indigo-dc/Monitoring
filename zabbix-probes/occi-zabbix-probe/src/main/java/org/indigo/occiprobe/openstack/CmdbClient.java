@@ -93,7 +93,13 @@ public class CmdbClient {
     int type = CloudProviderInfo.OPENNEBULA;
     boolean isMonitored = false;
     boolean isBeta = false;
-    boolean isProduction = false;    
+    boolean isProduction = false;
+  
+    String identityProvider = "indigo-dc";
+    String protocol = "oidc";
+    String imageId = null;
+    String osFlavour = null;
+    String networkId = null;
     
     Iterator<JsonElement> myIter = listArray.iterator();
     while (myIter.hasNext()) {
@@ -126,14 +132,24 @@ public class CmdbClient {
         if (currentProduction != null && currentProduction.getAsString().equalsIgnoreCase("Y")) {
           isProduction = true;
         }
+        
+        JsonElement oidcElement = currentData.get("oidc_config");
+        if (oidcElement != null) {
+          JsonObject oidcConfig = oidcElement.getAsJsonObject();
+          
+          identityProvider = oidcConfig.get("provider_id").getAsString();
+          
+        }
+        
       } else if (currentServiceType.equalsIgnoreCase(OPENSTACK_TYPE)) {
         keystoneEndpoint = currentEndpoint;
         type = CloudProviderInfo.OPENSTACK;
       }
     }
     
-    CloudProviderInfo myProvider = new CloudProviderInfo(providerId, occiEndpoint, 
-        keystoneEndpoint, type, isMonitored, isBeta, isProduction);
+    CloudProviderInfo myProvider = new CloudProviderInfo(providerId, occiEndpoint,
+        keystoneEndpoint, type, isMonitored, isBeta, isProduction, identityProvider, protocol,
+                                                            imageId, osFlavour, networkId);
     
     return myProvider;
   }

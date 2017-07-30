@@ -55,7 +55,8 @@ public class KeystoneTest {
     projects.add("project1");
     projects.add("project2");
 
-    Mockito.when(provider.getKeystoneToken(Matchers.anyString()))
+    Mockito.when(provider.getKeystoneToken(Matchers.anyString(),
+        Matchers.anyString(), Matchers.anyString()))
         .thenAnswer(new Answer<Response>() {
           @Override
           public Response answer(InvocationOnMock invocationOnMock) throws Throwable {
@@ -109,12 +110,12 @@ public class KeystoneTest {
   public void testUnscoped() {
     KeystoneClient client = new KeystoneClient(provider);
 
-    String unscopedToken = client.getUnscopedToken(ACCESS_TOKEN);
+    String unscopedToken = client.getUnscopedToken(ACCESS_TOKEN, "indigo-dc", "oidc");
 
     assert unscopedToken != null;
     assert UNSCOPED_TOKEN.equals(unscopedToken);
 
-    unscopedToken = client.getUnscopedToken("invalid");
+    unscopedToken = client.getUnscopedToken("invalid", "indigo-dc", "oidc");
     assert unscopedToken == null;
 
   }
@@ -123,16 +124,16 @@ public class KeystoneTest {
   public void testScoped() {
     KeystoneClient client = new KeystoneClient(provider);
 
-    String scoped = client.getScopedToken(ACCESS_TOKEN, "project1");
+    String scoped = client.getScopedToken(ACCESS_TOKEN, "indigo-dc", "oidc", "project1");
 
     assert scoped != null;
     assert SCOPED_TOKEN.equals(scoped);
 
-    scoped = client.getScopedToken("invalid", "project1");
+    scoped = client.getScopedToken("invalid", "indigo-dc", "oidc", "project1");
 
     assert scoped == null;
 
-    scoped = client.getScopedToken(ACCESS_TOKEN, "nonexistent");
+    scoped = client.getScopedToken(ACCESS_TOKEN, "nonexistent", "indigo-dc", "oidc");
 
     assert scoped == null;
   }

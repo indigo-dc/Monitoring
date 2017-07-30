@@ -20,6 +20,8 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * This class holds information about a Cloud provider which was found by getting
  * data from the CMDB. It contains the main fields for the probe (provider identifier,
@@ -34,12 +36,24 @@ public class CloudProviderInfo {
   public static final int OPENNEBULA = 1;
   
   private String occiEndpoint;
+  
+  @SerializedName("endpoint")
   private String keystoneEndpoint;
+  
+  @SerializedName("type")
   private int cloudType;
+  
+  
   private boolean isMonitored;
   private boolean isBeta;
   private boolean isProduction;
   private String providerId;
+  
+  private String identityProvider;
+  private String protocol;
+  private String imageId;
+  private String osFlavour;
+  private String networkId;
   
   /**
    * This is the constructor of the class. It just fills in the internal fields with the
@@ -53,7 +67,9 @@ public class CloudProviderInfo {
    * @param production Boolean indicating whether the provider platform is in production
    */
   public CloudProviderInfo(String provider, String occi, String keystone, int type,
-      boolean monitored, boolean beta, boolean production) {
+                           boolean monitored, boolean beta, boolean production,
+                           String identityProvider, String protocol,
+                           String imageId, String osFlavour, String networkId) {
     providerId = provider;
     occiEndpoint = occi;
     keystoneEndpoint = keystone;
@@ -61,7 +77,44 @@ public class CloudProviderInfo {
     isMonitored = monitored;
     isBeta = beta;
     isProduction = production;
+    this.identityProvider = identityProvider;
+    this.protocol = protocol;
+    this.imageId = imageId;
+    this.osFlavour = osFlavour;
+    this.networkId = networkId;
   }
+  
+  public CloudProviderInfo(){}
+  
+  public String getIdentityProvider() {
+    return identityProvider;
+  }
+  
+  public void setIdentityProvider(String identityProvider) {
+    this.identityProvider = identityProvider;
+  }
+  
+  public String getProtocol() {
+    return protocol;
+  }
+  
+  public void setProtocol(String protocol) {
+    this.protocol = protocol;
+  }
+  
+  public String getImageId() {
+    return imageId;
+  }
+  
+  public String getOsFlavour() {
+    return osFlavour;
+  }
+  
+  public String getNetworkId() {
+    return networkId;
+  }
+  
+  
   
   /**
    * It retrieves the provider identifier as contained in the CMDB.

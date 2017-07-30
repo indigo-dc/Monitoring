@@ -92,47 +92,82 @@ public class ProbeThread {
    * the treads pool and launching monitoring operations per each provider.
    */
   public void startMonitoringProcess() {
-
-    //Get access token from IAM
-    OAuthJSONAccessTokenResponse response = IamClient.getAccessToken();
-
-    String accessToken = response.getAccessToken();
-
-    // Retrieve the list of providers with their info   
-    System.out.println("Looking for providers and their info...");
-    List<CloudProviderInfo> providersList = myClient.getFeasibleProvidersInfo();
-    
-    // Prepare the list of monitoring threads
-    System.out.println("Done! Now starting monitoring tasks...");
-    ArrayList<MonitoringThread> myTaskList = new ArrayList<MonitoringThread>();
-    Iterator<CloudProviderInfo> providersIterator = providersList.iterator();
-    while (providersIterator.hasNext()) {
-      CloudProviderInfo currentProvider = providersIterator.next();
-      String providerId = currentProvider.getProviderId();
-      String occiEndpoint = currentProvider.getOcciEndpoint();
-      String keystoneEndpoint = currentProvider.getKeystoneEndpoint();
-      
-      MonitoringThread myTask = new MonitoringThread(accessToken, providerId,
-          occiEndpoint, keystoneEndpoint);
-      try {
-        SenderResult result = myTask.run();
-        if (result.success()) {
-          System.out.println("Successfully sent metrics for host " + providerId);
-        } else {
-          System.out.println("Error sending metrics for host " + providerId);
-        }
-      } catch (Exception e) {
-        System.out.println("Error while getting OCCI metrics from provider");
-        e.printStackTrace();
-      }
-
-
-
-      //myTaskList.add(myTask);
-    }
-    
-    System.out.println("OCCI Monitoring Probe finished!");
-  }
   
+    try {
+      PropertiesManager.loadProperties("occiprobe.properties");
+    
+      //Get access token from IAM
+      OAuthJSONAccessTokenResponse response = IamClient.getAccessToken();
+    
+      String accessToken = response.getAccessToken();
+    
+      String cmdb = PropertiesManager.getProperty(OcciProbeTags.CMDB_URL);
+      if (cmdb != null) {
+        
+        // Retrieve the list of providers with their info
+        System.out.println("Looking for providers and their info...");
+        List<CloudProviderInfo> providersList = myClient.getFeasibleProvidersInfo();
+    
+        // Prepare the list of monitoring threads
+        System.out.println("Done! Now starting monitoring tasks...");
+        ArrayList<MonitoringThread> myTaskList = new ArrayList<MonitoringThread>();
+        Iterator<CloudProviderInfo> providersIterator = providersList.iterator();
+        while (providersIterator.hasNext()) {
+          CloudProviderInfo currentProvider = providersIterator.next();
+      
+          MonitoringThread myTask = new MonitoringThread(accessToken, currentProvider);
+          try {
+            SenderResult result = myTask.run();
+            if (result.success()) {
+              System.out.println("Successfully sent metrics for host "
+                                     + currentProvider.getProviderId());
+            } else {
+              System.out.println("Error sending metrics for host "
+                                     + currentProvider.getProviderId());
+            }
+          } catch (Exception e) {
+            System.out.println("Error while getting OCCI metrics from provider");
+            e.printStackTrace();
+          }
+      
+      
+          //myTaskList.add(myTask);
+        }
+    
+        System.out.println("OCCI Monitoring Probe finished!");
+      } else {
+        
+        String provider = PropertiesManager.getProperty(OcciProbeTags.PROVIDER);
+        String occi = PropertiesManager.getProperty(OcciProbeTags.OCCI_ENDPOINT);
+        String keystone = PropertiesManager.getProperty(OcciProbeTags.KEYSTONE_ENDPOINT);
+        String identityProvider = PropertiesManager.getProperty(OcciProbeTags.IDENTITY_PROVIDER);
+        String protocol = PropertiesManager.getProperty(OcciProbeTags.PROTOCOL);
+        String imageId = PropertiesManager.getProperty(OcciProbeTags.IMAGE_ID);
+        String osFlavour = PropertiesManager.getProperty(OcciProbeTags.OS_FLAVOUR);
+        String networkId = PropertiesManager.getProperty(OcciProbeTags.NETWORK_ID);
+    
+        if (provider != null && occi != null && keystone != null && identityProvider != null
+                && protocol != null && imageId != null && osFlavour != null) {
+          new MonitoringThread(accessToken, new CloudProviderInfo(provider, occi, keystone, 0, true,
+                                                                     false, true, identityProvider,
+                                                                     protocol, imageId, osFlavour,
+                                                                     networkId)).run();
+        } else {
+          System.out.println("OCCI probe configuration incomplete. "
+                                 + "Please provide a CMDB URL or provide all mandatory elements");
+        }
+    
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
 
+  /**
+   * Typical main method for testing.
+   * @param args Typical args
+   */
+  public static void main(String[] args) {
+    new ProbeThread().startMonitoringProcess();
+  }
 }

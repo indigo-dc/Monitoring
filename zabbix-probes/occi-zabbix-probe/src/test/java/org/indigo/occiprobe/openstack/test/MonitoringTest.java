@@ -22,6 +22,14 @@ package org.indigo.occiprobe.openstack.test;
 
 import com.indigo.zabbix.utils.ZabbixMetrics;
 
+import cz.cesnet.cloud.occi.Model;
+import cz.cesnet.cloud.occi.api.exception.CommunicationException;
+import cz.cesnet.cloud.occi.core.Entity;
+import cz.cesnet.cloud.occi.core.Kind;
+import cz.cesnet.cloud.occi.core.Mixin;
+import cz.cesnet.cloud.occi.core.Resource;
+
+import org.indigo.occiprobe.openstack.CloudProviderInfo;
 import org.indigo.occiprobe.openstack.OpenStackOcciClient;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,13 +45,6 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.ws.rs.client.Client;
-
-import cz.cesnet.cloud.occi.Model;
-import cz.cesnet.cloud.occi.api.exception.CommunicationException;
-import cz.cesnet.cloud.occi.core.Entity;
-import cz.cesnet.cloud.occi.core.Kind;
-import cz.cesnet.cloud.occi.core.Mixin;
-import cz.cesnet.cloud.occi.core.Resource;
 
 public class MonitoringTest 
 {
@@ -140,7 +141,13 @@ public class MonitoringTest
 	@Test
 	public void monitoringOperationsShouldReturnCompleteResult()
 	{
-		OpenStackOcciClient client = new OpenStackOcciClient(occiMock, "test_system");
+		OpenStackOcciClient client =
+        new OpenStackOcciClient(occiMock,
+                                   new CloudProviderInfo("provider", "http://test/occi",
+                                                            "http://keystone", 0, true,
+                                                            false, true, "indigo-dc",
+                                                            "oidc", "Ubuntu", "small",
+                                                            null));
 
 		ZabbixMetrics metrics = client.getMetrics();
 		metrics.getMetrics().entrySet().forEach(entry -> {

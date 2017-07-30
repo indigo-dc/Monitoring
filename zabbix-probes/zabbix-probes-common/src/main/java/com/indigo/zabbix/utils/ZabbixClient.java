@@ -119,7 +119,8 @@ public class ZabbixClient {
             dataObject.setClock(timeSecs);
             
             return dataObject;
-          }).collect(Collectors.toList());
+          })
+                                        .collect(Collectors.toList());
           
           try {
             SenderResult sendResult = sender.send(toSend);

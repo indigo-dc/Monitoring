@@ -13,10 +13,10 @@
 	</parent>
 
 	<inceptionYear>2016</inceptionYear>
-	<organization>
+	<identityProvider>
 		<name>Indigo DataCloud H2020 Project</name>
 		<url>https://www.indigo-datacloud.eu/</url>
-	</organization>
+	</identityProvider>
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>

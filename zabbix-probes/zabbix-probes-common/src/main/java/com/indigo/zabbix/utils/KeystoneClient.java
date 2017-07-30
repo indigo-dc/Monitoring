@@ -34,8 +34,8 @@ public class KeystoneClient {
    * @param accessToken The access token proviced by the IAM.
    * @return A keystone unscoped token.
    */
-  public String getUnscopedToken(String accessToken) {
-    Response tokenInfo = keystoneClient.getKeystoneToken(accessToken);
+  public String getUnscopedToken(String accessToken, String provider, String protocol) {
+    Response tokenInfo = keystoneClient.getKeystoneToken(accessToken, provider, protocol);
     return getTokenHeader(tokenInfo);
   }
 
@@ -54,27 +54,34 @@ public class KeystoneClient {
    * @param projectName The project name to scope.
    * @return The scoped Keystone token.
    */
-  public String getScopedToken(String accessToken, String projectName) {
+  public String getScopedToken(String accessToken, String identityProvider, String protocol,
+                               String projectName) {
 
-    if (projectName != null && accessToken != null) {
+    if (accessToken != null) {
 
-      String unscopedToken = getUnscopedToken(accessToken);
+      String unscopedToken = getUnscopedToken(accessToken, identityProvider, protocol);
 
       if (unscopedToken != null) {
         List<OpenstackProjectsInfo.Project> projects = getProjects(unscopedToken);
 
         OpenstackProjectsInfo.Project found = null;
-
         if (projects != null) {
-          found = projects.stream().filter(project -> projectName.equals(project.getName()))
-              .findFirst().orElse(null);
-        }
-
-        if (found != null) {
-
-          return getTokenHeader(keystoneClient.getScopedToken(
-              new KeystoneScopedTokenRequest(unscopedToken, found.getId())));
-
+          if (projectName != null) {
+            found = projects.stream().filter(
+                project -> projectName.equals(project.getName()))
+                                                      .findFirst().orElse(null);
+          } else {
+            if (!projects.isEmpty()) {
+              found = projects.get(0);
+            }
+          }
+  
+          if (found != null) {
+    
+            return getTokenHeader(keystoneClient.getScopedToken(
+                new KeystoneScopedTokenRequest(unscopedToken, found.getId())));
+    
+          }
         }
       }
 
