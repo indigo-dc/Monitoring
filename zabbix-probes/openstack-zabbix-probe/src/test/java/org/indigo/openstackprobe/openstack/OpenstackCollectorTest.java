@@ -1,20 +1,18 @@
 package org.indigo.openstackprobe.openstack;
 
-import java.util.List;
-import java.util.concurrent.TimeoutException;
+import com.indigo.zabbix.utils.beans.AppOperation;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.openstack4j.api.OSClient;
 import org.openstack4j.api.exceptions.ConnectionException;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.compute.ServerCreate;
 
-import com.indigo.zabbix.utils.beans.AppOperation;
+import java.util.concurrent.TimeoutException;
 
 public class OpenstackCollectorTest {
-	
+
 	private CreateVmResult createVmMocked;
 	private DeleteVmResult deleteVmMocked;
 	private OpenstackProbeResult probeMocked;
@@ -23,26 +21,27 @@ public class OpenstackCollectorTest {
 	private AppOperation appMocked;
 	private InspectVmResult inspectVmResult;
 	Server server;
-	
+	private  OpenstackCollector oscollector;
+
 	@Before
-	public void prepareCollector() throws TimeoutException, InterruptedException, ConnectionException{
+	public void prepareCollector() throws TimeoutException, InterruptedException, ConnectionException {
 		osMocked = Mockito.mock(OpenStackClient.class);
 		probeMocked = Mockito.mock(OpenstackProbeResult.class);
-		
+
 		serverMocked = Mockito.mock(ServerCreate.class);
-		
+
 		createVmMocked = Mockito.mock(CreateVmResult.class);
-		deleteVmMocked =Mockito.mock(DeleteVmResult.class);
+		deleteVmMocked = Mockito.mock(DeleteVmResult.class);
 		inspectVmResult = Mockito.mock(InspectVmResult.class);
 		probeMocked.addDeleteVmInfo(deleteVmMocked);
 		probeMocked.addCreateVmInfo(createVmMocked);
 		probeMocked.addGlobalInfo(1, 200, 2L);
 
-		Mockito.when(osMocked.getOpenstackMonitoringInfo()).thenReturn(probeMocked);
-		
-//		Mockito.when(osMocked.tokenId).thenReturn("tokenId");
+		Mockito.when(osMocked.getOpenstackMonitoringInfo("cloud.recas.ba.infn.it")).thenReturn(probeMocked);
+
+		// Mockito.when(osMocked.tokenId).thenReturn("tokenId");
 		Mockito.when(osMocked.createOsServer("vmNameTest")).thenReturn(serverMocked);
-		
+
 		appMocked = Mockito.mock(AppOperation.class);
 		Mockito.when(createVmMocked.getCreateVmAvailability()).thenReturn(200);
 		Mockito.when(probeMocked.getDeleteVmElement()).thenReturn(deleteVmMocked);
@@ -50,17 +49,37 @@ public class OpenstackCollectorTest {
 		Mockito.when(probeMocked.getInspectVmElement()).thenReturn(inspectVmResult);
 
 		Mockito.when(probeMocked.getGlobalResult()).thenReturn(2000);
-		
-		//Failure 
-//				Mockito.when(probeMocked.getDeleteVmElement()).thenThrow(new ConnectException());
-//				Mockito.when(probeMocked.getCreateVmElement()).thenThrow(new ConnectException());
+
+		// Failure
+		// Mockito.when(probeMocked.getDeleteVmElement()).thenThrow(new
+		// ConnectException());
+		// Mockito.when(probeMocked.getCreateVmElement()).thenThrow(new
+		// ConnectException());
 	}
-	
+
 	@Test
-	public void getCreateTest(){
-		new AppOperation(appMocked.getOperation().RUN, true, probeMocked.getDeleteVmElement().getDeleteVmAvailability(), 2L);
+	public void getCreateTest() {
+		new AppOperation(appMocked.getOperation().RUN, true, probeMocked.getDeleteVmElement().getDeleteVmAvailability(),
+				2L);
 		probeMocked.getDeleteVmElement();
 		probeMocked.getCreateVmElement();
 	}
-	
+
+//	@Test
+//	public void createCollectorAndEnsureCloudProviderAuthenticationWorks() throws Exception {
+//		PropertiesManager.loadProperties(OpenstackProbeTags.CONFIG_FILE);
+//
+//		OAuthJSONAccessTokenResponse response = IamClient.getAccessToken();
+//		String accessToken = response.getAccessToken();
+//		List<CloudProviderInfo> providers = new ArrayList<>();
+//		providers.add(new CloudProviderInfo("provider-RECAS-BARI", "","https://cloud.recas.ba.infn.it:5000/v3", 0, true,
+//				false, true));
+//		providers.add(
+//				new CloudProviderInfo("NCG-INGRID-PT", "","https://nimbus.ncg.ingrid.pt:5000/v3", 0, true, false, true));
+//		for (CloudProviderInfo provider : providers) {
+//			
+//			new OpenstackCollector(accessToken, "provider-RECAS-BARI", "https://cloud.recas.ba.infn.it:5000/v3");
+//		}
+//	}
+
 }
