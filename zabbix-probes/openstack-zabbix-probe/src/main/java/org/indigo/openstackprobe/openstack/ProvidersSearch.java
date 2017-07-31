@@ -15,9 +15,9 @@ import java.util.List;
 /**
  * @author Reply Santer. Collects and initializes the cloud providers.
  */
-public class ProviderSearch {
+public class ProvidersSearch {
 
-  private static CmdbClientForOpenstack cmdbClient = new CmdbClientForOpenstack();
+  private static CmdbClientForOpenStack cmdbClient = new CmdbClientForOpenStack();
   private static final Logger log = LogManager.getLogger(OpenStackClient.class);
   private static List<CloudProviderInfo> providersList = new ArrayList<>();
   private static String providerId;
@@ -36,8 +36,8 @@ public class ProviderSearch {
    * @param providerMocked providerMocked
    * @param osclientMocked osclientMocked
    */
-  protected ProviderSearch(List<CloudProviderInfo> providers, OpenstackCollector collectorMocked,
-      CmdbClientForOpenstack cmdbMocked, CloudProviderInfo providerMocked,
+  protected ProvidersSearch(List<CloudProviderInfo> providers, OpenstackCollector collectorMocked,
+      CmdbClientForOpenStack cmdbMocked, CloudProviderInfo providerMocked,
       OSClientV3 osclientMocked) {
     providersList = providers;
     collector = collectorMocked;
@@ -72,7 +72,7 @@ public class ProviderSearch {
       CloudProviderInfo provider = providersIterator.next();
       if (provider.getKeystoneEndpoint() != null) {
         providerId = provider.getProviderId();
-        keystoneUrl = validateIdentityEndpoint(provider.getKeystoneEndpoint());
+        keystoneUrl = provider.getKeystoneEndpoint();
         providers.add(provider);
         try {
           if (!providers.isEmpty()) {
@@ -89,17 +89,4 @@ public class ProviderSearch {
     }
     return tasks;
   }
-
-  /**
-   * Validates the Identity Endpoint.
-   * 
-   * @param endpoint endopoint
-   * @return the correct endpoint
-   */
-  private static String validateIdentityEndpoint(String endpoint) {
-    endpoint = endpoint.contains("v2.0") ? endpoint.replace("v2.0", "v3") : endpoint;
-    endpoint = endpoint.contains("https") ? endpoint : endpoint.replace("http", "https");
-    return endpoint;
-  }
-
 }

@@ -10,21 +10,21 @@ import java.util.List;
  * operation (Create, Inspect and Delete VM) and about a global evaluation.
  *
  */
-public class OpenstackProbeResult {
+public class OpenStackProbeResult {
   private String providerName;
   private int globalAvailability;
   private int globalResult;
   private long globalResponseTime;
 
-  private CreateVmResult createVmElement;
-  private InspectVmResult inspectVmElement;
-  private DeleteVmResult deleteVmElement;
+  private VmResultCreation createVmElement;
+  private VmResultInspection inspectVmElement;
+  private VmResultDeletion deleteVmElement;
   private List<? extends Server> instancesList;
 
   /**
    * This is an empty constructor for the class.
    */
-  public OpenstackProbeResult(String provider) {
+  public OpenStackProbeResult(String provider) {
     providerName = provider;
   }
 
@@ -36,7 +36,7 @@ public class OpenstackProbeResult {
    * @param result It is a global HTTP response code, the most problematic one.
    * @param responseTime Sum of the response time of all calls, in milliseconds.
    */
-  public OpenstackProbeResult(int availability, int result, long responseTime, String provider) {
+  public OpenStackProbeResult(int availability, int result, long responseTime, String provider) {
     globalAvailability = availability;
     globalResult = result;
     globalResponseTime = responseTime;
@@ -63,7 +63,7 @@ public class OpenstackProbeResult {
    * @param result It represents availability, HTTP response code and response time for the create
    *        VM operation.
    */
-  public void addCreateVmInfo(CreateVmResult result) {
+  public void addCreateVmInfo(VmResultCreation result) {
     createVmElement = result;
   }
 
@@ -73,7 +73,7 @@ public class OpenstackProbeResult {
    * @param result It represents availability, HTTP response code and response time for the Inspect
    *        VM operation.
    */
-  public void addInspectVmInfo(InspectVmResult result) {
+  public void addInspectVmInfo(VmResultInspection result) {
     inspectVmElement = result;
   }
 
@@ -83,7 +83,7 @@ public class OpenstackProbeResult {
    * @param result It represents availability, HTTP response code and response time for the Delete
    *        VM operation.
    */
-  public void addDeleteVmInfo(DeleteVmResult result) {
+  public void addDeleteVmInfo(VmResultDeletion result) {
     deleteVmElement = result;
   }
 
@@ -129,7 +129,7 @@ public class OpenstackProbeResult {
    * 
    * @return Object with availability, HTTP code and response time.
    */
-  public CreateVmResult getCreateVmElement() {
+  public VmResultCreation getCreateVmElement() {
     return createVmElement;
   }
 
@@ -138,7 +138,7 @@ public class OpenstackProbeResult {
    * 
    * @return Object with availability, HTTP code and response time.
    */
-  public InspectVmResult getInspectVmElement() {
+  public VmResultInspection getInspectVmElement() {
     return inspectVmElement;
   }
 
@@ -147,7 +147,7 @@ public class OpenstackProbeResult {
    * 
    * @return Object with availability, HTTP code and response time.
    */
-  public DeleteVmResult getDeleteVmElement() {
+  public VmResultDeletion getDeleteVmElement() {
     return deleteVmElement;
   }
 

@@ -84,7 +84,7 @@ public class OpenStackClient {
   private List<? extends Image> images = new ArrayList<>();
   private List<? extends Flavor> flavors = new ArrayList<>();
   private List<? extends Server> servers = new ArrayList<>();
-  private static final String INSTANCE_NAME = OpenstackProbeTags.INSTANCE_NAME;
+  private static final String INSTANCE_NAME = OpenStackProbeTags.INSTANCE_NAME;
   private OSClientV3 osClientV3;
   private OSClient osClientV2;
   private Object osClient;
@@ -99,11 +99,12 @@ public class OpenStackClient {
   private Map<Server.Status, Server> serverCreation;
   private Server server;
   private ServerService serverService;
-  private OpenstackConfiguration osconfig;
+  private OpenStackConfiguration osconfig;
   String vmId;
-  OpenstackComponent component;
+  OpenStackComponent component;
   String tokenId;
-  private CheckForProviderDifference checkForProviderDifference = new CheckForProviderDifference();
+  private CheckForProviderDifferences checkForProviderDifference =
+      new CheckForProviderDifferences();
 
   private static final String HTTP_RESPONSE_CODE = "httpCode";
   private static final String AVAILABILITY_STATUS = "availability";
@@ -124,12 +125,12 @@ public class OpenStackClient {
   public OpenStackClient(String accessToken, String keystoneLocation, String providerName) {
 
     if (!Boolean
-        .parseBoolean(PropertiesManager.getProperty(OpenstackProbeTags.IAM_AUTHENTICATION))) {
+        .parseBoolean(PropertiesManager.getProperty(OpenStackProbeTags.IAM_AUTHENTICATION))) {
       log.info("getting openstack credentials from property file for provider " + providerName);
       try {
-        PropertiesManager.loadProperties(OpenstackProbeTags.CONFIG_FILE);
+        PropertiesManager.loadProperties(OpenStackProbeTags.CONFIG_FILE);
       } catch (IOException e) {
-        log.debug("Unable to load the file: " + OpenstackProbeTags.CONFIG_FILE);
+        log.debug("Unable to load the file: " + OpenStackProbeTags.CONFIG_FILE);
       }
 
       checkCredentials(providerName);
@@ -147,7 +148,7 @@ public class OpenStackClient {
           project, identityProvider, PropertiesManager.getProperty(ProbesTags.IAM_PROTOCOL));
 
       if (openstackToken == null && Boolean
-          .parseBoolean(PropertiesManager.getProperty(OpenstackProbeTags.PROVIDERS_EXCEPTIONS))) {
+          .parseBoolean(PropertiesManager.getProperty(OpenStackProbeTags.PROVIDERS_EXCEPTIONS))) {
         openstackToken = new KeystoneClient(keystoneLocation).getScopedToken(accessToken, project,
             identityProvider, "iam" + PropertiesManager.getProperty(ProbesTags.IAM_PROTOCOL));
       }
@@ -194,7 +195,7 @@ public class OpenStackClient {
   private void setCertificate() {
     System.setProperty("jsse.enableSNIExtension", "false");
     String certificatesTrustStorePath =
-        PropertiesManager.getProperty(OpenstackProbeTags.JAVA_KEYSTORE);
+        PropertiesManager.getProperty(OpenStackProbeTags.JAVA_KEYSTORE);
     System.setProperty("javax.net.ssl.trustStore", certificatesTrustStorePath);
     System.setProperty("javax.net.ssl.keyStorePassword", "changeit");
   }
@@ -204,7 +205,7 @@ public class OpenStackClient {
    * 
    * @param component component class
    */
-  public OpenStackClient(OpenstackComponent component) {
+  public OpenStackClient(OpenStackComponent component) {
 
     client = component.getMockClient();
     myKeystoneClientV2 = component.getMockKeystone();
@@ -264,12 +265,12 @@ public class OpenStackClient {
    */
   protected void checkCredentials(String providerName) {
 
-    if (OpenstackConfiguration.zone != null && OpenstackConfiguration.zone.contains("test")) {
-      osconfig = new OpenstackConfiguration("testoszone.yml");
+    if (OpenStackConfiguration.zone != null && OpenStackConfiguration.zone.contains("test")) {
+      osconfig = new OpenStackConfiguration("testoszone.yml");
     } else {
-      osconfig = new OpenstackConfiguration();
+      osconfig = new OpenStackConfiguration();
     }
-    for (CloudProvidersZone zone : osconfig.getMonitoringZones().getCloudProvidersZones()) {
+    for (CloudProviderZone zone : osconfig.getMonitoringZones().getCloudProvidersZones()) {
       if (zone.getName().equalsIgnoreCase(providerName) && (zone.getPassword() != null
           || zone.getTenant() != null || zone.getUsername() != null)) {
         openStackUser = zone.getUsername();
@@ -361,7 +362,7 @@ public class OpenStackClient {
   }
 
   protected List<String> getImagesFromCmdb() {
-    CmdbClientForOpenstack cmdbClient = new CmdbClientForOpenstack();
+    CmdbClientForOpenStack cmdbClient = new CmdbClientForOpenStack();
     return Arrays.asList(cmdbClient.getImageList());
   }
 
@@ -394,7 +395,7 @@ public class OpenStackClient {
    * @throws InterruptedException exec
    * @throws TimeoutException timeout
    */
-  public CreateVmResult createVm(Object osClient) {
+  public VmResultCreation createVm(Object osClient) {
 
     String instanceName = INSTANCE_NAME + new BigInteger(37, new SecureRandom()).toString(16);
 
@@ -413,7 +414,7 @@ public class OpenStackClient {
     // coming from Openstack API
     try {
       if (Boolean
-          .parseBoolean(PropertiesManager.getProperty(OpenstackProbeTags.WAIT_FOR_CREATION))) {
+          .parseBoolean(PropertiesManager.getProperty(OpenStackProbeTags.WAIT_FOR_CREATION))) {
         log.info("Calculating real creation server time by polling the status to be active");
         serverCreation = poller(instanceName);
       } else {
@@ -446,8 +447,8 @@ public class OpenStackClient {
     }
 
     // Feed monitoring info
-    return new CreateVmResult(resultMap.get(AVAILABILITY_STATUS), resultMap.get(HTTP_RESPONSE_CODE),
-        responseTime, vmId);
+    return new VmResultCreation(resultMap.get(AVAILABILITY_STATUS),
+        resultMap.get(HTTP_RESPONSE_CODE), responseTime, vmId);
   }
 
   /**
@@ -650,7 +651,7 @@ public class OpenStackClient {
    * @throws TimeoutException timeout
    * @throws InterruptedException interrupt
    */
-  private InspectVmResult inspectVm(String vmId, Object osClient)
+  private VmResultInspection inspectVm(String vmId, Object osClient)
       throws TimeoutException, InterruptedException {
     long startTime = System.currentTimeMillis();
     server = (osClient.equals(osClientV3)) ? osClientV3.compute().servers().get(vmId)
@@ -669,7 +670,7 @@ public class OpenStackClient {
     Map<String, Integer> resultMap = manageResponseStatus(server.getStatus());
 
     // Feed monitoring info
-    return new InspectVmResult(resultMap.get(AVAILABILITY_STATUS),
+    return new VmResultInspection(resultMap.get(AVAILABILITY_STATUS),
         resultMap.get(HTTP_RESPONSE_CODE), responseTime);
   }
 
@@ -681,7 +682,7 @@ public class OpenStackClient {
    * @throws TimeoutException timeout
    * @throws InterruptedException interrupt
    */
-  protected DeleteVmResult deleteVm(String vmId, Object osClient)
+  protected VmResultDeletion deleteVm(String vmId, Object osClient)
       throws TimeoutException, InterruptedException {
 
     // Measure response time
@@ -699,8 +700,8 @@ public class OpenStackClient {
 
     Map<String, Integer> resultMap = manageDeleteResult(result);
     // Feed monitoring info
-    return new DeleteVmResult(resultMap.get(AVAILABILITY_STATUS), resultMap.get(HTTP_RESPONSE_CODE),
-        responseTime);
+    return new VmResultDeletion(resultMap.get(AVAILABILITY_STATUS),
+        resultMap.get(HTTP_RESPONSE_CODE), responseTime);
   }
 
   /**
@@ -765,7 +766,7 @@ public class OpenStackClient {
    * @throws TimeoutException timeout
    * @throws InterruptedException interrupt
    */
-  public OpenstackProbeResult getOpenstackMonitoringInfo(String project)
+  public OpenStackProbeResult getOpenstackMonitoringInfo(String project)
       throws TimeoutException, InterruptedException {
     // Follow the full lifecycle for a VM
     // Retrieve the operation token
@@ -775,11 +776,11 @@ public class OpenStackClient {
 
     log.info("Token obtained from " + providerId + " is valid. Continue monitoring operation...");
 
-    CreateVmResult createVmInfo = createVm(osClient);
+    VmResultCreation createVmInfo = createVm(osClient);
     // Map<String, Object> resultTryMap = new HashMap<>();
     if (createVmInfo.getCreateVmAvailability() == 0) {
       // Send failure result, since we cannot go on with the process
-      OpenstackProbeResult failureResult = new OpenstackProbeResult(providerId);
+      OpenStackProbeResult failureResult = new OpenStackProbeResult(providerId);
       failureResult.addCreateVmInfo(createVmInfo);
       failureResult.addGlobalInfo(0, createVmInfo.getCreateVmResult(), -1);
       log.info("Instantiation failed with time: " + failureResult.getGlobalResponseTime());
@@ -788,8 +789,8 @@ public class OpenStackClient {
       return failureResult;
     }
 
-    InspectVmResult inspectVmInfo = inspectVm(createVmInfo.getVmId(), osClient);
-    DeleteVmResult deleteVmInfo = deleteVm(createVmInfo.getVmId(), osClient);
+    VmResultInspection inspectVmInfo = inspectVm(createVmInfo.getVmId(), osClient);
+    VmResultDeletion deleteVmInfo = deleteVm(createVmInfo.getVmId(), osClient);
     // Determine Global Availability
     int globalAvailability = 1;
     if (createVmInfo.getCreateVmAvailability() == 0 || inspectVmInfo.getInspectVmAvailability() == 0
@@ -820,7 +821,7 @@ public class OpenStackClient {
         + inspectVmInfo.getInspectVmResponseTime() + deleteVmInfo.getDeleteVmResponseTime();
 
     // Construct the result
-    OpenstackProbeResult finalResult = new OpenstackProbeResult(providerId);
+    OpenStackProbeResult finalResult = new OpenStackProbeResult(providerId);
     finalResult.addCreateVmInfo(createVmInfo);
     finalResult.addInspectVmInfo(inspectVmInfo);
     finalResult.addDeleteVmInfo(deleteVmInfo);
@@ -832,7 +833,7 @@ public class OpenStackClient {
     return finalResult;
   }
 
-  private void tryToDeleteInstance(CreateVmResult createVmInfo) {
+  private void tryToDeleteInstance(VmResultCreation createVmInfo) {
 
     try {
       if (createVmInfo.getVmId() != null) {

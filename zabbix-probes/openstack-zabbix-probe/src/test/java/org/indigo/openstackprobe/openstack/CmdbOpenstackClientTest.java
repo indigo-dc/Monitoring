@@ -44,7 +44,7 @@ public class CmdbOpenstackClientTest {
 
   @Test
   public void testCmdb() {
-    CmdbClientForOpenstack client = new CmdbClientForOpenstack(mockClient, cmdburlMocked);
+    CmdbClientForOpenStack client = new CmdbClientForOpenStack(mockClient, cmdburlMocked);
 
     List<CloudProviderInfo> response = new ArrayList<>();
 //        client.getFeasibleProvidersInfo();

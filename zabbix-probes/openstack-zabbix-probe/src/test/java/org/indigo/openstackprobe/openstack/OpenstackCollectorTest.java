@@ -13,26 +13,26 @@ import java.util.concurrent.TimeoutException;
 
 public class OpenstackCollectorTest {
 
-	private CreateVmResult createVmMocked;
-	private DeleteVmResult deleteVmMocked;
-	private OpenstackProbeResult probeMocked;
+	private VmResultCreation createVmMocked;
+	private VmResultDeletion deleteVmMocked;
+	private OpenStackProbeResult probeMocked;
 	private OpenStackClient osMocked;
 	private ServerCreate serverMocked;
 	private AppOperation appMocked;
-	private InspectVmResult inspectVmResult;
+	private VmResultInspection inspectVmResult;
 	Server server;
 	private  OpenstackCollector oscollector;
 
 	@Before
 	public void prepareCollector() throws TimeoutException, InterruptedException, ConnectionException {
 		osMocked = Mockito.mock(OpenStackClient.class);
-		probeMocked = Mockito.mock(OpenstackProbeResult.class);
+		probeMocked = Mockito.mock(OpenStackProbeResult.class);
 
 		serverMocked = Mockito.mock(ServerCreate.class);
 
-		createVmMocked = Mockito.mock(CreateVmResult.class);
-		deleteVmMocked = Mockito.mock(DeleteVmResult.class);
-		inspectVmResult = Mockito.mock(InspectVmResult.class);
+		createVmMocked = Mockito.mock(VmResultCreation.class);
+		deleteVmMocked = Mockito.mock(VmResultDeletion.class);
+		inspectVmResult = Mockito.mock(VmResultInspection.class);
 		probeMocked.addDeleteVmInfo(deleteVmMocked);
 		probeMocked.addCreateVmInfo(createVmMocked);
 		probeMocked.addGlobalInfo(1, 200, 2L);

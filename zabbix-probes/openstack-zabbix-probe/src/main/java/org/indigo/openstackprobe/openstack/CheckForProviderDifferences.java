@@ -11,16 +11,16 @@ import java.util.List;
 
 
 /* This class is intended to be temporary until */
-public class CheckForProviderDifference {
+public class CheckForProviderDifferences {
 
-  private OpenstackConfiguration osconfig;
+  private OpenStackConfiguration osconfig;
   private String project = null;
   private Image image;
 
   protected String checkForOpenstackProject(String providerName) {
     if (Boolean
-        .parseBoolean(PropertiesManager.getProperty(OpenstackProbeTags.PROVIDERS_EXCEPTIONS))) {
-      for (CloudProvidersZone provider : getProviders()) {
+        .parseBoolean(PropertiesManager.getProperty(OpenStackProbeTags.PROVIDERS_EXCEPTIONS))) {
+      for (CloudProviderZone provider : getProviders()) {
         project = (providerName.toLowerCase().contains("recas")) ? "INDIGO_DEMO"
             : PropertiesManager.getProperty(ProbesTags.OPENSTACK_PROJECT);
       }
@@ -33,14 +33,14 @@ public class CheckForProviderDifference {
    * 
    * @return the list of Providers listed into zones.yml
    */
-  protected List<CloudProvidersZone> getProviders() {
-    if (OpenstackConfiguration.zone != null && OpenstackConfiguration.zone.contains("test")) {
-      osconfig = new OpenstackConfiguration("testoszone.yml");
+  protected List<CloudProviderZone> getProviders() {
+    if (OpenStackConfiguration.zone != null && OpenStackConfiguration.zone.contains("test")) {
+      osconfig = new OpenStackConfiguration("testoszone.yml");
     } else {
-      osconfig = new OpenstackConfiguration();
+      osconfig = new OpenStackConfiguration();
     }
-    List<CloudProvidersZone> providerzones = new ArrayList<>();
-    for (CloudProvidersZone zone : osconfig.getMonitoringZones().getCloudProvidersZones()) {
+    List<CloudProviderZone> providerzones = new ArrayList<>();
+    for (CloudProviderZone zone : osconfig.getMonitoringZones().getCloudProvidersZones()) {
       providerzones.add(zone);
     }
     return providerzones;

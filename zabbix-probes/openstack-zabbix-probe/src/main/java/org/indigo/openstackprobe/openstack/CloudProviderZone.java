@@ -14,7 +14,7 @@ import java.util.Map;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({"username", "password", "name", "tenant"})
-public class CloudProvidersZone {
+public class CloudProviderZone {
 
   /** The username. */
   @JsonProperty("username")

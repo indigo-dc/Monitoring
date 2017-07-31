@@ -5,7 +5,7 @@ package org.indigo.openstackprobe.openstack;
  * Interface for exposing the properties.
  * </p>
  */
-public interface OpenstackProbeTags {
+public interface OpenStackProbeTags {
 
   public static final String JAVA_KEYSTORE = "java.keystore";
   public static final String ZABBIX_IP = "zabbix.ip";

@@ -5,7 +5,7 @@ package org.indigo.openstackprobe.openstack;
  * Delete VM Operation.
  *
  */
-public class DeleteVmResult {
+public class VmResultDeletion {
   private int deleteVmAvailability;
   private int deleteVmResult;
   private long deleteVmResponseTime;
@@ -18,7 +18,7 @@ public class DeleteVmResult {
    * @param result It represents the HTTP response code received
    * @param responseTime It indicates how much time it took to run the operation
    */
-  public DeleteVmResult(int availability, int result, long responseTime) {
+  public VmResultDeletion(int availability, int result, long responseTime) {
     deleteVmAvailability = availability;
     deleteVmResult = result;
     deleteVmResponseTime = responseTime;

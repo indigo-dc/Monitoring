@@ -13,7 +13,7 @@ import java.util.List;
  * @author Reply Santer.
  *
  */
-public class OpenstackThread extends ProbeThread<OpenstackCollector> {
+public class OpenStackThread extends ProbeThread<OpenstackCollector> {
 
   private static final Logger log = LogManager.getLogger(OpenStackClient.class);
 
@@ -23,7 +23,7 @@ public class OpenstackThread extends ProbeThread<OpenstackCollector> {
   /**
    * Constructor for test purposes.
    */
-  protected OpenstackThread(List<OpenstackCollector> collectorsMocked) {
+  protected OpenStackThread(List<OpenstackCollector> collectorsMocked) {
     super("IaaS", "Cloud_Providers", "TemplateOpenstack");
     collectors = collectorsMocked;
   }
@@ -31,7 +31,7 @@ public class OpenstackThread extends ProbeThread<OpenstackCollector> {
   /**
    * Constructor for initializing the the the implementation of the thread.
    */
-  protected OpenstackThread() {
+  protected OpenStackThread() {
     super("IaaS", "Cloud_Providers", "TemplateOpenstack");
   }
 
@@ -41,9 +41,9 @@ public class OpenstackThread extends ProbeThread<OpenstackCollector> {
    * @param args args
    */
   public static void main(String[] args) {
-    collectors = ProviderSearch.getCollectorResults();
+    collectors = ProvidersSearch.getCollectorResults();
     for (countColls = 0; countColls < collectors.size(); countColls++) {
-      new OpenstackThread().run(OpenstackProbeTags.CONFIG_FILE);
+      new OpenStackThread().run(OpenStackProbeTags.CONFIG_FILE);
     }
   }
 

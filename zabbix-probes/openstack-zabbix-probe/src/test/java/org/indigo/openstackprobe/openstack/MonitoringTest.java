@@ -255,7 +255,7 @@ public class MonitoringTest {
 	@Test
 	public void monitoringOperationsShouldReturnCompleteResult() throws TimeoutException, InterruptedException {
 
-		OpenstackComponent component = new OpenstackComponent();
+		OpenStackComponent component = new OpenStackComponent();
 		component.setMockClient(mockClient);
 		component.setOsClientMocked(mockOSClient);
 		component.setMockKeystone(keystoneMock);

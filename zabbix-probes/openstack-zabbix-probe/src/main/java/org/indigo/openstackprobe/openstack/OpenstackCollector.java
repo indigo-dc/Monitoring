@@ -25,11 +25,11 @@ public class OpenstackCollector extends LifecycleCollector {
   public String accessToken;
 
   private static final Logger log = LogManager.getLogger(OpenstackCollector.class);
-  protected OpenstackProbeResult probeResult;
-  private static final String INSTANCE_NAME = OpenstackProbeTags.INSTANCE_NAME;
+  protected OpenStackProbeResult probeResult;
+  private static final String INSTANCE_NAME = OpenStackProbeTags.INSTANCE_NAME;
   OpenStackClient openstackClient;
-  OpenstackComponent openstackComponent = new OpenstackComponent();
-  CheckForProviderDifference checkForProviderDifference = new CheckForProviderDifference();
+  OpenStackComponent openstackComponent = new OpenStackComponent();
+  CheckForProviderDifferences checkForProviderDifference = new CheckForProviderDifferences();
 
   /**
    * Default constructor.
@@ -56,7 +56,7 @@ public class OpenstackCollector extends LifecycleCollector {
    * 
    * @return OpenstackProbeResult
    */
-  protected OpenstackProbeResult getOsProbeResult() {
+  protected OpenStackProbeResult getOsProbeResult() {
     if (probeResult == null) {
       try {
         String project = checkForProviderDifference.checkForOpenstackProject(provider);
@@ -78,7 +78,7 @@ public class OpenstackCollector extends LifecycleCollector {
   @Override
   protected AppOperation create() {
     long currentTime = new Date().getTime();
-    CreateVmResult createdProbe = null;
+    VmResultCreation createdProbe = null;
     try {
       createdProbe = getOsProbeResult().getCreateVmElement();
       log.info("Collected creation meters in: "
@@ -97,7 +97,7 @@ public class OpenstackCollector extends LifecycleCollector {
   protected AppOperation retrieve() {
 
     long currentTime = new Date().getTime();
-    InspectVmResult vmappRetrieved = null;
+    VmResultInspection vmappRetrieved = null;
     try {
       vmappRetrieved = getOsProbeResult().getInspectVmElement();
       if (vmappRetrieved != null) {
@@ -137,7 +137,7 @@ public class OpenstackCollector extends LifecycleCollector {
   protected AppOperation delete() {
 
     long currentTime = new Date().getTime();
-    DeleteVmResult deleteProbe = null;
+    VmResultDeletion deleteProbe = null;
     try {
       deleteProbe = getOsProbeResult().getDeleteVmElement();
       log.info(

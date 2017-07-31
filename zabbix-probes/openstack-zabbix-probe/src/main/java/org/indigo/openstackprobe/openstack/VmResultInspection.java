@@ -4,7 +4,7 @@ package org.indigo.openstackprobe.openstack;
  * This class holds the information related to the monitoring of a Cloud Provider when doing the
  * Inspect VM Operation.
  */
-public class InspectVmResult {
+public class VmResultInspection {
   private int inspectVmAvailability;
   private int inspectVmResult;
   private long inspectVmResponseTime;
@@ -17,7 +17,7 @@ public class InspectVmResult {
    * @param result It represents the HTTP response code received
    * @param responseTime It indicates how much time it took to run the operation
    */
-  public InspectVmResult(int availability, int result, long responseTime) {
+  public VmResultInspection(int availability, int result, long responseTime) {
     inspectVmAvailability = availability;
     inspectVmResult = result;
     inspectVmResponseTime = responseTime;

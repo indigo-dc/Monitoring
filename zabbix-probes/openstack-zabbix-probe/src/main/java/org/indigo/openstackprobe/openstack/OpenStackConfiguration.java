@@ -18,24 +18,24 @@ import java.net.URL;
  * @author Reply Santer. This class is defined for getting the credentials from oszone.yml file in
  *         case IAM is skipped.
  */
-public class OpenstackConfiguration {
+public class OpenStackConfiguration {
 
   /**
    * The Constant log.
    **/
-  private static final Logger log = LogManager.getLogger(OpenstackConfiguration.class);
+  private static final Logger log = LogManager.getLogger(OpenStackConfiguration.class);
   public static final String OS_ZONE_PROPERTY_FILE = "oszones.yml";
   public static String zone;
 
   /**
    * The openstack zones.
    **/
-  private OpenstackZones openstackZones;
+  private OpenStackZones openstackZones;
 
   /**
    * Instantiates a new openstack configuration.
    */
-  public OpenstackConfiguration() {
+  public OpenStackConfiguration() {
     try {
       log.info("Retrieving openstack properties per zone");
       openstackZones = readYaml(getConfigFile(OS_ZONE_PROPERTY_FILE));
@@ -48,7 +48,7 @@ public class OpenstackConfiguration {
   /**
    * Instantiates a new openstack configuration used for test only.
    */
-  public OpenstackConfiguration(String testZoneFile) {
+  public OpenStackConfiguration(String testZoneFile) {
     try {
       log.info("Retrieving openstack properties per zone");
       openstackZones = readYaml(getConfigFile(testZoneFile));
@@ -64,12 +64,12 @@ public class OpenstackConfiguration {
    * @param file the file
    * @return the openstack zones
    */
-  public OpenstackZones readYaml(final File file) {
+  public OpenStackZones readYaml(final File file) {
     final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
-    OpenstackZones zoneFile = new OpenstackZones();
+    OpenStackZones zoneFile = new OpenStackZones();
     try {
-      zoneFile = mapper.readValue(file, OpenstackZones.class);
+      zoneFile = mapper.readValue(file, OpenStackZones.class);
     } catch (JSONException | JsonMappingException je) {
       log.debug("Unable to parse the file: " + je.getMessage());
     } catch (IOException ioe) {
@@ -107,7 +107,7 @@ public class OpenstackConfiguration {
    * 
    * @return the openstack zones
    */
-  public OpenstackZones getMonitoringZones() {
+  public OpenStackZones getMonitoringZones() {
     return openstackZones;
   }
 }

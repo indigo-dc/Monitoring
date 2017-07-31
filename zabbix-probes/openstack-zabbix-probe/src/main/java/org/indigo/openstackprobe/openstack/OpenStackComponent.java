@@ -20,10 +20,10 @@ import javax.ws.rs.client.Client;
  * @author Reply.
  *
  */
-public class OpenstackComponent {
+public class OpenStackComponent {
 
   /** The mock client. */
-  private OpenstackConfiguration osConfiguration;
+  private OpenStackConfiguration osConfiguration;
 
   /** The mock client. */
   private Client mockClient;
@@ -93,7 +93,7 @@ public class OpenstackComponent {
    *
    * @return the osConfiguration
    */
-  public OpenstackConfiguration getOsConfiguration() {
+  public OpenStackConfiguration getOsConfiguration() {
     return osConfiguration;
   }
 
@@ -102,7 +102,7 @@ public class OpenstackComponent {
    *
    * @param osConfiguration osconfig
    */
-  public void setOsConfiguration(OpenstackConfiguration osConfiguration) {
+  public void setOsConfiguration(OpenStackConfiguration osConfiguration) {
     this.osConfiguration = osConfiguration;
   }
 

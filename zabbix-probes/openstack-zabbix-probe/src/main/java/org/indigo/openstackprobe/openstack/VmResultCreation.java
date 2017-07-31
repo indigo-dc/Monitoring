@@ -5,7 +5,7 @@ package org.indigo.openstackprobe.openstack;
  * Create VM Operation.
  *
  */
-public class CreateVmResult {
+public class VmResultCreation {
   private int createVmAvailability;
   private int createVmResult;
   private long createVmResponseTime;
@@ -20,7 +20,7 @@ public class CreateVmResult {
    * @param responseTime It indicates how much time it took to run the operation
    * @param id It is the VM id received from the operation
    */
-  public CreateVmResult(int availability, int result, long responseTime, String id) {
+  public VmResultCreation(int availability, int result, long responseTime, String id) {
     createVmAvailability = availability;
     createVmResult = result;
     createVmResponseTime = responseTime;

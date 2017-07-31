@@ -3,11 +3,11 @@ package com.indigo.zabbix.utils;
 import com.indigo.zabbix.utils.beans.KeystoneScopedTokenRequest;
 import com.indigo.zabbix.utils.beans.OpenstackProjectsInfo;
 
-import feign.Response;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import feign.Response;
 
 /**
  * Created by jose on 4/04/17.
@@ -23,8 +23,11 @@ public class KeystoneClient {
    * @param location The location of the keystone client.
    */
   public KeystoneClient(String location) {
-    if (location.endsWith("/v3/v3")) {
-      location = location.replace("/v3/v3", "/v3");
+      if (location.endsWith("/v3/v3")) {
+        location = location.replace("/v3/v3", "/v3");
+    }
+      else if (location.endsWith("/v3")) {
+        location = location.replace("/v3", "");
     } else {
       throw new IllegalArgumentException("Error generating Keystone client.\nOpenstack endpoint <"
                                              + location

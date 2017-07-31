@@ -14,11 +14,11 @@ import java.util.Map;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({"cloud-providers-zones"})
-public class OpenstackZones {
+public class OpenStackZones {
 
   /** The cloud providers zones. */
   @JsonProperty("cloud-providers-zones")
-  private List<CloudProvidersZone> cloudProvidersZones = null;
+  private List<CloudProviderZone> cloudProvidersZones = null;
 
   /** The additional properties. */
   @JsonIgnore
@@ -30,7 +30,7 @@ public class OpenstackZones {
    * @return the cloud providers zones
    */
   @JsonProperty("cloud-providers-zones")
-  public List<CloudProvidersZone> getCloudProvidersZones() {
+  public List<CloudProviderZone> getCloudProvidersZones() {
     return cloudProvidersZones;
   }
 
@@ -40,7 +40,7 @@ public class OpenstackZones {
    * @param cloudProvidersZones the new cloud providers zones
    */
   @JsonProperty("cloud-providers-zones")
-  public void setCloudProvidersZones(List<CloudProvidersZone> cloudProvidersZones) {
+  public void setCloudProvidersZones(List<CloudProviderZone> cloudProvidersZones) {
     this.cloudProvidersZones = cloudProvidersZones;
   }
 

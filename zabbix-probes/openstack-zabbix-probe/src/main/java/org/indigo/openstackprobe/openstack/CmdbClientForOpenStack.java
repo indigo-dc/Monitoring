@@ -28,7 +28,7 @@ import javax.ws.rs.client.Client;
  * @author Reply
  *
  */
-public class CmdbClientForOpenstack {
+public class CmdbClientForOpenStack {
   private Client client = null;
 
   private String cmdbUrl;
@@ -41,16 +41,16 @@ public class CmdbClientForOpenstack {
 
   private CmdbFeignClient cmdbClient;
 
-  private static final Logger log = LogManager.getLogger(CmdbClientForOpenstack.class);
+  private static final Logger log = LogManager.getLogger(CmdbClientForOpenStack.class);
 
   /**
    * FEIGN used into Cmdb.
    */
-  public CmdbClientForOpenstack() {
+  public CmdbClientForOpenStack() {
     try {
-      PropertiesManager.loadProperties(OpenstackProbeTags.CONFIG_FILE);
+      PropertiesManager.loadProperties(OpenStackProbeTags.CONFIG_FILE);
     } catch (IOException e) {
-      log.debug("Unable to load property file: {}", OpenstackProbeTags.CONFIG_FILE, e);
+      log.debug("Unable to load property file: {}", OpenStackProbeTags.CONFIG_FILE, e);
     }
     cmdbUrl = PropertiesManager.getProperty(ProbesTags.CMDB_URL);
     // Create the Client
@@ -62,7 +62,7 @@ public class CmdbClientForOpenstack {
    * 
    * @param mock Mock of the Jersey Client class
    */
-  public CmdbClientForOpenstack(CmdbFeignClient mock, String cmdburlMocked) {
+  public CmdbClientForOpenStack(CmdbFeignClient mock, String cmdburlMocked) {
     cmdbUrl = cmdburlMocked;
     cmdbClient = mock;
   }
