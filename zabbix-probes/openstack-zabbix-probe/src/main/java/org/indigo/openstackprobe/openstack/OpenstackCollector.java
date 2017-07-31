@@ -3,13 +3,13 @@ package org.indigo.openstackprobe.openstack;
 import com.indigo.zabbix.utils.LifecycleCollector;
 import com.indigo.zabbix.utils.beans.AppOperation;
 
+import java.util.Date;
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openstack4j.api.exceptions.ConnectionException;
 import org.openstack4j.model.compute.Server;
-
-import java.util.Date;
-import java.util.List;
 
 
 

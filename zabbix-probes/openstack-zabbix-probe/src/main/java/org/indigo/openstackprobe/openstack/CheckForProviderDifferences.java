@@ -3,11 +3,10 @@ package org.indigo.openstackprobe.openstack;
 import com.indigo.zabbix.utils.ProbesTags;
 import com.indigo.zabbix.utils.PropertiesManager;
 
-import org.openstack4j.model.image.Image;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import org.openstack4j.model.image.Image;
 
 
 /* This class is intended to be temporary until */

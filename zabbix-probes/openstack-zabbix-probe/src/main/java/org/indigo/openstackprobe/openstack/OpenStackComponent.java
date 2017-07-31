@@ -1,5 +1,10 @@
 package org.indigo.openstackprobe.openstack;
 
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.client.Client;
+
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.client.IOSClientBuilder.V2;
 import org.openstack4j.api.compute.ComputeService;
@@ -9,11 +14,6 @@ import org.openstack4j.api.image.ImageService;
 import org.openstack4j.model.compute.Flavor;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.image.Image;
-
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.client.Client;
 
 /**
  * 
@@ -181,7 +181,7 @@ public class OpenStackComponent {
   /**
    * Sets the token moked.
    *
-   * @param tokenMoked the new token moked
+   * @param tokenId the new token moked
    */
   public void setTokenId(String tokenId) {
     this.tokenId = tokenId;

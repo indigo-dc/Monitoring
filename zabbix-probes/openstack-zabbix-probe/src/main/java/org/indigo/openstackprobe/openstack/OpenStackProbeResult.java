@@ -1,8 +1,8 @@
 package org.indigo.openstackprobe.openstack;
 
-import org.openstack4j.model.compute.Server;
-
 import java.util.List;
+
+import org.openstack4j.model.compute.Server;
 
 /**
  * This class represents the whole result of a monitoring action which has followed the full VM
