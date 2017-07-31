@@ -60,12 +60,13 @@ public class OpenstackConfiguration {
 
   /**
    * Read yaml.
+   * 
    * @param file the file
    * @return the openstack zones
    */
   public OpenstackZones readYaml(final File file) {
-    final ObjectMapper mapper = new ObjectMapper(new YAMLFactory()); 
-                                                                    
+    final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+
     OpenstackZones zoneFile = new OpenstackZones();
     try {
       zoneFile = mapper.readValue(file, OpenstackZones.class);
@@ -79,6 +80,7 @@ public class OpenstackConfiguration {
 
   /**
    * Gets the config file.
+   * 
    * @param file the filesS
    * @return the config file
    * @throws URISyntaxException uri
@@ -102,6 +104,7 @@ public class OpenstackConfiguration {
 
   /**
    * Gets the openstack zones.
+   * 
    * @return the openstack zones
    */
   public OpenstackZones getMonitoringZones() {

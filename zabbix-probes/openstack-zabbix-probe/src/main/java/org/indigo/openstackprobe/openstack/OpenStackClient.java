@@ -117,6 +117,7 @@ public class OpenStackClient {
    * Main constructor of the OpenStackOcciClient class. It retrieves some information from the
    * properties files in order to create and configure the client which will connect to the remote
    * OCCI API of a cloud provider.
+   * 
    * @param keystoneLocation String with the full location of Keystone [IP:Port]
    * @param providerName String with the identifier of the Cloud Provider
    */
@@ -162,6 +163,7 @@ public class OpenStackClient {
 
   /**
    * Build the client V3.
+   * 
    * @param keystoneclient kesytsone client
    * @param project project
    */
@@ -175,6 +177,7 @@ public class OpenStackClient {
 
   /**
    * Build ClientV2.
+   * 
    * @param keystoneclient keystone cleint os4j
    */
   private void buildClientV2(V2 keystoneclient) {
@@ -198,6 +201,7 @@ public class OpenStackClient {
 
   /**
    * Constructor to be used for automatic testing purposes only.
+   * 
    * @param component component class
    */
   public OpenStackClient(OpenstackComponent component) {
@@ -228,6 +232,7 @@ public class OpenStackClient {
 
   /**
    * It asks the token to Openstack.
+   * 
    * @param keystoneclient keystoneclient os4j
    * @param project os tenant
    * @return OSClientV3
@@ -241,6 +246,7 @@ public class OpenStackClient {
 
   /**
    * To maintain back compatibility just make sure to authentuicate with legacy method.
+   * 
    * @param keystoneclient keystoneclient os4j
    * @return OSClient osclient
    */
@@ -253,6 +259,7 @@ public class OpenStackClient {
 
   /**
    * Checks whether there are credentials of openstack.
+   * 
    * @param providerName provider cloud
    */
   protected void checkCredentials(String providerName) {
@@ -278,7 +285,8 @@ public class OpenStackClient {
   }
 
   /**
-   * Constructor to be used for automatic testing purposes only. 
+   * Constructor to be used for automatic testing purposes only.
+   * 
    * @param mockClient mock
    * @param mockKeystone mock
    * @param mockFlavorId mock
@@ -302,6 +310,7 @@ public class OpenStackClient {
   /**
    * Retrieves the flavors from the providers. It checks whether there is any flavor called small,
    * otherwise gets the first.
+   * 
    * @return the Id of the flavor
    */
   public String getFlavor() {
@@ -330,6 +339,7 @@ public class OpenStackClient {
   /**
    * Checks inside CMDB for all the images IDs and checks whether it belongs to the examined
    * provider or not in order to use the correct one.
+   * 
    * @return id of the Image used for creating the instance.
    */
   public String getOsImage() {
@@ -379,6 +389,7 @@ public class OpenStackClient {
 
   /**
    * Create the virtual machine in Openstack by polling the result coming from openstack4j.
+   * 
    * @return CreateVmResult
    * @throws InterruptedException exec
    * @throws TimeoutException timeout
@@ -441,6 +452,7 @@ public class OpenStackClient {
 
   /**
    * Manage the Response status of server in case of creation.
+   * 
    * @param server serverStatus
    * @see Server serverStatus
    * @return the map for managing the values
@@ -462,6 +474,7 @@ public class OpenStackClient {
 
   /**
    * It polls the result instance Server until is really returned.
+   * 
    * @param instanceName name of instance to be created
    * @return Server instance from openstak4j api @see Server
    * @throws TimeoutException timeout
@@ -519,6 +532,7 @@ public class OpenStackClient {
 
   /**
    * Poll the PI for deleting the instance.
+   * 
    * @param instanceName instance server
    * @throws TimeoutException timeout
    * @throws InterruptedException interrupt
@@ -555,6 +569,7 @@ public class OpenStackClient {
 
   /**
    * It polls the result instance Server until is really returned.
+   * 
    * @param instanceName name of instance to be created
    * @return Server instance from openstak4j api @see Server
    * @throws TimeoutException timeout
@@ -592,6 +607,7 @@ public class OpenStackClient {
 
   /**
    * Manages the result when polling.
+   * 
    * @param serverInstance instance
    * @return a flag
    * @throws InterruptedException interrupt
@@ -628,6 +644,7 @@ public class OpenStackClient {
   /**
    * Inspect the instance in Openstack after passing the proper uuid. In case is not created
    * openstack4j returns null date from (server.getCreated()).
+   * 
    * @param vmId instance uuid
    * @return @see InspectVmResult
    * @throws TimeoutException timeout
@@ -658,6 +675,7 @@ public class OpenStackClient {
 
   /**
    * Delete the instance in Openstack by using Openstack4j.
+   * 
    * @param vmI VM uuid
    * @return the managed result of @see DeleteVmResult
    * @throws TimeoutException timeout
@@ -688,6 +706,7 @@ public class OpenStackClient {
   /**
    * Manage the result in case a Vm is created or returned using openstack4j. Cannot be used the
    * classic http jersey client results (wrapped in the library).
+   * 
    * @param result boolean (true in case of successful result in terms of availability status)
    * @return Map for accessing to values of results
    */
@@ -741,6 +760,7 @@ public class OpenStackClient {
   /**
    * This method goes through the whole lifecycle of a VM (create, inspect and delete VM) in order
    * to retrieve monitoring metrics: availability, HTTP response code and response time.
+   * 
    * @return Object representing results for each operation and a global aggregation.
    * @throws TimeoutException timeout
    * @throws InterruptedException interrupt

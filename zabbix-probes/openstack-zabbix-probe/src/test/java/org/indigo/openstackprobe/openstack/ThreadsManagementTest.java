@@ -4,24 +4,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonElement;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.indigo.zabbix.utils.CloudProviderInfo;
 import com.indigo.zabbix.utils.CmdbFeignClient;
 import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.beans.AppOperation;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,6 +23,20 @@ import org.openstack4j.api.image.ImageService;
 import org.openstack4j.model.compute.Flavor;
 import org.openstack4j.model.identity.v3.Token;
 import org.openstack4j.model.image.Image;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
 
 public class ThreadsManagementTest {
 	private CmdbFeignClient mockCmdb;
@@ -102,7 +106,7 @@ public class ThreadsManagementTest {
 		 OpenStackClient openstackclientMocked = Mockito.mock(OpenStackClient.class);
 		 PropertiesManager propmanagerMocked = Mockito.mock(PropertiesManager.class);
 //		 Mockito.doThrow(IOException.class).when(propmanagerMocked);
-		 PropertiesManager.loadProperties("openstackprobe.properties");
+//		 PropertiesManager.loadProperties("openstackprobe.properties");
 		osClientmocked = Mockito.mock(OSClient.class);
 //		tokenmocked = Mockito.mock(Token.class);
 

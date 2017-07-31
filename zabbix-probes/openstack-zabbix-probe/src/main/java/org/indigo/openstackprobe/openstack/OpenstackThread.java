@@ -37,6 +37,7 @@ public class OpenstackThread extends ProbeThread<OpenstackCollector> {
 
   /**
    * The very entry point of the code.
+   * 
    * @param args args
    */
   public static void main(String[] args) {

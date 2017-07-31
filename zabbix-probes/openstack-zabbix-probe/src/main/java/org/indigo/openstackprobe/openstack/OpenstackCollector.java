@@ -53,6 +53,7 @@ public class OpenstackCollector extends LifecycleCollector {
 
   /**
    * Launches the creation, cancellation of VMs for each f the providers taken in cosideration.
+   * 
    * @return OpenstackProbeResult
    */
   protected OpenstackProbeResult getOsProbeResult() {
@@ -121,6 +122,7 @@ public class OpenstackCollector extends LifecycleCollector {
 
   /**
    * Manages the reponse in case of connection exception to a specific provider.
+   * 
    * @param ce ConnectionException
    * @param currentTime currenttime
    * @return AppOperation
