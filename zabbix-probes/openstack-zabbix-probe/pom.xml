@@ -112,45 +112,45 @@
 
 			<!-- Creation of the rpm package -->
 
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>rpm-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>generate-rpm</id>
-						<goals>
-							<goal>rpm</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<name>openstackZabbixProbe</name>
-					<mappings>
-						<mapping>
-							<directory>/usr/share/java/zabbix/</directory>
-							<filemode>644</filemode>
-							<username>root</username>
-							<groupname>root</groupname>
-							<sources>
-								<source>
-									<location>${project.artifactId}-${project.version}-jar-with-dependencies.jar</location>
-								</source>
-							</sources>
-						</mapping>
-						<mapping>
-							<directory>/etc/zabbix/</directory>
-							<filemode>644</filemode>
-							<username>root</username>
-							<groupname>root</groupname>
-							<sources>
-								<source>
-									<location>src/main/resources/openstackprobe.properties</location>
-								</source>
-							</sources>
-						</mapping>
-					</mappings>
-				</configuration>
-			</plugin>
+<!-- 			<plugin> -->
+<!-- 				<groupId>org.codehaus.mojo</groupId> -->
+<!-- 				<artifactId>rpm-maven-plugin</artifactId> -->
+<!-- 				<executions> -->
+<!-- 					<execution> -->
+<!-- 						<id>generate-rpm</id> -->
+<!-- 						<goals> -->
+<!-- 							<goal>rpm</goal> -->
+<!-- 						</goals> -->
+<!-- 					</execution> -->
+<!-- 				</executions> -->
+<!-- 				<configuration> -->
+<!-- 					<name>openstackZabbixProbe</name> -->
+<!-- 					<mappings> -->
+<!-- 						<mapping> -->
+<!-- 							<directory>/usr/share/java/zabbix/</directory> -->
+<!-- 							<filemode>644</filemode> -->
+<!-- 							<username>root</username> -->
+<!-- 							<groupname>root</groupname> -->
+<!-- 							<sources> -->
+<!-- 								<source> -->
+<!-- 									<location>${project.artifactId}-${project.version}-jar-with-dependencies.jar</location> -->
+<!-- 								</source> -->
+<!-- 							</sources> -->
+<!-- 						</mapping> -->
+<!-- 						<mapping> -->
+<!-- 							<directory>/etc/zabbix/</directory> -->
+<!-- 							<filemode>644</filemode> -->
+<!-- 							<username>root</username> -->
+<!-- 							<groupname>root</groupname> -->
+<!-- 							<sources> -->
+<!-- 								<source> -->
+<!-- 									<location>src/main/resources/openstackprobe.properties</location> -->
+<!-- 								</source> -->
+<!-- 							</sources> -->
+<!-- 						</mapping> -->
+<!-- 					</mappings> -->
+<!-- 				</configuration> -->
+<!-- 			</plugin> -->
 		</plugins>
 	</build>
 </project>
