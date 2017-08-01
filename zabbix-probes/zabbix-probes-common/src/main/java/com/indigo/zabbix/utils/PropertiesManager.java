@@ -1,14 +1,13 @@
 package com.indigo.zabbix.utils;
 
-import org.apache.commons.configuration2.PropertiesConfiguration;
-import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.apache.commons.logging.Log;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.List;
+
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 
 /**
  * Created by jose on 16/08/16.
@@ -57,6 +56,7 @@ public class PropertiesManager {
 
   /**
    * Get an individual property value.
+   * 
    * @param property The property name.
    * @return The property value.
    */
@@ -66,6 +66,7 @@ public class PropertiesManager {
 
   /**
    * Get a property value providing a default in case it's not found.
+   * 
    * @param property The property name.
    * @param defaultValue The property default value.
    * @return The property value.
@@ -81,6 +82,7 @@ public class PropertiesManager {
 
   /**
    * Get a property list value.
+   * 
    * @param property The property name.
    * @return The property value.
    */

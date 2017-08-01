@@ -2,10 +2,10 @@ package com.indigo.zabbix.utils;
 
 import io.github.hengyunabc.zabbix.sender.SenderResult;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import java.io.IOException;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory; 
 
 /**
  * Created by jose on 11/21/16.
@@ -22,6 +22,7 @@ public abstract class ProbeThread<T extends MetricsCollector> {
 
   /**
    * Constructor used for testing.
+   * 
    * @param client client zabbix object.
    */
   protected ProbeThread(ZabbixClient client) {
@@ -56,7 +57,7 @@ public abstract class ProbeThread<T extends MetricsCollector> {
       }
 
     } catch (IOException e) {
-      logger.error("Error reading configuration file",e);
+      logger.error("Error reading configuration file", e);
     }
 
 

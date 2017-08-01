@@ -18,11 +18,11 @@ public interface CmdbFeignClient {
 
   @RequestLine("GET /provider/id/{providerId}/has_many/services?include_docs=true")
   JsonElement providerInfo(@Param("providerId") String providerId);
-  
+
   @RequestLine("GET /provider/list")
   JsonElement providerList();
-  
+
   @RequestLine("GET /image/list")
   JsonElement providerImages();
-  
+
 }

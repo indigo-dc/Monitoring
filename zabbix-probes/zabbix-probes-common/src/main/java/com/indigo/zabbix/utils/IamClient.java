@@ -19,6 +19,7 @@ public class IamClient {
 
   /**
    * Gets an access token from the IAM service.
+   * 
    * @param location Location of the IAM server.
    * @param username Username for the authorized user.
    * @param password Password for the authorized user.
@@ -26,27 +27,21 @@ public class IamClient {
    * @param clientSecret Client secret of the client ID application.
    * @return An access token for the provided user and application.
    */
-  public static OAuthJSONAccessTokenResponse getAccessToken(String location,
-                                                            String username, String password,
-                                                            String clientId, String clientSecret) {
+  public static OAuthJSONAccessTokenResponse getAccessToken(String location, String username,
+      String password, String clientId, String clientSecret) {
     try {
-      OAuthClientRequest request = new OAuthClientRequest
-          .TokenRequestBuilder(location)
-          .setUsername(username)
-          .setPassword(password)
-          .setGrantType(GrantType.PASSWORD)
-          .setClientId(clientId)
-          .setClientSecret(clientSecret)
-          .buildBodyMessage();
+      OAuthClientRequest request = new OAuthClientRequest.TokenRequestBuilder(location)
+          .setUsername(username).setPassword(password).setGrantType(GrantType.PASSWORD)
+          .setClientId(clientId).setClientSecret(clientSecret).buildBodyMessage();
 
       OAuthClient client = new OAuthClient(new URLConnectionClient());
 
       return client.accessToken(request);
 
     } catch (OAuthSystemException e) {
-      logger.error("Error building IAM request",e);
+      logger.error("Error building IAM request", e);
     } catch (OAuthProblemException e) {
-      logger.error("Error getting access token from IAM",e);
+      logger.error("Error getting access token from IAM", e);
     }
 
     return null;
@@ -54,15 +49,13 @@ public class IamClient {
 
   /**
    * Utility method that will return an access token from parameters provided in the configuration
-   * file.
-   * - iam.location: Location of the IAM server.
-   * - iam.username: Username for the authorized user.
-   * - iam.password: Password for the authorized user.
-   * - iam.clientid: Client ID to authorize.
+   * file. - iam.location: Location of the IAM server. - iam.username: Username for the authorized
+   * user. - iam.password: Password for the authorized user. - iam.clientid: Client ID to authorize.
    * - iam.clientsecret: Client secret of the client ID application.
+   * 
    * @return An access token for the provided user and application.
    */
-  public  static OAuthJSONAccessTokenResponse getAccessToken() {
+  public static OAuthJSONAccessTokenResponse getAccessToken() {
 
     return getAccessToken(PropertiesManager.getProperty(ProbesTags.IAM_LOCATION),
         PropertiesManager.getProperty(ProbesTags.IAM_USERNAME),

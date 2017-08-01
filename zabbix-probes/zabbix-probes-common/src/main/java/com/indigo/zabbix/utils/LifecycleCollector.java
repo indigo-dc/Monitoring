@@ -36,17 +36,17 @@ public abstract class LifecycleCollector implements MetricsCollector {
           addOperation(delete);
 
         } else {
-          addOperation(new AppOperation(AppOperation.Operation.DELETE,false,503,0));
+          addOperation(new AppOperation(AppOperation.Operation.DELETE, false, 503, 0));
         }
 
       } else {
-        addOperation(new AppOperation(AppOperation.Operation.RUN,false,503,0));
-        addOperation(new AppOperation(AppOperation.Operation.DELETE,false,503,0));
+        addOperation(new AppOperation(AppOperation.Operation.RUN, false, 503, 0));
+        addOperation(new AppOperation(AppOperation.Operation.DELETE, false, 503, 0));
       }
     } else {
-      addOperation(new AppOperation(AppOperation.Operation.CREATE,false,503,0));
-      addOperation(new AppOperation(AppOperation.Operation.RUN,false,503,0));
-      addOperation(new AppOperation(AppOperation.Operation.DELETE,false,503,0));
+      addOperation(new AppOperation(AppOperation.Operation.CREATE, false, 503, 0));
+      addOperation(new AppOperation(AppOperation.Operation.RUN, false, 503, 0));
+      addOperation(new AppOperation(AppOperation.Operation.DELETE, false, 503, 0));
     }
 
     return result;

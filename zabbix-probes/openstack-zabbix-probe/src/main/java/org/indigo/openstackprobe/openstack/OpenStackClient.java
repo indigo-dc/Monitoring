@@ -58,8 +58,6 @@ import org.openstack4j.model.image.Image;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.openstack.OSFactory;
 
-
-
 /**
  * It takes care of the interactions to be performed with Cloud Providers whose base platform is
  * OpenStack. It requires additional interactions with the Keystone component, in order to get
