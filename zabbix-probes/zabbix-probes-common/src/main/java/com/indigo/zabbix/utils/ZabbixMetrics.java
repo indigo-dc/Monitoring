@@ -13,12 +13,13 @@ public class ZabbixMetrics {
   private Map<String, String> metrics = new HashMap<>();
   private long timestamp = new Date().getTime();
 
-  public ZabbixMetrics(){
+  public ZabbixMetrics() {
 
   }
 
   /**
    * Constructor for quick building a zabbix metrics object.
+   * 
    * @param hostName hostname of the measured host.
    * @param metrics metrics in a key value set.
    * @param timestamp timestamp in which the measurements were taken.

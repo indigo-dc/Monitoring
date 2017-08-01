@@ -114,13 +114,24 @@ public class ChronosCollector extends LifecycleCollector {
   @Override
   protected AppOperation retrieve() {
     Date start = new Date();
-    Collection<Job> jobStatus = client.getJob(JOB_NAME);
-    Date end = new Date();
-    long duration = end.getTime() - start.getTime();
-    if (jobStatus.isEmpty()) {
-      return new AppOperation(AppOperation.Operation.RUN, false, 404, duration);
-    } else {
-      return new AppOperation(AppOperation.Operation.RUN, true, 200, duration);
+    try {
+      Collection<Job> jobStatus = client.getJob(JOB_NAME);
+      Date end = new Date();
+      long duration = end.getTime() - start.getTime();
+      if (jobStatus.isEmpty()) {
+        return new AppOperation(AppOperation.Operation.RUN, false, 404, duration);
+      } else {
+        return new AppOperation(AppOperation.Operation.RUN, true, 200, duration);
+      }
+    } catch (Exception e) {
+      if (e instanceof ChronosException) {
+        ChronosException exception = (ChronosException)e;
+        return new AppOperation(AppOperation.Operation.RUN, false, exception.getStatus(),
+                                   new Date().getTime() - start.getTime());
+      } else {
+        return new AppOperation(AppOperation.Operation.RUN, false, 500,
+                                   new Date().getTime() - start.getTime());
+      }
     }
   }
 

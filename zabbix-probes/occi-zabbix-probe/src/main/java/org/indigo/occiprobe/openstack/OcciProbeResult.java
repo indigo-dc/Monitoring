@@ -20,6 +20,11 @@ Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
 
 package org.indigo.occiprobe.openstack;
 
+import org.apache.commons.lang3.BooleanUtils;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * This class represents the whole result of a monitoring action which has 
  * followed the full VM lifecycle by using the OCCI API exposed by a 
@@ -29,21 +34,26 @@ package org.indigo.occiprobe.openstack;
  *
  */
 public class OcciProbeResult {
-  private String providerName;
-  private int globalAvailability;
+  private boolean globalAvailability;
   private int globalResult;
   private long globalResponseTime;
-  
-  private CreateVmResult createVmElement;
-  private InspectVmResult inspectVmElement;
-  private DeleteVmResult deleteVmElement;
-  
+
+
+  public void setGlobalAvailability(boolean globalAvailability) {
+    this.globalAvailability = globalAvailability;
+  }
+
+  public void setGlobalResult(int globalResult) {
+    this.globalResult = globalResult;
+  }
+
+  public void setGlobalResponseTime(long globalResponseTime) {
+    this.globalResponseTime = globalResponseTime;
+  }
+
   /**
    * This is an empty constructor for the class.
    */
-  public OcciProbeResult(String provider) {
-    providerName = provider;
-  }
   
   /**
    * This is a constructor that takes as input the global values for the VMs
@@ -52,11 +62,10 @@ public class OcciProbeResult {
    * @param result It is a global HTTP response code, the most problematic one.
    * @param responseTime Sum of the response time of all calls, in milliseconds.
    */
-  public OcciProbeResult(int availability, int result, long responseTime, String provider) {
+  public OcciProbeResult(boolean availability, int result, long responseTime) {
     globalAvailability = availability;
     globalResult = result;
     globalResponseTime = responseTime;
-    providerName = provider;
   }
   
   /**
@@ -66,47 +75,17 @@ public class OcciProbeResult {
    * @param result It is a global HTTP response code, the most problematic one.
    * @param responseTime Sum of the response time of all calls, in milliseconds.
    */
-  public void addGlobalInfo(int availability, int result, long responseTime) {
+  public void addGlobalInfo(boolean availability, int result, long responseTime) {
     globalAvailability = availability;
     globalResult = result;
     globalResponseTime = responseTime;
   }
   
   /**
-   * This method sets the monitoring information related to the operation for
-   * creating a VM.
-   * @param result It represents availability, HTTP response code and response time for the
-   *     create VM operation.
-   */
-  public void addCreateVmInfo(CreateVmResult result) {
-    createVmElement = result;
-  }
-  
-  /**
-   * This method sets the monitoring information related to the operation for
-   * inspecting a VM.
-   * @param result It represents availability, HTTP response code and response time for the
-   *     Inspect VM operation.
-   */
-  public void addInspectVmInfo(InspectVmResult result) {
-    inspectVmElement = result;
-  }
-  
-  /**
-   * This method sets the monitoring information related to the operation for
-   * deleting a VM.
-   * @param result It represents availability, HTTP response code and response time for the
-   *     Delete VM operation.
-   */
-  public void addDeleteVmInfo(DeleteVmResult result) {
-    deleteVmElement = result;
-  }
-  
-  /**
    * It retrieves the availability result of the global monitoring.
-   * @return An integer indicating all operations available (1) or some operation unavailable (0)
+   * @return A boolean indicating all operations available or some operation unavailable
    */
-  public int getGlobalAvailability() {
+  public boolean getGlobalAvailability() {
     return globalAvailability;
   }
   
@@ -126,36 +105,20 @@ public class OcciProbeResult {
   public long getGlobalResponseTime() {
     return globalResponseTime;
   }
-  
+
   /**
-   * It retrieves the name of the provider the metrics belong to.
-   * @return String with the provider identifier
+   * Get a map of zabbix metrics from the object information
+   * @return A map of global zabbix metrics.
    */
-  public String getProviderName() {
-    return providerName;
-  }
-  
-  /**
-   * It retrieves the monitoring result for the operation Create VM.
-   * @return Object with availability, HTTP code and response time.
-   */
-  public CreateVmResult getCreateVmElement() {
-    return createVmElement;
-  }
-  
-  /**
-   * It retrieves the monitoring result for the operation Inspect VM.
-   * @return Object with availability, HTTP code and response time.
-   */
-  public InspectVmResult getInspectVmElement() {
-    return inspectVmElement;
-  }
-  
-  /**
-   * It retrieves the monitoring result for the operation Delete VM.
-   * @return Object with availability, HTTP code and response time.
-   */
-  public DeleteVmResult getDeleteVmElement() {
-    return deleteVmElement;
+  public Map<String, String> getMetrics() {
+
+    Map<String, String> values = new HashMap<>();
+
+    values.put("occi.global[availability]", BooleanUtils
+        .toIntegerObject(globalAvailability).toString());
+    values.put("occi.global[result]", Integer.toString(globalResult));
+    values.put("occi.global[responseTime]", Long.toString(globalResponseTime));
+
+    return values;
   }
 }
