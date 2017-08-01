@@ -20,10 +20,10 @@ from loadconfigs import LoadOnedataZabbixConfig
 
 zconf = LoadOnedataZabbixConfig()
 
-def request_zabbix(json_request):
+def request_zabbix(json_request,json_zabbix_credentials):
 
     try:
-        respost = requests.post(zconf.ZABBIX_URI, data=json.dumps(json_request), headers=zconf.ZABBIX_HEADERS)
+        respost = requests.post(json_zabbix_credentials["zabbix_url"], data=json.dumps(json_request), headers=zconf.ZABBIX_HEADERS)
         #print"Response Code:", str(respost.status_code)
     	#print"text: [%s]" %respost.text
         logging.info(str(respost.text))
@@ -45,19 +45,15 @@ def request_zabbix(json_request):
         return None
 
 
-def send_data(item,datanostr):
-    # print "item: "+str(item)
-    # print "data: "+str(datanostr)
-    # print "--------------------"
+def send_data(item,datanostr,json_zabbix_credentials):
     data = str(datanostr)
     if len(data) < 1:
-        print "NO HAY DATOS PARA "+str(item)
         return None
     if len(item) < 1:
         return None
     # socket TCP/IP
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_address = (zconf.ZABBIX_SERVER, 10051)
+    server_address = (json_zabbix_credentials["zabbix_server"], 10051)
     sock.connect(server_address)
 
     host = zconf.ZABBIX_MONITORED_HOST
@@ -80,18 +76,18 @@ def send_data(item,datanostr):
     return data
 
 
-def getZbxAuthenToken(username,passwd):
+def getZbxAuthenToken(json_zabbix_credentials):
     authen_json={
         "jsonrpc": "2.0",
         "method": "user.login",
         "params": {
-            "user": username,
-            "password": passwd
+            "user": json_zabbix_credentials["zabbix_user"],
+            "password": json_zabbix_credentials["zabbix_password"]
         },
         "id": 1
     }
 
-    json_respost = request_zabbix(authen_json)
+    json_respost = request_zabbix(authen_json,json_zabbix_credentials)
 
     if json_respost is not None:
         result = json_respost['result']
@@ -100,7 +96,7 @@ def getZbxAuthenToken(username,passwd):
         return None
 
 
-def getItemsList(token,id):
+def getItemsList(token,id,json_zabbix_credentials):
     item_get_json={
         "jsonrpc": "2.0",
         "method": "item.get",
@@ -112,7 +108,7 @@ def getItemsList(token,id):
         "id": 1
     }
 
-    json_respost = request_zabbix(item_get_json)
+    json_respost = request_zabbix(item_get_json,json_zabbix_credentials)
 
     if json_respost is not None:
         #there is a response
@@ -127,7 +123,7 @@ def getItemsList(token,id):
         return None
 
 
-def getAppList(token,templid):
+def getAppList(token,templid,json_zabbix_credentials):
     appslist_get_json = {
         "jsonrpc": "2.0",
         "method": "application.get",
@@ -139,7 +135,7 @@ def getAppList(token,templid):
         "id": 1
     }
 
-    json_respost = request_zabbix(appslist_get_json)
+    json_respost = request_zabbix(appslist_get_json,json_zabbix_credentials)
 
     if json_respost is not None:
         #there is a response
@@ -153,7 +149,7 @@ def getAppList(token,templid):
         return None
 
 
-def applicationCreate(token, appname, hostid):
+def applicationCreate(token, appname, hostid, json_zabbix_credentials):
     app_create_json = {
         "jsonrpc": "2.0",
         "method": "application.create",
@@ -165,7 +161,7 @@ def applicationCreate(token, appname, hostid):
         "id": 1
     }
 
-    json_respost = request_zabbix(app_create_json)
+    json_respost = request_zabbix(app_create_json,json_zabbix_credentials)
 
     if json_respost is not None:
         resappid = json_respost['result']['applicationids'][0]
@@ -176,7 +172,7 @@ def applicationCreate(token, appname, hostid):
         return None
 
 
-def addItemApplication(token,applicationid,itemid):
+def addItemApplication(token,applicationid,itemid,json_zabbix_credentials):
     additemtoapp_json = {
         "jsonrpc": "2.0",
         "method": "application.massadd",
@@ -188,7 +184,7 @@ def addItemApplication(token,applicationid,itemid):
         "id": 1
     }
 
-    json_respost = request_zabbix(additemtoapp_json)
+    json_respost = request_zabbix(additemtoapp_json,json_zabbix_credentials)
 
     if json_respost is not None:
         aid = json_respost['result']['applicationids'][0]
@@ -199,7 +195,7 @@ def addItemApplication(token,applicationid,itemid):
         return None
 
 
-def createItem(token,itemname,key,hostid,paramtype,valtype):
+def createItem(token,itemname,key,hostid,paramtype,valtype,json_zabbix_credentials):
     item_create_json = {
         "jsonrpc": "2.0",
         "method": "item.create",
@@ -215,7 +211,7 @@ def createItem(token,itemname,key,hostid,paramtype,valtype):
         "id": 1
     }
 
-    json_respost = request_zabbix(item_create_json)
+    json_respost = request_zabbix(item_create_json,json_zabbix_credentials)
 
     if json_respost is not None:
         resitemid = json_respost['result']['itemids'][0]
@@ -226,7 +222,7 @@ def createItem(token,itemname,key,hostid,paramtype,valtype):
         return None
 
 
-def getTemplateId(token,template_name):
+def getTemplateId(token,template_name,json_zabbix_credentials):
     template_get_json={
         "jsonrpc": "2.0",
         "method": "template.get",
@@ -240,7 +236,7 @@ def getTemplateId(token,template_name):
         "id": 1
     }
 
-    json_respost = request_zabbix(template_get_json)
+    json_respost = request_zabbix(template_get_json,json_zabbix_credentials)
 
     if json_respost is not None:
         tid = json_respost['result'][0]['templateid']
@@ -251,14 +247,14 @@ def getTemplateId(token,template_name):
         return None
 
 
-def get_zabbix_itemlist(token,template):
+def get_zabbix_itemlist(token,template,json_zabbix_credentials):
     if token != '':
         if template != '':
             # get template ID
-            templateid = getTemplateId(token,template)
+            templateid = getTemplateId(token,template,json_zabbix_credentials)
             # get list of items from template
             itemsInZabbix = {}
-            itemsInZabbix = getItemsList(token,templateid)
+            itemsInZabbix = getItemsList(token,templateid,json_zabbix_credentials)
             #for eachitem in itemsInZabbix:
             #    print "get_zabbix_itemlist:: item: " + eachitem + " = " + itemsInZabbix[eachitem]
         else:
@@ -268,4 +264,3 @@ def get_zabbix_itemlist(token,template):
         logging.error( "No token.")
         return None
     return itemsInZabbix
-
