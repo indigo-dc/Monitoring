@@ -1,8 +1,8 @@
 Package: [ZabbixOCCIProbe]
-Version: [0.95]
+Version: [1.1]
 Section: misc
 Priority: low
 Architecture: all
 Description: [Zabbix probe for monitoring OCCI APIs]
-Maintainer: francisco.nieto@atos.net
-Depends: default-jre | java6-runtime
+Maintainer: jose.sanchezm@atos.net
+Depends: default-jre
