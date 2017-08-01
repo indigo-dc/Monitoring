@@ -1,17 +1,17 @@
 package com.indigo.zabbix.utils;
 
+import feign.Response;
+
 import io.github.hengyunabc.zabbix.sender.DataObject;
 import io.github.hengyunabc.zabbix.sender.SenderResult;
 import io.github.hengyunabc.zabbix.sender.ZabbixSender;
 
-import feign.Response;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * Created by jose on 22/09/16.
@@ -117,7 +117,8 @@ public class ZabbixClient {
             dataObject.setClock(timeSecs);
 
             return dataObject;
-          }).collect(Collectors.toList());
+          })
+              .collect(Collectors.toList());
 
           try {
             SenderResult sendResult = sender.send(toSend);
