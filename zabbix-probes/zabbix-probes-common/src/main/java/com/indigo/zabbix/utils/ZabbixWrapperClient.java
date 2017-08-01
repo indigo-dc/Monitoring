@@ -16,7 +16,7 @@ public interface ZabbixWrapperClient {
   @RequestLine("POST " + ZABBIX_BASE_PATH + "/{group}/hosts/{hostName}")
   @Headers("Content-Type: application/json")
   Response registerHost(@Param("hostName") String hostName, @Param("group") String group,
-                        ZabbixHost content);
+      ZabbixHost content);
 
   @RequestLine("GET " + ZABBIX_BASE_PATH + "/{group}/hosts/{hostName}")
   @Headers("Content-Type: application/json")

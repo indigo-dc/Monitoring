@@ -22,6 +22,7 @@ public abstract class ProbeThread<T extends MetricsCollector> {
 
   /**
    * Constructor used for testing.
+   * 
    * @param client client zabbix object.
    */
   protected ProbeThread(ZabbixClient client) {
@@ -41,7 +42,9 @@ public abstract class ProbeThread<T extends MetricsCollector> {
   protected SenderResult run(String propertiesFile) {
 
     try {
-      loadConfiguration(propertiesFile);
+      if (propertiesFile != null) {
+        loadConfiguration(propertiesFile);
+      }
 
       if (this.client == null) {
         this.client = new ZabbixClient(category, group, template);
@@ -54,8 +57,10 @@ public abstract class ProbeThread<T extends MetricsCollector> {
       }
 
     } catch (IOException e) {
-      logger.error("Error reading configuration file",e);
+      logger.error("Error reading configuration file", e);
     }
+
+
     return null;
   }
 

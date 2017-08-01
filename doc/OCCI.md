@@ -70,14 +70,53 @@ This means that the probe will run every hour at xx:00 please note that when run
 4 Configuration
 ----------------- 
 
-The OCCI probe requires to modify the occiprobe.properties file in order to set the following parameters:
-* openstack.user - Set here the user to be used for accessing OCCI APIs
-* openstack.password - Set here the password to be used for accessing the OCCI APIs
-* java.keystore - Set here the full location of the security certificates keystore
-* zabbix.ip - Provide the IP address of the Zabbix server where metrics will be sent
-* zabbix.sender.location - Configure the location where the Zabbix agent was installed, indicating the zabbix sender path
-* cmdb.location - Provide the full URL of the CMDB component, providing the information about the available providers
+The OCCI probe works in two modes: integrated with the CMDB and as a standalone single provider probe. In any of them, the authentication information against the IAM is mandatory, so this elements are required:
 
+- **iam.location:** URL pointing to a IAM instance that should provide tokens for the providers to monitor.
+- **iam.username:** Username to use against the IAM. It should have enough privileges to launch Virtual Machines on every provider to monitor, as well as reading information about them.
+- **iam.password:** Password for the aforementioned username
+- **iam.clientid:** Client ID for the probe as registered in the IAM
+- **iam.clientsecret:** Client secret to use for the client ID.
+
+Also the usual Zabbix location properties should be present:
+
+- **zabbix.ip:** Location to the Zabbix server to send the metrics to
+- **zabbix.wrapper.location:** Location of the Zabbix wrapper instance to register hosts
+
+###4.1 CMDB integration
+
+When integrated with the CMDB the probe will get a list of providers and get the configuration information from the information returned with the query. To work in this mode, this configuration elements are needed:
+
+- **cmdb.location:**: Location of a CMDB instance from which the probe will get a list of providers to monitor, as well as the configuration needed to do so.
+
+In order to be able to do the monitoring in this mode, each provider returned by the CMDB must have the following configuration information in JSON:
+
+```
+oidc_config : {
+    provider_id : "id of the IAM provider"
+    protocol: "protocol to use"
+}
+
+occi_monitoring : {
+    image_id : "Image id to use for monitoring",
+    os_flavour: "Image flavour",
+    network_id: "Optional network id to use during the monitoring"
+} 
+```
+If this elements are not present, then the probe will skip the provider and not monitor it.
+
+###4.2 Standalone
+
+When a CMDB URL is not provided, the probe will act as a standalone monitor for one single provider. As such, the information of this provider is expected to be in the configuration as:
+
+- **occi.provider:** Provider identifier to use
+- **occi.endpoint:** Endpoint of the OCCI interface to monitor
+- **keystone.endpoint:** Endpoint of the Keystone instance to log in
+- **identity.provider:** The IAM provider ID to use in Keystone
+- **iam.protocol:** The protocol part of the URL to request scoped tokens to Keystone
+- **image.id:** The image to use for monitoring
+- **os.flavour:** The image flavour to use
+- **network.id:** Optional parameter to define a network id to use during monitoring
 
 5 Packages Update
 -------------------

@@ -3,7 +3,7 @@
     <groupId>org.indigo</groupId>
     <artifactId>zabbix-probes-common</artifactId>
     <name>Common utilities for zabbix probes</name>
-    <version>1.01</version>
+    <version>1.1</version>
 
 
     <dependencies>
@@ -41,6 +41,18 @@
             <artifactId>mockito-all</artifactId>
             <version>2.0.2-beta</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.oltu.oauth2</groupId>
+            <artifactId>org.apache.oltu.oauth2.client</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.7</version>
         </dependency>
 
     </dependencies>

@@ -20,7 +20,7 @@
     <orderEntry type="library" name="Maven: org.glassfish.hk2.external:aopalliance-repackaged:2.4.0-b31" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.hk2.external:javax.inject:2.4.0-b31" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.hk2:hk2-locator:2.4.0-b31" level="project" />
-    <orderEntry type="library" name="Maven: it.infn.ba.indigo:chronos-client:0.0.1-BETA.1" level="project" />
+    <orderEntry type="library" name="Maven: it.infn.ba.indigo:chronos-client:0.0.1-BETA.2" level="project" />
     <orderEntry type="library" name="Maven: com.netflix.feign:feign-core:8.14.1" level="project" />
     <orderEntry type="library" name="Maven: com.netflix.feign:feign-gson:8.14.1" level="project" />
     <orderEntry type="library" name="Maven: com.mesosphere:marathon-client:0.3.0" level="project" />
@@ -37,6 +37,9 @@
     <orderEntry type="library" scope="RUNTIME" name="Maven: ch.qos.logback:logback-classic:1.0.13" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: ch.qos.logback:logback-core:1.0.13" level="project" />
     <orderEntry type="library" name="Maven: junit:junit:4.12" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.oltu.oauth2:org.apache.oltu.oauth2.client:1.0.2" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.oltu.oauth2:org.apache.oltu.oauth2.common:1.0.2" level="project" />
+    <orderEntry type="library" name="Maven: org.json:json:20140107" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jersey.core:jersey-client:2.25.1" level="project" />
     <orderEntry type="library" name="Maven: javax.ws.rs:javax.ws.rs-api:2.0.1" level="project" />
     <orderEntry type="library" name="Maven: org.glassfish.jersey.core:jersey-common:2.25.1" level="project" />

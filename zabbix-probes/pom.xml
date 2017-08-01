@@ -3,15 +3,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.indigo</groupId>
 	<artifactId>zabbix-probes</artifactId>
-	<version>1.01</version>
+	<version>1.1</version>
 	<name>Zabbix Probe container project</name>
 	<packaging>pom</packaging>
 
 	<inceptionYear>2016</inceptionYear>
-	<organization>
-		<name>Indigo DataCloud H2020 Project</name>
-		<url>https://www.indigo-datacloud.eu/</url>
-	</organization>
+
 	<licenses>
 		<license>
 			<name>Apache License, Version 2.0</name>
