@@ -87,7 +87,6 @@ def gettokeninfo_from_file(token_file):
 
 def getClientTokenInfoFromArgs(args):
 
-
     mainJsonArgs = {}
 
     if args.token_file == None:
