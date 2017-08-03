@@ -29,7 +29,11 @@ onedatazabbix-agent-1.0-1.el7.centos.x86_64.rpm
 To install the package run:
 
 ```sh
+Centos 6
 rpm -ivh onedatazabbix-agent-1.0-1.el6.x86_64.rpm
+
+Centos 7
+rpm -ivh onedatazabbix-agent-1.0-1.el7.centos.x86_64.rpm
 ```
 
 The software will be installed at /opt/onedatazabbix-agent-1.0
