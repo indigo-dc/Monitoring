@@ -6,45 +6,32 @@ This probe works by getting the list of available providers and, for each OCCI A
 ------------------
 Not fulfilling these requisites will have a negative impact in the execution of the probes.
 
-* It requires a CMDB available, so it will be possible to retrieve the list of available providers. Having no access to a CMDB means that the probe will not be able to retrieve a list of providers to monitor, therefore not doing anything;
-* It requires a Zabbix agent already installed, since the probe needs to run scripts provided by the Zabbix agent in order to send the metrics to the Zabbix server;
+* A CMDB instance is suggested in order to monitor a series of providers from one single probe. However, extra information for every provider is needed as explained in the Configuration section.
 * It requires providers exposing OCCI APIs, otherwise, it will not be possible to monitor anything.
 
-Since the implementation of the probe is in Java, it requires, at least, a Java7 JVM to be already installed.
+Since the implementation of the probe is in Java, it requires, at least, a Java8 JVM to be already installed.
 
 3 Installation
 ----------------
 
-First of all, make sure the main dependencies of the probes are available: the JRE and the Zabbix Agent. If this is not the case, they can be installed following a few simple steps.
+First of all, make sure to have a JRE 1.8 or newer available. If this is not the case, they can be installed following a few simple steps.
 
 In order to install the JRE:
-* Ubuntu:
+* Ubuntu 16.04:
 ```
 sudo apt-get install default-jre
 ```
 
 * CentOS:
 ```
-sudo yum install java-1.7.0-openjdk
-```
-
-In order to install the Zabbix Agent, it is necessary to run the following commands (see https://www.zabbix.com/documentation/3.0/manual/installation/install_from_packages):
-
-* Ubuntu (look at the link for repositories configuration):
-```
-apt-get install zabbix-agent
-```
-
-* CentOS:
-```
-yum install zabbix-agent
+sudo yum install java-1.8.0-openjdk
 ```
 
 Then, it is necessary to install the corresponding packages:
 
 * Ubuntu:
 ```
-wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/occi-zabbix-probe-1.01.deb
+wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/occi-zabbix-probe-1.1.deb
 ```
 ```
 dpkg --install occi-zabbix-probe-1.01.deb
@@ -52,7 +39,7 @@ dpkg --install occi-zabbix-probe-1.01.deb
 
 * CentOS
 ```
-sudo yum install https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/OCCIZabbixProbe-1.01.rpm
+sudo yum install https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/OCCIZabbixProbe-1.1.rpm
 ```
 
 Although the probes can be run just on demand, the best option is to configure them as Cron jobs. That can be configured by editing the configuration file with the following command:
@@ -124,7 +111,7 @@ If a previous version of the packages is already installed, it is necessary to u
 
 * Ubuntu:
 ```
-wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/occi-zabbix-probe-1.01.deb
+wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/occi-zabbix-probe-1.1.deb
 ```
 ```
 dpkg -i occi-zabbix-probe-1.01.deb
@@ -132,7 +119,7 @@ dpkg -i occi-zabbix-probe-1.01.deb
 
 * CentOS
 ```
-sudo rpm -Uvh https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/OCCIZabbixProbe-1.01.rpm
+sudo rpm -Uvh https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/occi-zabbix-probe/OCCIZabbixProbe-1.1.rpm
 ```
 
 6 Potential Issues
@@ -141,3 +128,5 @@ In the case of providers requiring some communication using SSL, if the provider
 ```
 keytool -importcert -trustcacerts -alias infnkeystone -file infnkeystone.cer -keystore "%JAVA_HOME%/jre/lib/security/cacerts"
 ```
+
+When upgrading from version 1.01, please make sure that providers in the CMDB have the needed extra information. If that's not the case, then is better to change to standalone mode as explained in the Configuration section.
