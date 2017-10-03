@@ -46,8 +46,8 @@ def initializing():
 
 	parser.add_argument('-i','--client_id', help='ID Client credential', required=True)
 	parser.add_argument('-s','--client_secret', help='SECRET Client credential', required=True)
-	parser.add_argument('-r','--token_refresh', help='STRING of refresh token')
-	parser.add_argument('-t','--token', help='STRING of access token')
+	parser.add_argument('-r','--token_refresh', help='STRING of refresh token', required=True)
+	parser.add_argument('-t','--token', help='STRING of access token',required=True)
 
 	parser.add_argument('-u','--zabbix_user',     help='Zabbix user credential', required=True)
 	parser.add_argument('-p','--zabbix_password', help='Zabbix password credential', required=True)
@@ -118,6 +118,10 @@ def main():
 		spac_list = []
 		spac_list = onedata.get_list_of_spaces(MACAROON_HEADER,extra)
 
+		if spac_list == None:
+			logging.warning(" Could not get a list of spaces.")
+			return
+
 		if spac_list[0] == 401:
 			if 'token' in spac_list[1]["error"]:
 				if 'not valid' in spac_list[1]["error"]:
@@ -125,9 +129,11 @@ def main():
 					logging.info("Need token refresh")
 					clid = extra["client_id"]
 					newtoken = onedata.get_newtoken(clid,URL_REFRESH,JSON_REQ_TOKEN,extra)
+					#print "newtoken.token['access_token'] = " + str(newtoken.token['access_token'])
 					NEW_ACCESS_TOKEN = newtoken.token['access_token']
 					MACAROON_HEADER = onedata.update_MCRheader(NEW_ACCESS_TOKEN)
 					JSON_REQ_TOKEN = onedata.update_tokenjson(NEW_ACCESS_TOKEN,JSON_REQ_TOKEN['refresh_token'])
+					return
 
 		if spac_list is not None:
 			# gather data from onedata
@@ -157,7 +163,7 @@ def main():
 			            singledata = Data[singleitem]
 			            zabbix.send_data(singleitem,singledata,json_zabbix_credentials)
 		else:
-			logging.warning(" Could not get a list of spaces.")
+			logging.warning(" Imposible to get a list of spaces.")
 
 # ----- RUN -----------------------------------------------------------------
 
@@ -165,5 +171,5 @@ if __name__ == '__main__':
 	initializing()
 	while True:
 		main()
-		time.sleep(AGENT_DELAY)
+		time.sleep(AGENT_DELAY-3)
 print"agent says bye!"
