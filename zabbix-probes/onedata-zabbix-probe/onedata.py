@@ -21,7 +21,7 @@ BASE_PATH_PANEL ='/api/v3/onepanel'
 # ---- log config ------------------------------------------------------
 def log_setup(loglevel):
 	log_handler = RotatingFileHandler(
-		'./log/od-zbx-agent.log',
+		'./log/onedata-zabbix-agent.log',
 		maxBytes=1048576,
 		backupCount=5)
 
@@ -76,26 +76,17 @@ def update_tokenjson(access_token,ref_token):
 
 def update_MCRheader(tokenstring):
 
-	#prefix = 'indigo:'
-	prefix = ''
+	prefix = 'indigo:'
 	mcr = prefix + tokenstring
-	UPD_HEADERS = {"macaroon" : mcr }
+	UPD_HEADERS = {"X-Auth-Token" : mcr }
 	return UPD_HEADERS
 
 
 def request_onedata(url,urlheader,rqextra):
-	#print "--------------"
-	#print "request_onedata"
-	# print "rqextra:"+str(rqextra)
-
-	#print "req urlheader:"+str(urlheader)
 	try:
 		r = requests.get(url, headers=urlheader,  verify=False)
-		#r = requests.get(url, headers=odconf.urlheader,  verify=False)
-		logging.debug("Response Code: %s", str(r.status_code), 'URL:'+url)
-		#print "url: "+url
-		#print"Response Code:", str(r.status_code)
-		#print"text: [%s]" %r.text
+		logging.debug("Response Code: %s", str(r.status_code))
+		logging.debug("URL: %s", str(url))
 	except requests.ConnectionError, e:
 		logging.error( " ConnectionError exception when connecting to Onedata: " + str(e))
 		ret = Datacodejson(111,e)
@@ -109,19 +100,15 @@ def request_onedata(url,urlheader,rqextra):
 			r_json = json.loads(r.text)
 		except ValueError:
 			logging.error("Unable to parse json. Url: "+url)
-			#print"text: [%s]" %r.text
 			ret = Datacodejson(111,'Unable to parse json')
 			return ret
 
 		if r.status_code == 200:
-			#print"Data: [%s]" %r.text
-			#reqdata = r.text
 			ret = Datacodejson(r.status_code,r_json)
 			return ret
 		elif r.status_code == 401:
 			# request new token
-			#logging.error("Error 401 ===> "+str(r_json["error"])+ " Description:"+str(r_json["error_description"]))
-			#print "401 --->> "+str(r_json["error"])
+			logging.error("Error 401 ===> "+str(r_json["error"]))
 			ret = Datacodejson(r.status_code,r_json)
 		elif r.status_code == 403:
 			logging.error("Error 403 ===> "+str(r_json["error"])+ " Description:"+str(r_json["error_description"]))
@@ -149,12 +136,11 @@ def build_url(zone,path):
 
 def get_list_of_spaces(mcr,glextra):
 	urlreq = build_url('onezone','spaces')
-	#print"get_list_of_spaces"
-	#url = "https://172.17.0.5:8443/api/v3/onezone/spaces"
-	#print "url: "+urlreq
+
 	data = request_onedata(urlreq,mcr,glextra)
+	
 	spaceslist = []
-	#print "Response code:" + str(data.statuscode)+"  Data ---> " + str(data.jsondata)
+
 	if data.statuscode == 200:
 		jsondata = data.jsondata
 		if int(len(jsondata)) < 1:
@@ -171,11 +157,11 @@ def get_list_of_spaces(mcr,glextra):
 		# Getting user's spaces...
 		# GET /user/spaces
 		# Returns the list of users' spaces.
-		logging.warning('No spaces... Trying another way to find spaces...')
+		logging.info('No spaces... Trying another way to find spaces...')
 		urlreq = build_url('onezone','user/spaces')
 		time.sleep(3)
 		data = request_onedata(urlreq,mcr,glextra)
-		#print "Response code:" + str(data.statuscode)+"  Data ---> " + str(data.jsondata)
+
 		if data.statuscode == 200:
 			jsondata = data.jsondata
 			for spc in jsondata["spaces"]:
@@ -189,26 +175,34 @@ def get_oz_spaces_spaceid(eachspace,urlheader,ozextra):
 	#/spaces/space1
 	urlreq = build_url('onezone','spaces/'+eachspace)
 	data = request_onedata(urlreq,urlheader,ozextra)
-	#print "Response code:" + str(data.statuscode)+"  Data ---> " + str(data.jsondata)
+
 	if data.statuscode == 200:
 		data_json = data.jsondata
 		if int(len(data_json)) < 1:
 			return
-		#itemname = 'onezone.spaces.'+eachspace+'.spaceid'
 		itemname = 'onezone.spaces.'+eachspace[:8]+'.generalinfo'
-		#print itemname + " = " + str(data.jsondata['spaceId'])
-		#itemData[itemname] = str(data.jsondata['spaceId'])
 		itemData[itemname] = str(json.dumps(data.jsondata))
 		#value_type 4 - text.
 		itemValueType[itemname] = 4
-		# ********************************* maybe name is a good data to show
+		return itemData[itemname]
 
+
+def get_group_info(eachspace,eachgroup,urlheader,ozextra):
+	urlreq = build_url('onezone','spaces/'+eachspace+'/groups/'+eachgroup)
+	sub_datagroup = request_onedata(urlreq,urlheader,ozextra)
+	#return Datacodejson(sub_datagroup.statuscode,sub_datagroup)
+	return sub_datagroup
+
+def get_privileges_by_group(eachspace,eachgroup,urlheader,ozextra):
+	urlreq = build_url('onezone','spaces/'+eachspace[:8]+'/groups/'+eachgroup+'/privileges')
+	sub_datagroup = request_onedata(urlreq,urlheader,ozextra)
+	#return Datacodejson(sub_datagroup.statuscode,sub_datagroup)
+	return sub_datagroup
 
 def get_oz_groups_by_space(eachspace,urlheader,ozextra):
 	#/spaces/space1/groups
 	urlreq = build_url('onezone','spaces/'+eachspace+'/groups')
 	data = request_onedata(urlreq,urlheader,ozextra)
-	#print "Response code:" + str(data.statuscode)+"  Data ---> " + str(data.jsondata)
 
 	if data.statuscode == 200:
 		datagroups = data.jsondata["groups"]
@@ -216,9 +210,10 @@ def get_oz_groups_by_space(eachspace,urlheader,ozextra):
 			return
 		for eachgroup in datagroups:
 			#/spaces/space1/groups/group1
-			urlreq = build_url('onezone','spaces/'+eachspace+'/groups/'+eachgroup)
-			sub_datagroup = request_onedata(urlreq,urlheader,ozextra)
-			#print "  +    " + str(sub_datagroup.statuscode)+"  Data ---> " + str(sub_datagroup.jsondata)
+			sub_datagroup = get_group_info(eachspace,eachgroup,urlheader,ozextra)
+			#urlreq = build_url('onezone','spaces/'+eachspace+'/groups/'+eachgroup)
+			#sub_datagroup = request_onedata(urlreq,urlheader,ozextra)
+
 			if sub_datagroup.statuscode == 200:
 				#type
 				itemname = 'onezone.spaces.'+eachspace[:8]+'.groups.'+eachgroup+'.type'
@@ -231,9 +226,10 @@ def get_oz_groups_by_space(eachspace,urlheader,ozextra):
 				itemValueType[itemname] = 4
 
 			#/spaces/space1/groups/group1/privileges
-			urlreq = build_url('onezone','spaces/'+eachspace[:8]+'/groups/'+eachgroup+'/privileges')
-			sub_datagroup = request_onedata(urlreq,urlheader,ozextra)
-			#print "  +    " + str(sub_datagroup.statuscode)+"  Data ---> " + str(sub_datagroup.jsondata)
+			#urlreq = build_url('onezone','spaces/'+eachspace[:8]+'/groups/'+eachgroup+'/privileges')
+			#sub_datagroup = request_onedata(urlreq,urlheader,ozextra)
+			sub_datagroup = get_privileges_by_group(eachspace,eachgroup,urlheader,ozextra)
+
 			if sub_datagroup.statuscode == 200:
 				itemname = 'onezone.spaces.'+eachspace[:8]+'.groups.'+eachgroup+'.privileges'
 				joinedData = ' '
@@ -242,11 +238,17 @@ def get_oz_groups_by_space(eachspace,urlheader,ozextra):
 				itemData[itemname] = joinedData.join(sub_datagroup.jsondata['privileges'])
 		return datagroups
 
+
+def get_spaceprovider_info(eachspace,eachprov,urlheader,ozextra):
+	urlreq = build_url('onezone','spaces/'+eachspace+'/providers/'+eachprov)
+	sub_dataprov = request_onedata(urlreq,urlheader,ozextra)
+	return sub_dataprov
+
+
 def get_oz_providers_by_space(eachspace,urlheader,ozextra):
 	#/spaces/space1/providers
 	urlreq = build_url('onezone','spaces/'+eachspace+'/providers')
 	data = request_onedata(urlreq,urlheader,ozextra)
-	# print "Response code:" + str(data.statuscode)+"  Data ---> " + str(data.jsondata)
 
 	if data.statuscode == 200:
 		dataprov = data.jsondata["providers"]
@@ -259,14 +261,15 @@ def get_oz_providers_by_space(eachspace,urlheader,ozextra):
 
 		for eachprov in dataprov:
 			#/spaces/space1/providers/p1
-			urlreq = build_url('onezone','spaces/'+eachspace+'/providers/'+eachprov)
-			sub_dataprov = request_onedata(urlreq,urlheader,ozextra)
-			#print "  +    " + str(sub_dataprov.statuscode)+"  Data ---> " + str(sub_dataprov.jsondata)
+			#urlreq = build_url('onezone','spaces/'+eachspace+'/providers/'+eachprov)
+			#sub_dataprov = request_onedata(urlreq,urlheader,ozextra)
+			sub_dataprov = get_spaceprovider_info(eachspace,eachprov,urlheader,ozextra)
 
 			if sub_dataprov.statuscode == 200:
 				providkeys = sub_dataprov.jsondata.keys()
 				for provkey in providkeys:
 					itemname = 'onezone.spaces.'+eachspace[:8]+'.providers.'+eachprov+'.'+provkey
+
 					if provkey == 'urls':
 						joinedData = ' '
 						itemData[itemname] = str(joinedData.join(sub_dataprov.jsondata['urls']))
@@ -286,12 +289,19 @@ def get_oz_providers_by_space(eachspace,urlheader,ozextra):
 					elif provkey == 'clientName':
 						itemValueType[itemname] = 4
 						itemData[itemname] = str(sub_dataprov.jsondata[provkey])
+		return itemData
+
+def get_space_user_info(eachspace,eachuser,urlheader,ozextra):
+	urlreq = build_url('onezone','spaces/'+eachspace+'/users/'+eachuser)
+	sub_datauser = request_onedata(urlreq,urlheader,ozextra)
+	#return Datacodejson(sub_datauser.statuscode,sub_datauser)
+	return sub_datauser
+
 
 def get_oz_users_by_space(eachspace,urlheader,ozextra):
 	#/spaces/space1/users
 	urlreq = build_url('onezone','spaces/'+eachspace+'/users')
 	data = request_onedata(urlreq,urlheader,ozextra)
-	#print "Response code:" + str(data.statuscode)+"  Data ---> " + str(data.jsondata)
 
 	if data.statuscode == 200:
 		data_json = data.jsondata
@@ -302,14 +312,13 @@ def get_oz_users_by_space(eachspace,urlheader,ozextra):
 		itemData[itemname] = joinedData.join(data.jsondata['users'])
 		#value_type 4 - text.
 		itemValueType[itemname] = 4
-
 		datauser = data.jsondata["users"]
 
 		for eachuser in datauser:
 			#/spaces/space1/users/user1
-			urlreq = build_url('onezone','spaces/'+eachspace+'/users/'+eachuser)
-			sub_datauser = request_onedata(urlreq,urlheader,ozextra)
-			#print "  + de cada usuario    " + str(sub_datauser.statuscode)+"  Data ---> " + str(sub_datauser.jsondata)
+			#urlreq = build_url('onezone','spaces/'+eachspace+'/users/'+eachuser)
+			#sub_datauser = request_onedata(urlreq,urlheader,ozextra)
+			sub_datauser = get_space_user_info(eachspace,eachuser,urlheader,ozextra)
 			itemname = 'onezone.spaces.'+eachspace[:8]+'.users.'+eachuser[:8]+".generalinfo"
 			itemData[itemname] = str(json.dumps(sub_datauser.jsondata))
 			#value_type 4 - text.
@@ -322,25 +331,28 @@ def get_oz_users_by_space(eachspace,urlheader,ozextra):
 						#value_type 4 - text.
 						itemValueType[itemname] = 4
 						# set values to each key
-						# if userkey == 'emailList':
-						# 	emliststr = ','.join(map(str, sub_datauser.jsondata[userkey]))
-						# 	itemData[itemname] = emliststr
 						if userkey == 'connectedAccounts':
 							itemValueType[itemname] = 0
 							itemData[itemname] = len (sub_datauser.jsondata[userkey])
-						#else:
-						#	itemData[itemname] = str(sub_datauser.jsondata[userkey])
 
 			#/spaces/space1/users/user3/privileges
-			urlreq = build_url('onezone','spaces/'+eachspace+'/users/'+eachuser+'/privileges')
-			sub_datauser = request_onedata(urlreq,urlheader,ozextra)
-			#print "  +  privilegios de cada usuario  " + str(sub_datauser.statuscode)+"  Data ---> " + str(sub_datauser.jsondata)
+			#urlreq = build_url('onezone','spaces/'+eachspace+'/users/'+eachuser+'/privileges')
+			#sub_datauser = request_onedata(urlreq,urlheader,ozextra)
+			sub_datauser = get_privileges_by_space_user(eachspace,eachuser,urlheader,ozextra)
+
 			if sub_datauser.statuscode == 200:
 				joinedData = ' '
 				itemname = 'onezone.spaces.'+eachspace[:8]+'.users.'+eachuser[:8]+'.privileges'
 				itemData[itemname] = joinedData.join(sub_datauser.jsondata['privileges'])
 				#value_type 4 - text.
 				itemValueType[itemname] = 4
+		return itemData
+
+def get_privileges_by_space_user(eachspace,eachuser,urlheader,ozextra):
+	urlreq = build_url('onezone','spaces/'+eachspace+'/users/'+eachuser+'/privileges')
+	sub_datauser = request_onedata(urlreq,urlheader,ozextra)
+	return sub_datauser
+
 
 # metrics by oneprovider
 # ----------------------------------------------------------------------------------
@@ -349,11 +361,14 @@ def get_op_storage_quota_by_space(eachspace,urlheader,opextra):
 	#https://172.17.0.8:8443/api/v3/oneprovider/metrics/space/space1?metric=storage_quota
 	urlreq = build_url('oneprovider','metrics/space/'+eachspace+'?metric=storage_quota')
 	data = request_onedata(urlreq,urlheader,opextra)
-	#print "Response code:" + str(data.statuscode)+"  Data ---> " + str(data.jsondata)
+	#print "Response code (storage_quota):" + str(data.statuscode)+"  Data ---> " + str(data.jsondata)
+
 	if data.statuscode == 200:
 		data_json = data.jsondata
-		if int(len(data_json)) < 1:
+		if len(data_json) == 0:
+			logging.info("get_op_storage_quota_by_space::empty data for "+str(urlreq))
 			return
+
 		l=len(data_json[0]['rrd']['data'])
 		for i in range(l):
 			indx = l - i -1
@@ -362,15 +377,19 @@ def get_op_storage_quota_by_space(eachspace,urlheader,opextra):
 				itemData[itemname] = str(data_json[0]['rrd']['data'][indx][0])
 				#value_type 0 - numeric float;
 				itemValueType[itemname] = 0
-				break
+				return itemData[itemname]
 
 def get_op_storage_used_by_space(eachspace,urlheader,opextra):
 	#https://172.17.0.8:8443/api/v3/oneprovider/metrics/space/space1?metric=storage_used
 	urlreq = build_url('oneprovider','metrics/space/'+eachspace+'?metric=storage_used')
 	data = request_onedata(urlreq,urlheader,opextra)
-	#print "Response code:" + str(data.statuscode)+"  Data --"+eachspace+"--> " + str(data.jsondata)
+	#print "Response code (storage_used):" + str(data.statuscode)+"  Data ---> " + str(data.jsondata)
+
 	if data.statuscode == 200:
 		data_json = data.jsondata
+		if len(data_json) == 0:
+			logging.info("get_op_storage_used_by_space::empty data for "+str(urlreq))
+			return
 
 		try:
 			l=len(data_json[0]['rrd']['data'])
@@ -386,8 +405,7 @@ def get_op_storage_used_by_space(eachspace,urlheader,opextra):
 					itemData[itemname] = str(data_json[0]['rrd']['data'][indx][0])
 					#value_type 0 - numeric float;
 					itemValueType[itemname] = 0
-					break
-			#return itemData[itemname]
+					return itemData[itemname]
 
 def get_op_data_access_by_space(eachspace,urlheader,opextra):
 	#https://172.17.0.8:8443/api/v3/oneprovider/metrics/space/space1?metric=data_access
@@ -397,12 +415,15 @@ def get_op_data_access_by_space(eachspace,urlheader,opextra):
 
 	if data.statuscode == 200:
 		data_json = data.jsondata
+		if len(data_json) == 0:
+			logging.info("get_op_data_access_by_space::empty data for "+str(urlreq))
+			return
 
 		try:
 			l=len(data_json[0]['rrd']['data'])
 		except IndexError as ie:
 			l=0
-			logging.warning("get_op_data_access_by_space::"+str(ie))
+			logging.info("get_op_data_access_by_space::"+str(ie))
 
 		if l>0:
 			for i in range(l):
@@ -424,8 +445,7 @@ def get_op_data_access_by_space(eachspace,urlheader,opextra):
 						ret['data_access_read'] =  itemData[itemname]
 						#value_type 0 - numeric float;
 						itemValueType[itemname] = 0
-						break
-			#return ret
+						return ret
 
 def get_op_block_access_by_space(eachspace,urlheader,opextra):
 	#https://172.17.0.8:8443/api/v3/oneprovider/metrics/space/space1?metric=block_access
@@ -434,7 +454,9 @@ def get_op_block_access_by_space(eachspace,urlheader,opextra):
 	#print "Response code (block_access):" + str(data.statuscode)+"  Data ---> " + str(data.jsondata)
 	if data.statuscode == 200:
 		data_json = data.jsondata
-		#l=len(data_json)
+		if len(data_json) == 0:
+			logging.info("get_op_block_access_by_space::empty data for "+str(urlreq))
+			return
 		try:
 			l=len(data_json[0]['rrd']['data'])
 		except IndexError as ie:
@@ -461,11 +483,13 @@ def get_op_block_access_by_space(eachspace,urlheader,opextra):
 						ret['block_access_read'] =  itemData[itemname]
 						#value_type 0 - numeric float;
 						itemValueType[itemname] = 0
-						break
+						#break
+						return ret
 
 		else:
 			#print "No data Received for block_access"
 			pass
+
 
 def get_op_connected_users_by_space(eachspace,urlheader,opextra):
 	#https://172.17.0.8:8443/api/v3/oneprovider/metrics/space/space1?metric=connected_users
@@ -474,6 +498,9 @@ def get_op_connected_users_by_space(eachspace,urlheader,opextra):
 	#print "Response code:" + str(data.statuscode)+"  Data ---> " + str(data.jsondata)
 	if data.statuscode == 200:
 		data_json = data.jsondata
+		if len(data_json) == 0:
+			logging.info("get_op_connected_users_by_space::empty data for "+str(urlreq))
+			return
 		try:
 			l=len(data_json[0]['rrd']['data'])
 		except IndexError as ie:
@@ -489,7 +516,7 @@ def get_op_connected_users_by_space(eachspace,urlheader,opextra):
 					#value_type 3 - numeric unsigned;
 					itemValueType[itemname] = 3
 					break
-			#return itemData[itemname]
+			return itemData[itemname]
 
 def get_onedata_itemdata_by_space(each_space,urlheader,goid_extra):
 
