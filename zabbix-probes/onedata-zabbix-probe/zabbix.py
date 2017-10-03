@@ -26,7 +26,7 @@ def request_zabbix(json_request,json_zabbix_credentials):
         respost = requests.post(json_zabbix_credentials["zabbix_url"], data=json.dumps(json_request), headers=zconf.ZABBIX_HEADERS)
         #print"Response Code:", str(respost.status_code)
     	#print"text: [%s]" %respost.text
-        logging.info(str(respost.text))
+        #logging.info(str(respost.text))
 
         if not len(respost.text):
             logging.error("There is no answer for item.get request.")
