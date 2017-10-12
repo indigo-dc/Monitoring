@@ -4,6 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>openstack-zabbix-probe</artifactId>
 	<name>ZabbixOpenstackProbe</name>
+	<description>Zabbix probe for monitoring Openstack APIs</description>
 
 	<parent>
 		<groupId>org.indigo</groupId>
@@ -124,7 +125,9 @@
 					</execution>
 				</executions>
 				<configuration>
-					<name>openstackZabbixProbe</name>
+					<summary>Zabbix probe for monitoring Openstack APIs</summary>
+					<release>2</release>
+					<description>${project.description}</description>
 					<mappings>
 						<mapping>
 							<directory>/usr/share/java/zabbix/</directory>
