@@ -83,7 +83,7 @@ public class ProvidersSearch {
             tasks.add(collector);
           }
         } catch (Exception iae) {
-          log.debug(ERROR_MESSAGE + providerId + " " + iae.getMessage());
+          log.debug(ERROR_MESSAGE + providerId, iae);
         }
       }
     }

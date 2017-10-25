@@ -71,9 +71,9 @@ public class OpenStackConfiguration {
     try {
       zoneFile = mapper.readValue(file, OpenStackZones.class);
     } catch (JSONException | JsonMappingException je) {
-      log.debug("Unable to parse the file: " + je.getMessage());
+      log.debug("Unable to parse the file {}", file, je);
     } catch (IOException ioe) {
-      log.debug("Unable to get the file: " + ioe.getCause());
+      log.debug("Unable to get the file {}", file, ioe);
     }
     return zoneFile;
   }

@@ -178,8 +178,7 @@ public class CmdbClientForOpenStack {
           }
 
         } catch (UnsupportedOperationException uoe) {
-          log.debug("unable to get the endpoint for the provider: " + providerId,
-              " " + uoe.getMessage());
+          log.debug("unable to get the endpoint for the provider {}", providerId, uoe);
         }
       }
       JsonElement jsonEndpoint = currentData.get("endpoint");

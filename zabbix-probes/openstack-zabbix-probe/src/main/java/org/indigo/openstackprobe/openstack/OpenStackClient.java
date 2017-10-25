@@ -373,7 +373,7 @@ public class OpenStackClient {
 
     } catch (Exception ex) {
       log.error(
-          "Impossible to get data about the instance: " + instanceName + " " + ex.getMessage());
+          "Impossible to get data about the instance: {}", instanceName, ex);
     }
     return Builders.server().name(instanceName).flavor(flavorId).image(imageId).build();
   }
@@ -420,8 +420,8 @@ public class OpenStackClient {
         serverCreation = pollGetImmediateResult(instanceName);
       }
     } catch (TimeoutException | InterruptedException ie) {
-      log.debug("Timeout or interrupted operation when waiting for the creation of an instance: "
-          + ie.getMessage());
+      log.debug("Timeout or interrupted operation when waiting for the creation of an instance",
+          ie);
     }
 
     if (serverCreation.get(Server.Status.ACTIVE) == null) {
@@ -839,7 +839,7 @@ public class OpenStackClient {
       }
 
     } catch (TimeoutException | InterruptedException e) {
-      log.debug("Timeout or interrupted operation when deleting the instance: " + e.getMessage());
+      log.debug("Timeout or interrupted operation when deleting the instance", e);
     }
   }
 }

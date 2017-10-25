@@ -64,7 +64,7 @@ public class OpenstackCollector extends LifecycleCollector {
         probeResult = openstackClient.getOpenstackMonitoringInfo(project);
 
       } catch (Exception te) {
-        log.debug("Unable to get the information about the provider " + provider + "" + te);
+        log.debug("Unable to get the information about the provider {}", provider, te);
       }
     }
     return probeResult;
@@ -129,7 +129,7 @@ public class OpenstackCollector extends LifecycleCollector {
    */
   private AppOperation getResultForConnectionException(Exception ce, long currentTime) {
     long respTime = new Date().getTime() - currentTime;
-    log.debug("Unable to connect to provider: " + provider + " " + ce.getMessage());
+    log.debug("Unable to connect to provider: {}", provider, ce);
     return new AppOperation(AppOperation.Operation.DELETE, false, 404, respTime);
   }
 
