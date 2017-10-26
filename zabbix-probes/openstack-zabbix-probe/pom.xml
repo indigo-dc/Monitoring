@@ -152,6 +152,7 @@
 							<filemode>644</filemode>
 							<username>root</username>
 							<groupname>root</groupname>
+							<configuration>true</configuration>
 							<sources>
 								<source>
 									<location>src/main/resources/openstackprobe.properties</location>
