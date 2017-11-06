@@ -35,6 +35,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;
@@ -337,7 +338,8 @@ public class OpenStackClient {
     List<? extends Image> images =
         (osClient.equals(osClientV3)) ? osClientV3.images().list() : osClientV2.images().list();
 
-    return images;
+    return images.stream().filter(image -> Image.Status.ACTIVE.equals(image.getStatus())).collect(
+        Collectors.toList());
   }
 
   /**
