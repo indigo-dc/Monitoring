@@ -14,6 +14,8 @@
 
 package org.indigo.openstackprobe.openstack;
 
+import com.google.common.collect.Lists;
+
 import com.indigo.zabbix.utils.KeystoneClient;
 import com.indigo.zabbix.utils.ProbesTags;
 import com.indigo.zabbix.utils.PropertiesManager;
@@ -24,11 +26,13 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
 
@@ -53,6 +57,7 @@ import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.compute.Flavor;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.compute.ServerCreate;
+import org.openstack4j.model.compute.builder.ServerCreateBuilder;
 import org.openstack4j.model.identity.v3.Token;
 import org.openstack4j.model.image.Image;
 import org.openstack4j.model.network.Network;
@@ -375,7 +380,11 @@ public class OpenStackClient {
       log.error(
           "Impossible to get data about the instance: {}", instanceName, ex);
     }
-    return Builders.server().name(instanceName).flavor(flavorId).image(imageId).build();
+    Optional<String> networkId = getOsNetwork();
+    
+    ServerCreateBuilder builder = Builders.server().name(instanceName).flavor(flavorId).image(imageId);
+    networkId.ifPresent(id -> builder.networks(Lists.newArrayList(id)));
+    return builder.build();
   }
 
   protected void bootOsServer(ServerCreate sc, Object osClient) {
@@ -749,11 +758,15 @@ public class OpenStackClient {
   /**
    * It retrieves the list of networks available.
    */
-  public void getNetworksList(Object osClient) {
+  public Optional<String> getOsNetwork() {
 
     List<? extends Network> networks = (osClient.equals(osClientV3))
         ? osClientV3.networking().network().list() : osClientV2.networking().network().list();
-    log.info(networks.toString());
+    return networks.stream()
+        // pick a non shared (private) network if available
+        .sorted(Comparator.comparing(Network::isShared))
+        .map(Network::getId)
+        .findFirst();
   }
 
   /**
