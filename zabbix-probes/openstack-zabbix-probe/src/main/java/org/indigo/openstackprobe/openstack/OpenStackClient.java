@@ -761,14 +761,18 @@ public class OpenStackClient {
    * It retrieves the list of networks available.
    */
   public Optional<String> getOsNetwork() {
-
-    List<? extends Network> networks = (osClient.equals(osClientV3))
-        ? osClientV3.networking().network().list() : osClientV2.networking().network().list();
-    return networks.stream()
-        // pick a non shared (private) network if available
-        .sorted(Comparator.comparing(Network::isShared))
-        .map(Network::getId)
-        .findFirst();
+    try {
+      List<? extends Network> networks = (osClient.equals(osClientV3))
+          ? osClientV3.networking().network().list() : osClientV2.networking().network().list();
+      return networks.stream()
+          // pick a non shared (private) network if available
+          .sorted(Comparator.comparing(Network::isShared))
+          .map(Network::getId)
+          .findFirst();
+    } catch (RuntimeException ex) {
+      log.error("Error retrieving network id", ex);
+      return Optional.empty();
+    }
   }
 
   /**
