@@ -14,6 +14,8 @@
 
 package org.indigo.openstackprobe.openstack;
 
+import com.google.common.collect.Lists;
+
 import com.indigo.zabbix.utils.KeystoneClient;
 import com.indigo.zabbix.utils.ProbesTags;
 import com.indigo.zabbix.utils.PropertiesManager;
@@ -24,13 +26,16 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;
@@ -53,6 +58,7 @@ import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.compute.Flavor;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.compute.ServerCreate;
+import org.openstack4j.model.compute.builder.ServerCreateBuilder;
 import org.openstack4j.model.identity.v3.Token;
 import org.openstack4j.model.image.Image;
 import org.openstack4j.model.network.Network;
@@ -332,7 +338,8 @@ public class OpenStackClient {
     List<? extends Image> images =
         (osClient.equals(osClientV3)) ? osClientV3.images().list() : osClientV2.images().list();
 
-    return images;
+    return images.stream().filter(image -> Image.Status.ACTIVE.equals(image.getStatus())).collect(
+        Collectors.toList());
   }
 
   /**
@@ -373,9 +380,13 @@ public class OpenStackClient {
 
     } catch (Exception ex) {
       log.error(
-          "Impossible to get data about the instance: " + instanceName + " " + ex.getMessage());
+          "Impossible to get data about the instance: {}", instanceName, ex);
     }
-    return Builders.server().name(instanceName).flavor(flavorId).image(imageId).build();
+    Optional<String> networkId = getOsNetwork();
+    
+    ServerCreateBuilder builder = Builders.server().name(instanceName).flavor(flavorId).image(imageId);
+    networkId.ifPresent(id -> builder.networks(Lists.newArrayList(id)));
+    return builder.build();
   }
 
   protected void bootOsServer(ServerCreate sc, Object osClient) {
@@ -420,8 +431,8 @@ public class OpenStackClient {
         serverCreation = pollGetImmediateResult(instanceName);
       }
     } catch (TimeoutException | InterruptedException ie) {
-      log.debug("Timeout or interrupted operation when waiting for the creation of an instance: "
-          + ie.getMessage());
+      log.debug("Timeout or interrupted operation when waiting for the creation of an instance",
+          ie);
     }
 
     if (serverCreation.get(Server.Status.ACTIVE) == null) {
@@ -749,11 +760,19 @@ public class OpenStackClient {
   /**
    * It retrieves the list of networks available.
    */
-  public void getNetworksList(Object osClient) {
-
-    List<? extends Network> networks = (osClient.equals(osClientV3))
-        ? osClientV3.networking().network().list() : osClientV2.networking().network().list();
-    log.info(networks.toString());
+  public Optional<String> getOsNetwork() {
+    try {
+      List<? extends Network> networks = (osClient.equals(osClientV3))
+          ? osClientV3.networking().network().list() : osClientV2.networking().network().list();
+      return networks.stream()
+          // pick a non shared (private) network if available
+          .sorted(Comparator.comparing(Network::isShared))
+          .map(Network::getId)
+          .findFirst();
+    } catch (RuntimeException ex) {
+      log.error("Error retrieving network id", ex);
+      return Optional.empty();
+    }
   }
 
   /**
@@ -839,7 +858,7 @@ public class OpenStackClient {
       }
 
     } catch (TimeoutException | InterruptedException e) {
-      log.debug("Timeout or interrupted operation when deleting the instance: " + e.getMessage());
+      log.debug("Timeout or interrupted operation when deleting the instance", e);
     }
   }
 }

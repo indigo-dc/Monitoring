@@ -1,5 +1,7 @@
 package org.indigo.openstackprobe.openstack;
 
+import com.google.common.base.Strings;
+
 import com.indigo.zabbix.utils.ProbesTags;
 import com.indigo.zabbix.utils.PropertiesManager;
 
@@ -13,18 +15,19 @@ import org.openstack4j.model.image.Image;
 public class CheckForProviderDifferences {
 
   private OpenStackConfiguration osconfig;
-  private String project = null;
   private Image image;
 
   protected String checkForOpenstackProject(String providerName) {
     if (Boolean
         .parseBoolean(PropertiesManager.getProperty(OpenStackProbeTags.PROVIDERS_EXCEPTIONS))) {
       for (CloudProviderZone provider : getProviders()) {
-        project = (providerName.toLowerCase().contains("recas")) ? "INDIGO_DEMO"
-            : PropertiesManager.getProperty(ProbesTags.OPENSTACK_PROJECT);
+        if (providerName.equals(provider.getName()) &&
+            Strings.emptyToNull(provider.getTenant()) != null) {
+          return provider.getTenant();
+        }
       }
     }
-    return project;
+    return PropertiesManager.getProperty(ProbesTags.OPENSTACK_PROJECT);
   }
 
   /**
