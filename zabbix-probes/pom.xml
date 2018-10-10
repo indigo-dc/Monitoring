@@ -34,6 +34,7 @@
 		<module>heapster-zabbix-probe</module>
 		<module>occi-zabbix-probe</module>
 		<module>openstack-zabbix-probe</module>
+		<module>mesos-zabbix-probe</module>
     <module>lifecycle-mapping</module>
   </modules>
 

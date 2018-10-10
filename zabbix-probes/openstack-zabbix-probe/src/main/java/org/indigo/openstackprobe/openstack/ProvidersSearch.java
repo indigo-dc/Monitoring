@@ -2,15 +2,14 @@ package org.indigo.openstackprobe.openstack;
 
 import com.indigo.zabbix.utils.CloudProviderInfo;
 import com.indigo.zabbix.utils.IamClient;
+import com.nimbusds.openid.connect.sdk.token.OIDCTokens;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.openstack4j.api.OSClient.OSClientV3;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.oltu.oauth2.client.response.OAuthJSONAccessTokenResponse;
-import org.openstack4j.api.OSClient.OSClientV3;
 
 /**
  * @author Reply Santer. Collects and initializes the cloud providers.
@@ -65,8 +64,8 @@ public class ProvidersSearch {
     Iterator<CloudProviderInfo> providersIterator = providersList.iterator();
     List<CloudProviderInfo> providers = new ArrayList<>();
 
-    OAuthJSONAccessTokenResponse response = IamClient.getAccessToken();
-    String accessToken = response.getAccessToken();
+    OIDCTokens response = IamClient.getAccessToken();
+    String accessToken = response.getAccessToken().toString();
 
     while (providersIterator.hasNext()) {
       CloudProviderInfo provider = providersIterator.next();
