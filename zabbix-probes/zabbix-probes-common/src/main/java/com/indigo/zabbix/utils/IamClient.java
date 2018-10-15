@@ -1,6 +1,11 @@
 package com.indigo.zabbix.utils;
 
-import com.nimbusds.oauth2.sdk.*;
+import com.nimbusds.oauth2.sdk.AuthorizationGrant;
+import com.nimbusds.oauth2.sdk.ParseException;
+import com.nimbusds.oauth2.sdk.ResourceOwnerPasswordCredentialsGrant;
+import com.nimbusds.oauth2.sdk.TokenErrorResponse;
+import com.nimbusds.oauth2.sdk.TokenRequest;
+import com.nimbusds.oauth2.sdk.TokenResponse;
 import com.nimbusds.oauth2.sdk.auth.ClientAuthentication;
 import com.nimbusds.oauth2.sdk.auth.ClientSecretBasic;
 import com.nimbusds.oauth2.sdk.auth.Secret;
@@ -15,9 +20,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-/**
- * Created by jose on 31/03/17.
- */
+/** Created by jose on 31/03/17. */
 public class IamClient {
 
   private static final Log logger = LogFactory.getLog(IamClient.class);
@@ -32,24 +35,25 @@ public class IamClient {
    * @param clientSecret Client secret of the client ID application.
    * @return An access token for the provided user and application.
    */
-  public static OIDCTokens getAccessToken(String location, String username,
-                                          String password, String clientId, String clientSecret) {
+  public static OIDCTokens getAccessToken(
+      String location, String username, String password, String clientId, String clientSecret) {
     try {
-      AuthorizationGrant codeGrant = new ResourceOwnerPasswordCredentialsGrant(username, new Secret(password));
-// The credentials to authenticate the client at the token endpoint
+      AuthorizationGrant codeGrant =
+          new ResourceOwnerPasswordCredentialsGrant(username, new Secret(password));
+      // The credentials to authenticate the client at the token endpoint
       ClientID clientIdObj = new ClientID(clientId);
       Secret clientSecretObj = new Secret(clientSecret);
       ClientAuthentication clientAuth = new ClientSecretBasic(clientIdObj, clientSecretObj);
 
-// The token endpoint
+      // The token endpoint
       URI tokenEndpoint = new URI(location);
 
-// Make the token request
+      // Make the token request
       TokenRequest request = new TokenRequest(tokenEndpoint, clientAuth, codeGrant);
 
       TokenResponse tokenResponse = OIDCTokenResponseParser.parse(request.toHTTPRequest().send());
 
-      if (! tokenResponse.indicatesSuccess()) {
+      if (!tokenResponse.indicatesSuccess()) {
         // We got an error response...
         TokenErrorResponse errorResponse = tokenResponse.toErrorResponse();
         logger.error("Error getting access token: " + errorResponse.toJSONObject().toJSONString());
@@ -79,12 +83,11 @@ public class IamClient {
    */
   public static OIDCTokens getAccessToken() {
 
-    return getAccessToken(PropertiesManager.getProperty(ProbesTags.IAM_LOCATION),
-            PropertiesManager.getProperty(ProbesTags.IAM_USERNAME),
-            PropertiesManager.getProperty(ProbesTags.IAM_PASSWORD),
-            PropertiesManager.getProperty(ProbesTags.IAM_CLIENTID),
-            PropertiesManager.getProperty(ProbesTags.IAM_CLIENTSECRET));
-
+    return getAccessToken(
+        PropertiesManager.getProperty(ProbesTags.IAM_LOCATION),
+        PropertiesManager.getProperty(ProbesTags.IAM_USERNAME),
+        PropertiesManager.getProperty(ProbesTags.IAM_PASSWORD),
+        PropertiesManager.getProperty(ProbesTags.IAM_CLIENTID),
+        PropertiesManager.getProperty(ProbesTags.IAM_CLIENTSECRET));
   }
-
 }
