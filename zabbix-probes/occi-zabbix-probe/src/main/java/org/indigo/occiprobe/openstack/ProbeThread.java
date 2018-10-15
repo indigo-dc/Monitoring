@@ -24,12 +24,10 @@ import com.indigo.zabbix.utils.CloudProviderInfo;
 import com.indigo.zabbix.utils.CmdbClient;
 import com.indigo.zabbix.utils.IamClient;
 import com.indigo.zabbix.utils.PropertiesManager;
-
+import com.nimbusds.openid.connect.sdk.token.OIDCTokens;
 import io.github.hengyunabc.zabbix.sender.SenderResult;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.oltu.oauth2.client.response.OAuthJSONAccessTokenResponse;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -99,9 +97,9 @@ public class ProbeThread {
       PropertiesManager.loadProperties("occiprobe.properties");
     
       //Get access token from IAM
-      OAuthJSONAccessTokenResponse response = IamClient.getAccessToken();
+      OIDCTokens response = IamClient.getAccessToken();
     
-      String accessToken = response.getAccessToken();
+      String accessToken = response.getAccessToken().toString();
     
       String cmdb = PropertiesManager.getProperty(OcciProbeTags.CMDB_URL);
       if (cmdb != null) {

@@ -463,7 +463,7 @@ public class OpenStackClient {
   /**
    * Manage the Response status of server in case of creation.
    * 
-   * @param server serverStatus
+   * @param serverStatus serverStatus
    * @see Server serverStatus
    * @return the map for managing the values
    */
