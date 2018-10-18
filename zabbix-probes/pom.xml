@@ -36,6 +36,7 @@
 		<module>openstack-zabbix-probe</module>
 		<module>mesos-zabbix-probe</module>
     <module>lifecycle-mapping</module>
-  </modules>
+		<module>zabbix-probes-launcher</module>
+	</modules>
 
 </project>

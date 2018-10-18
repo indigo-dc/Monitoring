@@ -4,23 +4,20 @@ import com.indigo.zabbix.utils.ZabbixClient;
 import com.indigo.zabbix.utils.ZabbixHost;
 import com.indigo.zabbix.utils.ZabbixWrapperClient;
 import com.indigo.zabbix.utils.beans.AppOperation;
-
+import feign.Request;
 import feign.Response;
-
 import io.github.hengyunabc.zabbix.sender.DataObject;
 import io.github.hengyunabc.zabbix.sender.SenderResult;
 import io.github.hengyunabc.zabbix.sender.ZabbixSender;
-
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,8 +35,10 @@ public class ZabbixClientTest {
   private ZabbixSender sender;
 
   private Response fakeResponse(int code) {
-    return Response.create(code, null,
-        new HashMap<String, Collection<String>>(), null, Charset.defaultCharset());
+    return Response.builder().status(code).request(
+            Request.create(Request.HttpMethod.GET,"http://example.com",
+                    new HashMap<>(),new byte[]{}, Charset.defaultCharset())
+    ).headers(new HashMap<>()).build();
   }
 
   private Map<String, Class> createAppOperationTemplate() {
@@ -58,13 +57,14 @@ public class ZabbixClientTest {
   private ZabbixWrapperClient mockWrapper() {
     ZabbixWrapperClient result = Mockito.mock(ZabbixWrapperClient.class);
 
-    Mockito.when(result.registerHost(Matchers.anyString(), Matchers.anyString(), Matchers.any()))
-        .thenAnswer(new Answer<Response>() {
+    Mockito.when(result.registerHost(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+            ArgumentMatchers.any())).thenAnswer(new Answer<Response>() {
+
           @Override
           public Response answer(InvocationOnMock invocationOnMock) throws Throwable {
-            String hostName = invocationOnMock.getArgumentAt(0, String.class);
-            String group = invocationOnMock.getArgumentAt(1, String.class);
-            ZabbixHost hostInfo = invocationOnMock.getArgumentAt(2, ZabbixHost.class);
+            String hostName = invocationOnMock.getArgument(0);
+            String group = invocationOnMock.getArgument(1);
+            ZabbixHost hostInfo = invocationOnMock.getArgument(2);
 
             Map<String, ZabbixHost> groupMap = hosts.get(group);
 
@@ -84,12 +84,12 @@ public class ZabbixClientTest {
           }
         });
 
-    Mockito.when(result.getHostInfo(Matchers.anyString(), Matchers.anyString())).thenAnswer(
+    Mockito.when(result.getHostInfo(ArgumentMatchers.anyString(), ArgumentMatchers.anyString())).thenAnswer(
         new Answer<Response>() {
           @Override
           public Response answer(InvocationOnMock invocationOnMock) throws Throwable {
-            String hostName = invocationOnMock.getArgumentAt(0, String.class);
-            String group = invocationOnMock.getArgumentAt(1, String.class);
+            String hostName = invocationOnMock.getArgument(0);
+            String group = invocationOnMock.getArgument(1);
 
             Map<String, ZabbixHost> groupMap = hosts.get(group);
 
@@ -123,12 +123,12 @@ public class ZabbixClientTest {
   private ZabbixSender mockSender() throws IOException {
     ZabbixSender result = Mockito.mock(ZabbixSender.class);
 
-    Mockito.when(result.send(Matchers.anyList())).thenAnswer(
+    Mockito.when(result.send(ArgumentMatchers.anyList())).thenAnswer(
         new Answer<SenderResult>() {
 
           @Override
           public SenderResult answer(InvocationOnMock invocationOnMock) throws Throwable {
-            List<DataObject> data = invocationOnMock.getArgumentAt(0, List.class);
+            List<DataObject> data = invocationOnMock.getArgument(0);
 
             int total = data.size();
             int processed = 0;

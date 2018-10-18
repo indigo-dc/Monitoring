@@ -151,7 +151,7 @@ public class ZabbixClient {
         }
       }
     } catch (Exception exc) {
-      logger.error("Unable to send metrics to Zabbix server because of: " + exc.getMessage());
+      logger.error("Unable to send metrics to Zabbix server because of: " + exc.getMessage(), exc);
     }
     return null;
   }

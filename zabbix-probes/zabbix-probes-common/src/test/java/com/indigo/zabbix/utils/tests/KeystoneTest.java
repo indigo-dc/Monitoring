@@ -4,21 +4,21 @@ import com.indigo.zabbix.utils.KeystoneClient;
 import com.indigo.zabbix.utils.KeystoneTokenProvider;
 import com.indigo.zabbix.utils.beans.KeystoneScopedTokenRequest;
 import com.indigo.zabbix.utils.beans.OpenstackProjectsInfo;
+import feign.Request;
+import feign.Response;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-
-import feign.Response;
 
 
 /**
@@ -44,7 +44,10 @@ public class KeystoneTest {
       headers.put(KeystoneClient.TOKEN_RESULT_HEADER, tokens);
     }
 
-    return Response.create(200, null, headers, (Response.Body) null);
+    return Response.builder().status(200).request(
+            Request.create(Request.HttpMethod.GET,"http://example.com",
+                    new HashMap<>(),new byte[]{}, Charset.defaultCharset())
+    ).headers(headers).build();
   }
 
 
@@ -55,11 +58,11 @@ public class KeystoneTest {
     projects.add("project1");
     projects.add("project2");
 
-    Mockito.when(provider.getKeystoneToken(Matchers.anyString(), Matchers.anyString(), Matchers.anyString()))
-        .thenAnswer(new Answer<Response>() {
+    Mockito.when(provider.getKeystoneToken(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(),
+            ArgumentMatchers.anyString())).thenAnswer(new Answer<Response>() {
           @Override
           public Response answer(InvocationOnMock invocationOnMock) throws Throwable {
-            String token = invocationOnMock.getArgumentAt(0, String.class);
+            String token = invocationOnMock.getArgument(0);
             if (ACCESS_TOKEN.equals(token)) {
               return responseToken(UNSCOPED_TOKEN);
             } else {
@@ -68,12 +71,12 @@ public class KeystoneTest {
           }
         });
 
-    Mockito.when(provider.getScopedToken(Matchers.any(KeystoneScopedTokenRequest.class)))
+    Mockito.when(provider.getScopedToken(ArgumentMatchers.any(KeystoneScopedTokenRequest.class)))
         .thenAnswer(new Answer<Response>() {
           @Override
           public Response answer(InvocationOnMock invocationOnMock) throws Throwable {
             KeystoneScopedTokenRequest request = invocationOnMock
-                .getArgumentAt(0, KeystoneScopedTokenRequest.class);
+                .getArgument(0);
 
             if (UNSCOPED_TOKEN.equals(request.getTokenId())) {
               return responseToken(SCOPED_TOKEN);
@@ -83,12 +86,12 @@ public class KeystoneTest {
           }
         });
 
-    Mockito.when(provider.getProjects(Matchers.anyString()))
+    Mockito.when(provider.getProjects(ArgumentMatchers.anyString()))
         .thenAnswer(new Answer<OpenstackProjectsInfo>() {
 
           @Override
           public OpenstackProjectsInfo answer(InvocationOnMock invocationOnMock) throws Throwable {
-            String token = invocationOnMock.getArgumentAt(0, String.class);
+            String token = invocationOnMock.getArgument(0);
               OpenstackProjectsInfo result = new OpenstackProjectsInfo();
               if (UNSCOPED_TOKEN.equals(token)) {
                 final List<OpenstackProjectsInfo.Project> projectList = new ArrayList<>();
