@@ -1,37 +1,49 @@
 package com.indigo.mesosprobe.mesos.beans;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Created by jose on 22/09/16.
  */
-public class MesosMasterInfoBean {
+public class MesosMasterInfoBean extends MesosClientRequest {
 
-  private String leader;
+  public class MasterInfoType {
+    private String hostname;
 
-  private String pid;
+    public String getHostname() {
+      return hostname;
+    }
 
-  private String hostname;
-
-  public String getLeader() {
-    return leader;
+    public void setHostname(String hostname) {
+      this.hostname = hostname;
+    }
   }
 
-  public void setLeader(String leader) {
-    this.leader = leader;
+  public class GetMasterType {
+    @SerializedName("master_info")
+    private MasterInfoType masterInfo;
+
+    public MasterInfoType getMasterInfo() {
+      return masterInfo;
+    }
+
+    public void setMasterInfo(MasterInfoType masterInfo) {
+      this.masterInfo = masterInfo;
+    }
   }
 
-  public String getPid() {
-    return pid;
+  public MesosMasterInfoBean() {
+    super(RequestType.GET_MASTER);
   }
 
-  public void setPid(String pid) {
-    this.pid = pid;
+  @SerializedName("get_master")
+  private GetMasterType getMaster;
+
+  public GetMasterType getGetMaster() {
+    return getMaster;
   }
 
-  public String getHostname() {
-    return hostname;
-  }
-
-  public void setHostname(String hostname) {
-    this.hostname = hostname;
+  public void setGetMaster(GetMasterType getMaster) {
+    this.getMaster = getMaster;
   }
 }

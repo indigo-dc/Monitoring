@@ -3,22 +3,21 @@ package org.indigo.openstackprobe.openstack;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
 import com.indigo.zabbix.utils.CloudProviderInfo;
 import com.indigo.zabbix.utils.CmdbFeignClient;
 import com.indigo.zabbix.utils.ProbeClientFactory;
 import com.indigo.zabbix.utils.ProbesTags;
 import com.indigo.zabbix.utils.PropertiesManager;
+import com.indigo.zabbix.utils.beans.CmdbResponse;
+import com.indigo.zabbix.utils.beans.ProviderInfo;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import javax.ws.rs.client.Client;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.ws.rs.client.Client;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 
 
@@ -78,18 +77,16 @@ public class CmdbClientForOpenStack {
   public String[] getProvidersList() {
 
     // Retrieve the services list
-    JsonElement jelement = cmdbClient.providerList();
-    JsonObject parsedRes = jelement.getAsJsonObject();
-    JsonArray listArray = parsedRes.getAsJsonArray("rows");
-    if (listArray.isJsonNull() || listArray.size() == 0) {
+    CmdbResponse<ProviderInfo> jelement = cmdbClient.providerList();
+    List<ProviderInfo> listArray = jelement.getRows();
+    if (listArray != null || listArray.size() == 0) {
       return null;
     }
 
     ArrayList<String> providersList = new ArrayList<String>();
-    Iterator<JsonElement> myIter = listArray.iterator();
+    Iterator<ProviderInfo> myIter = listArray.iterator();
     while (myIter.hasNext()) {
-      JsonObject currentResource = myIter.next().getAsJsonObject();
-      String providerId = currentResource.get("id").getAsString();
+      String providerId = myIter.next().getId();
       providersList.add(providerId);
     }
 

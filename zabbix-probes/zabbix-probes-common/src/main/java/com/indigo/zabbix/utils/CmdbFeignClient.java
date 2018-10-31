@@ -3,7 +3,8 @@ package com.indigo.zabbix.utils;
 import com.google.gson.JsonElement;
 
 import com.indigo.zabbix.utils.beans.CmdbResponse;
-import com.indigo.zabbix.utils.beans.ServiceType;
+import com.indigo.zabbix.utils.beans.ProviderInfo;
+import com.indigo.zabbix.utils.beans.ServiceInfo;
 
 import feign.Param;
 import feign.RequestLine;
@@ -14,13 +15,13 @@ import feign.RequestLine;
 public interface CmdbFeignClient {
 
   @RequestLine("GET /service/list?include_docs=true")
-  CmdbResponse<ServiceType> services();
+  CmdbResponse<ServiceInfo> services();
 
   @RequestLine("GET /provider/id/{providerId}/has_many/services?include_docs=true")
   JsonElement providerInfo(@Param("providerId") String providerId);
 
   @RequestLine("GET /provider/list")
-  JsonElement providerList();
+  CmdbResponse<ProviderInfo> providerList();
 
   @RequestLine("GET /image/list")
   JsonElement providerImages();

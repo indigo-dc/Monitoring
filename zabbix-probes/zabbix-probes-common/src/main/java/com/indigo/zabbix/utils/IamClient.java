@@ -2,6 +2,7 @@ package com.indigo.zabbix.utils;
 
 import com.nimbusds.oauth2.sdk.AuthorizationGrant;
 import com.nimbusds.oauth2.sdk.ParseException;
+import com.nimbusds.oauth2.sdk.RefreshTokenGrant;
 import com.nimbusds.oauth2.sdk.ResourceOwnerPasswordCredentialsGrant;
 import com.nimbusds.oauth2.sdk.TokenErrorResponse;
 import com.nimbusds.oauth2.sdk.TokenRequest;
@@ -10,6 +11,7 @@ import com.nimbusds.oauth2.sdk.auth.ClientAuthentication;
 import com.nimbusds.oauth2.sdk.auth.ClientSecretBasic;
 import com.nimbusds.oauth2.sdk.auth.Secret;
 import com.nimbusds.oauth2.sdk.id.ClientID;
+import com.nimbusds.oauth2.sdk.token.RefreshToken;
 import com.nimbusds.openid.connect.sdk.OIDCTokenResponse;
 import com.nimbusds.openid.connect.sdk.OIDCTokenResponseParser;
 import com.nimbusds.openid.connect.sdk.token.OIDCTokens;
@@ -25,21 +27,9 @@ public class IamClient {
 
   private static final Log logger = LogFactory.getLog(IamClient.class);
 
-  /**
-   * Gets an access token from the IAM service.
-   *
-   * @param location Location of the IAM server.
-   * @param username Username for the authorized user.
-   * @param password Password for the authorized user.
-   * @param clientId Client ID to authorize.
-   * @param clientSecret Client secret of the client ID application.
-   * @return An access token for the provided user and application.
-   */
-  public static OIDCTokens getAccessToken(
-      String location, String username, String password, String clientId, String clientSecret) {
+  private static OIDCTokens getAccessToken(
+      String location, AuthorizationGrant grant, String clientId, String clientSecret) {
     try {
-      AuthorizationGrant codeGrant =
-          new ResourceOwnerPasswordCredentialsGrant(username, new Secret(password));
       // The credentials to authenticate the client at the token endpoint
       ClientID clientIdObj = new ClientID(clientId);
       Secret clientSecretObj = new Secret(clientSecret);
@@ -49,7 +39,7 @@ public class IamClient {
       URI tokenEndpoint = new URI(location);
 
       // Make the token request
-      TokenRequest request = new TokenRequest(tokenEndpoint, clientAuth, codeGrant);
+      TokenRequest request = new TokenRequest(tokenEndpoint, clientAuth, grant);
 
       TokenResponse tokenResponse = OIDCTokenResponseParser.parse(request.toHTTPRequest().send());
 
@@ -74,6 +64,26 @@ public class IamClient {
   }
 
   /**
+   * Gets an access token from the IAM service.
+   *
+   * @param location Location of the IAM server.
+   * @param username Username for the authorized user.
+   * @param password Password for the authorized user.
+   * @param clientId Client ID to authorize.
+   * @param clientSecret Client secret of the client ID application.
+   * @return An access token for the provided user and application.
+   */
+  public static OIDCTokens getAccessToken(
+      String location, String username, String password, String clientId, String clientSecret) {
+
+    return getAccessToken(
+        location,
+        new ResourceOwnerPasswordCredentialsGrant(username, new Secret(password)),
+        clientId,
+        clientSecret);
+  }
+
+  /**
    * Utility method that will return an access token from parameters provided in the configuration
    * file. - iam.location: Location of the IAM server. - iam.username: Username for the authorized
    * user. - iam.password: Password for the authorized user. - iam.clientid: Client ID to authorize.
@@ -87,6 +97,39 @@ public class IamClient {
         PropertiesManager.getProperty(ProbesTags.IAM_LOCATION),
         PropertiesManager.getProperty(ProbesTags.IAM_USERNAME),
         PropertiesManager.getProperty(ProbesTags.IAM_PASSWORD),
+        PropertiesManager.getProperty(ProbesTags.IAM_CLIENTID),
+        PropertiesManager.getProperty(ProbesTags.IAM_CLIENTSECRET));
+  }
+
+  /**
+   * Refresh a potentially expired token.
+   *
+   * @param iamLocation Location of the IAM instance.
+   * @param refreshTokenValue Refresh token value.
+   * @param clientId Client ID to use for refresh request.
+   * @param clientSecretValue Client secret to use for the refresh request.
+   * @return A new access and refresh token.
+   */
+  public static OIDCTokens refreshToken(
+      String iamLocation, String refreshTokenValue, String clientId, String clientSecretValue) {
+
+    return getAccessToken(
+        iamLocation,
+        new RefreshTokenGrant(new RefreshToken(refreshTokenValue)),
+        clientId,
+        clientSecretValue);
+  }
+
+  /**
+   * Gets new access and refresh tokens by getting the IAM information from the properties file.
+   *
+   * @param refreshToken The refresh token to use.
+   * @return A new access and refresh token.
+   */
+  public static OIDCTokens refreshToken(String refreshToken) {
+    return refreshToken(
+        PropertiesManager.getProperty(ProbesTags.IAM_LOCATION),
+        refreshToken,
         PropertiesManager.getProperty(ProbesTags.IAM_CLIENTID),
         PropertiesManager.getProperty(ProbesTags.IAM_CLIENTSECRET));
   }

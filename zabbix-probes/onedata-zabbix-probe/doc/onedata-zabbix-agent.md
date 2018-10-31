@@ -73,7 +73,7 @@ Default values is WARNING. |
 | - | GET /spaces/{id}/groups | type, groupId | 
 | - | GET /spaces/{id}/groups/{gid}/privileges | privileges | 
 | onezone_spaces_namespace_providers | GET /spaces/{id}/providers | Providers | 
-| - | GET /spaces/{id}/providers/{pid} | providerId, clientName, urls, longitude, latitude, redirectionPoint | 
+| - | GET /spaces/{id}/providers/{pid} | id, clientName, urls, longitude, latitude, redirectionPoint | 
 | onezone_spaces_namespace_users | GET /spaces/{id}/users | Users | 
 | - | GET /spaces/{id}/users/{uid} | name, privileges, userId | 
 

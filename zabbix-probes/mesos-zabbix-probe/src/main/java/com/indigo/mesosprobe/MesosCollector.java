@@ -1,9 +1,7 @@
 package com.indigo.mesosprobe;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-
-import com.indigo.mesosprobe.mesos.MesosClient;
+import com.indigo.mesosprobe.mesos.MesosFeignClient;
+import com.indigo.mesosprobe.mesos.beans.GetMetricsResponse;
 import com.indigo.mesosprobe.mesos.beans.MesosMasterInfoBean;
 import com.indigo.zabbix.utils.MetricsCollector;
 import com.indigo.zabbix.utils.PropertiesManager;
@@ -13,30 +11,43 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-/**
- * Created by jose on 4/10/16.
- */
+/** Created by jose on 4/10/16. */
 public class MesosCollector implements MetricsCollector {
 
   private static final String PREFIX = "Mesos_";
 
-  private Map<String, String> readMetrics(JsonObject metrics, List<String> properties) {
-    Map<String, String> result = new HashMap<>();
-    properties.forEach(property -> {
-      JsonElement elem = metrics.get(property);
-      if (elem != null && elem.isJsonPrimitive()) {
-        result.put(property.replace("/", "."), elem.getAsString());
-      }
-    });
-    return result;
+  private String mesosMasterUrl;
+
+  public MesosCollector(String masterUrl) {
+    this.mesosMasterUrl = masterUrl;
   }
 
-  private String findLeader() {
-    String masterEndpoint = PropertiesManager.getProperty(MesosProbeTags.MESOS_MASTER_ENDPOINT);
-    if (masterEndpoint != null) {
-      MesosClient client = MesosClientFactory.getMesosClient(masterEndpoint);
-      MesosMasterInfoBean redirect = client.getInfo();
+  public MesosCollector() {
+    this(PropertiesManager.getProperty(MesosProbeTags.MESOS_MASTER_ENDPOINT));
+  }
+
+  private Map<String, String> readMetrics(GetMetricsResponse metrics, List<String> properties) {
+    if (metrics != null
+        && metrics.getGetMetrics() != null
+        && metrics.getGetMetrics().getMetrics() != null) {
+      return metrics
+          .getGetMetrics()
+          .getMetrics()
+          .stream()
+          .filter(metric -> properties.contains(metric.getName()))
+          .collect(
+              Collectors.toMap(
+                  metric -> metric.getName().replace("/", "."), metric -> metric.getValue()));
+    }
+    return new HashMap<>();
+  }
+
+  /*private String findLeader() {
+    if (mesosMasterUrl != null) {
+      MesosFeignClient client = MesosClientFactory.getMesosClient(mesosMasterUrl);
+      MesosMasterInfoBean redirect = client.getInfo(accessToken);
       String leader = redirect.getLeader();
       if (leader != null) {
         String[] leaderInfo = leader.split("@");
@@ -46,37 +57,36 @@ public class MesosCollector implements MetricsCollector {
       }
     }
     return null;
-  }
+  }*/
 
   @Override
   public ZabbixMetrics getMetrics() {
-    String leader = findLeader();
-    if (leader != null) {
 
-      List<String> properties = PropertiesManager.getListProperty(
-          MesosProbeTags.MESOS_METRIC);
+    List<String> properties = PropertiesManager.getListProperty(MesosProbeTags.MESOS_METRIC);
 
-      if (properties != null && !properties.isEmpty()) {
-        MesosClient mesosClient = MesosClientFactory.getMesosClient("http://" + leader);
+    if (properties != null && !properties.isEmpty()) {
+      MesosFeignClient mesosClient = MesosClientFactory.getMesosClient(mesosMasterUrl);
 
-        MesosMasterInfoBean leaderInfo = mesosClient.getInfo();
-        if (leaderInfo.getHostname() != null) {
+      MesosMasterInfoBean leaderInfo = mesosClient.getMaster(new MesosMasterInfoBean());
 
-          ZabbixMetrics result = new ZabbixMetrics();
+      if (leaderInfo.getGetMaster() != null
+          && leaderInfo.getGetMaster().getMasterInfo() != null
+          && leaderInfo.getGetMaster().getMasterInfo().getHostname() != null) {
 
-          result.setHostName(PREFIX + leaderInfo.getHostname());
+        ZabbixMetrics result = new ZabbixMetrics();
 
-          JsonObject metrics = mesosClient.getMetrics();
-          result.setMetrics(readMetrics(metrics, properties));
+        result.setHostName(PREFIX + leaderInfo.getGetMaster().getMasterInfo().getHostname());
 
-          result.setTimestamp(new Date().getTime());
+        GetMetricsResponse metrics = mesosClient.getMetrics(new GetMetricsResponse(true));
 
-          return result;
-        }
+        result.setMetrics(readMetrics(metrics, properties));
+
+        result.setTimestamp(new Date().getTime());
+
+        return result;
       }
     }
 
     return null;
   }
-
 }

@@ -1,23 +1,20 @@
 /**
-Copyright 2016 ATOS SPAIN S.A.
-
-Licensed under the Apache License, Version 2.0 (the License);
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-Authors Contact:
-Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
-@email francisco.nieto@atos.net
-**/
-
+ * Copyright 2016 ATOS SPAIN S.A.
+ *
+ * <p>Licensed under the Apache License, Version 2.0 (the License); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * <p>http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * <p>Unless required by applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * <p>Authors Contact: Francisco Javier Nieto. Atos Research and Innovation, Atos SPAIN SA
+ *
+ * @email francisco.nieto@atos.net
+ */
 package org.indigo.heapsterprobe;
 
 import java.io.BufferedReader;
@@ -26,11 +23,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 /**
- * The ZabbixSender class receives the monitored metrics of a Kubernetes cluster and it executes
- * the corresponding commands of the Zabbix agent in order to send all the metrics to the Zabbix
- * server, in line with the configured template and its properties.
- * @author ATOS
+ * The ZabbixSender class receives the monitored metrics of a Kubernetes cluster and it executes the
+ * corresponding commands of the Zabbix agent in order to send all the metrics to the Zabbix server,
+ * in line with the configured template and its properties.
  *
+ * @author ATOS
  */
 public class ZabbixSender {
 
@@ -41,8 +38,9 @@ public class ZabbixSender {
   private ZabbixWrapperClient myClient;
 
   /**
-   * Main constructor of the class. It retrieves the configuration properties related to the
-   * Zabbix server and it constructs the Runtime object.
+   * Main constructor of the class. It retrieves the configuration properties related to the Zabbix
+   * server and it constructs the Runtime object.
+   *
    * @param clusterName String with the name of the Cluster evaluated
    */
   public ZabbixSender(String clusterName) {
@@ -59,6 +57,7 @@ public class ZabbixSender {
 
   /**
    * Constructor for unit testing purposes.
+   *
    * @param mockRuntime Mock runtime for testing
    */
   public ZabbixSender(Runtime mockRuntime, ZabbixWrapperClient mockWrapper) {
@@ -67,41 +66,72 @@ public class ZabbixSender {
   }
 
   /**
-   * This method extracts all the metrics gathered about a pod and it performs
-   * one call per metric to Zabbix by using the zabbix_sender command of the Zaabix agent.
+   * This method extracts all the metrics gathered about a pod and it performs one call per metric
+   * to Zabbix by using the zabbix_sender command of the Zaabix agent.
+   *
    * @param metrics An object containing all the gathered metrics
    * @return It indicates operation successful (true) or failed (false).
    */
   public boolean sendPodMetrics(PodMetrics metrics) {
-    
+
     // Check the input is not null
     if (metrics == null) {
       return false;
-    }  
+    }
 
     // Check the provider is available as Zabbix Host
     String podName = metrics.getPodName();
     correctPodRegistration(podName);
-    
-    // Prepare local variables and failure counters    
+
+    // Prepare local variables and failure counters
     int failures = 0;
 
     // Prepare invocation strings
-    String rxErrors = "-z " + zabbixLocation + " -s \"" + podName
-        + "\" -k pod.network[rxErrors] -o " + metrics.getNetworkTxErrors();
-    String rxErrorsRate = "-z " + zabbixLocation + " -s \"" + podName
-        + "\" -k pod.network[rxErrorsRate] -o " + metrics.getNetworkRxErrorsRate();
-    String txErrors = "-z " + zabbixLocation + " -s \"" + podName
-        + "\" -k pod.network[txErrors] -o " + metrics.getNetworkTxErrors();
-    String txErrorsRate = "-z " + zabbixLocation + " -s \"" + podName
-        + "\" -k pod.network[txErrorsRate] -o " + metrics.getNetworkTxErrorsRate();
+    String rxErrors =
+        "-z "
+            + zabbixLocation
+            + " -s \""
+            + podName
+            + "\" -k pod.network[rxErrors] -o "
+            + metrics.getNetworkTxErrors();
+    String rxErrorsRate =
+        "-z "
+            + zabbixLocation
+            + " -s \""
+            + podName
+            + "\" -k pod.network[rxErrorsRate] -o "
+            + metrics.getNetworkRxErrorsRate();
+    String txErrors =
+        "-z "
+            + zabbixLocation
+            + " -s \""
+            + podName
+            + "\" -k pod.network[txErrors] -o "
+            + metrics.getNetworkTxErrors();
+    String txErrorsRate =
+        "-z "
+            + zabbixLocation
+            + " -s \""
+            + podName
+            + "\" -k pod.network[txErrorsRate] -o "
+            + metrics.getNetworkTxErrorsRate();
 
-    String majorPageFaults = "-z " + zabbixLocation + " -s \"" + podName
-        + "\" -k pod.memory[majorPageFaultsRate] -o " + metrics.getMemoryMajorPageFaultsRate();
-    String pageFaults = "-z " + zabbixLocation + " -s \"" + podName
-        + "\" -k pod.memory[pageFaultsRate] -o " + metrics.getMemoryPageFaultsRate();
-    String uptime = "-z " + zabbixLocation + " -s \"" + podName
-        + "\" -k pod.uptime -o " + metrics.getUptime();
+    String majorPageFaults =
+        "-z "
+            + zabbixLocation
+            + " -s \""
+            + podName
+            + "\" -k pod.memory[majorPageFaultsRate] -o "
+            + metrics.getMemoryMajorPageFaultsRate();
+    String pageFaults =
+        "-z "
+            + zabbixLocation
+            + " -s \""
+            + podName
+            + "\" -k pod.memory[pageFaultsRate] -o "
+            + metrics.getMemoryPageFaultsRate();
+    String uptime =
+        "-z " + zabbixLocation + " -s \"" + podName + "\" -k pod.uptime -o " + metrics.getUptime();
 
     try {
       // Determine execution context
@@ -169,16 +199,13 @@ public class ZabbixSender {
     }
 
     // Check execution status
-    if (failures > 0) {
-      return false;
-    }
-
-    return true;
+    return failures <= 0;
   }
 
   /**
-   * This method extracts all the metrics gathered about a container and it performs
-   * one call per metric to Zabbix by using the zabbix_sender command of the Zaabix agent.
+   * This method extracts all the metrics gathered about a container and it performs one call per
+   * metric to Zabbix by using the zabbix_sender command of the Zaabix agent.
+   *
    * @param metrics An object containing all the gathered metrics
    * @return It indicates operation successful (true) or failed (false).
    */
@@ -192,27 +219,62 @@ public class ZabbixSender {
     // Check the provider is available as Zabbix Host
     String containerName = metrics.getContainerName();
     correctContainerRegistration(containerName);
-    
+
     // Prepare local variables and failure counters
     int failures = 0;
-    
+
     // Prepare invocation strings
-    String cpuUsageRate = "-z " + zabbixLocation + " -s \"" + containerName
-        + "\" -k container.cpu[usageRate] -o " + metrics.getCpuUsageRate();
-    String cpuUsage = "-z " + zabbixLocation + " -s \"" + containerName
-        + "\" -k container.cpu[usage] -o " + metrics.getCpuUsage();
+    String cpuUsageRate =
+        "-z "
+            + zabbixLocation
+            + " -s \""
+            + containerName
+            + "\" -k container.cpu[usageRate] -o "
+            + metrics.getCpuUsageRate();
+    String cpuUsage =
+        "-z "
+            + zabbixLocation
+            + " -s \""
+            + containerName
+            + "\" -k container.cpu[usage] -o "
+            + metrics.getCpuUsage();
 
-    String memoryUsage = "-z " + zabbixLocation + " -s \"" + containerName
-        + "\" -k container.memory[usage] -o " + metrics.getMemoryUsage();
-    String workingSet = "-z " + zabbixLocation + " -s \"" + containerName
-        + "\" -k container.memory[workingSet] -o " + metrics.getWorkingset();
-    String majorPageFaultsRate = "-z " + zabbixLocation + " -s \"" + containerName
-        + "\" -k container.memory[majorPageFaultsRate] -o " + metrics.getMajorPageFaultsRate();
-    String pageFaultsRate = "-z " + zabbixLocation + " -s \"" + containerName
-        + "\" -k container.memory[pageFaultsRate] -o " + metrics.getPageFaultsRate();
+    String memoryUsage =
+        "-z "
+            + zabbixLocation
+            + " -s \""
+            + containerName
+            + "\" -k container.memory[usage] -o "
+            + metrics.getMemoryUsage();
+    String workingSet =
+        "-z "
+            + zabbixLocation
+            + " -s \""
+            + containerName
+            + "\" -k container.memory[workingSet] -o "
+            + metrics.getWorkingset();
+    String majorPageFaultsRate =
+        "-z "
+            + zabbixLocation
+            + " -s \""
+            + containerName
+            + "\" -k container.memory[majorPageFaultsRate] -o "
+            + metrics.getMajorPageFaultsRate();
+    String pageFaultsRate =
+        "-z "
+            + zabbixLocation
+            + " -s \""
+            + containerName
+            + "\" -k container.memory[pageFaultsRate] -o "
+            + metrics.getPageFaultsRate();
 
-    String uptime = "-z " + zabbixLocation + " -s \"" + containerName
-        + "\" -k container.uptime -o " + metrics.getUptime();
+    String uptime =
+        "-z "
+            + zabbixLocation
+            + " -s \""
+            + containerName
+            + "\" -k container.uptime -o "
+            + metrics.getUptime();
 
     try {
       // Determine execution context
@@ -282,10 +344,7 @@ public class ZabbixSender {
     }
 
     // Check execution status
-    if (failures > 0) {
-      return false;
-    }
-    return true;
+    return failures <= 0;
   }
 
   private void readExecResponse(InputStream response) {
@@ -293,44 +352,45 @@ public class ZabbixSender {
 
     try {
       String line = null;
-      while ( (line = input.readLine() ) != null) {
+      while ((line = input.readLine()) != null) {
         System.out.println(line);
       }
     } catch (Exception ex) {
       System.out.println("Error: " + ex.getMessage());
     }
   }
-  
+
   private boolean correctPodRegistration(String hostName) {
     // Look for the host in the Wrapper
     boolean result = false;
     result = myClient.isPodRegistered(hostName);
-    
+
     // If it is not available, register it
     if (result == false) {
       result = myClient.registerPodHost(hostName);
       System.out.println("It was not possible to register the Host. Try anyway...");
     }
-    
+
     return result;
   }
-  
+
   private boolean correctContainerRegistration(String hostName) {
     // Look for the host in the Wrapper
     boolean result = false;
     result = myClient.isContainerRegistered(hostName);
-    
+
     // If it is not available, register it
     if (result == false) {
       result = myClient.registerContainerHost(hostName);
       System.out.println("It was not possible to register the Host. Try anyway...");
     }
-    
+
     return result;
   }
 
   /**
    * Typical main for simple testing.
+   *
    * @param args Typical arguments
    */
   public static void main(String[] args) {

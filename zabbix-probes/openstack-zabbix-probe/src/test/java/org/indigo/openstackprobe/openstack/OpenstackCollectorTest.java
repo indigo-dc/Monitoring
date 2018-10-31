@@ -1,15 +1,14 @@
 package org.indigo.openstackprobe.openstack;
 
 import com.indigo.zabbix.utils.beans.AppOperation;
-
-import java.util.concurrent.TimeoutException;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.openstack4j.api.exceptions.ConnectionException;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.compute.ServerCreate;
+
+import java.util.concurrent.TimeoutException;
 
 public class OpenstackCollectorTest {
 
@@ -61,8 +60,11 @@ public class OpenstackCollectorTest {
 
   @Test
   public void getCreateTest() {
-    new AppOperation(appMocked.getOperation().RUN, true,
-        probeMocked.getDeleteVmElement().getDeleteVmAvailability(), 2L);
+    new AppOperation(
+        AppOperation.Operation.RUN,
+        true,
+        probeMocked.getDeleteVmElement().getDeleteVmAvailability(),
+        2L);
     probeMocked.getDeleteVmElement();
     probeMocked.getCreateVmElement();
   }

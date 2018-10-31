@@ -5,7 +5,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import com.indigo.zabbix.utils.beans.CmdbResponse;
-import com.indigo.zabbix.utils.beans.ServiceType;
+import com.indigo.zabbix.utils.beans.DocDataType;
+import com.indigo.zabbix.utils.beans.ServiceInfo;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -16,9 +17,8 @@ import java.util.stream.Collectors;
  * The CmdbClient class is in charge of the interactions between the probe and the CMDB component.
  * Such component provides information about the available providers, such as their name, location,
  * list of services provided, etc...
- * 
- * @author Atos
  *
+ * @author Atos
  */
 public class CmdbClient {
   public static final String OPENSTACK_TYPE = "eu.egi.cloud.vm-management.openstack";
@@ -34,13 +34,17 @@ public class CmdbClient {
    */
   public CmdbClient() {
     // Retrieve properties
-    cmdbUrl = PropertiesManager.getProperty(ProbesTags.CMDB_URL);
+    this(PropertiesManager.getProperty(ProbesTags.CMDB_URL));
+  }
+
+  public CmdbClient(String cmdbUrl) {
+    this.cmdbUrl = cmdbUrl;
     cmdbClient = ProbeClientFactory.getClient(CmdbFeignClient.class, cmdbUrl);
   }
 
   /**
    * This is a constructor for unit testing purposes.
-   * 
+   *
    * @param mock Mock of the Jersey Client class
    */
   public CmdbClient(CmdbFeignClient mock) {
@@ -106,7 +110,6 @@ public class CmdbClient {
           identityProvider = oidcConfig.get("provider_id").getAsString();
 
           protocol = oidcConfig.get("protocol").getAsString();
-
         }
 
         JsonElement monitoringInfoElement = currentData.get("occi_monitoring");
@@ -116,7 +119,6 @@ public class CmdbClient {
           imageId = monitoringInfo.get("image_id").getAsString();
           osFlavour = monitoringInfo.get("os_flavour").getAsString();
           networkId = monitoringInfo.get("network_id").getAsString();
-
         }
 
       } else if (currentServiceType.equalsIgnoreCase(OPENSTACK_TYPE)) {
@@ -126,15 +128,26 @@ public class CmdbClient {
     }
 
     CloudProviderInfo myProvider =
-        new CloudProviderInfo(providerId, occiEndpoint, keystoneEndpoint, type, isMonitored, isBeta,
-            isProduction, identityProvider, protocol, imageId, osFlavour, networkId);
+        new CloudProviderInfo(
+            providerId,
+            occiEndpoint,
+            keystoneEndpoint,
+            type,
+            isMonitored,
+            isBeta,
+            isProduction,
+            identityProvider,
+            protocol,
+            imageId,
+            osFlavour,
+            networkId);
     return myProvider;
   }
 
   /**
    * This method access the CMDB service in order to retrieve the available data from a Cloud
    * Provider (i.e. its location, provided services, etc.)
-   * 
+   *
    * @param providerId Represents the identifier of the Cloud provider
    * @return An object with all the information retrieved
    */
@@ -146,7 +159,7 @@ public class CmdbClient {
 
   /**
    * Get a list of OCCI providers.
-   * 
+   *
    * @return List of providers with and OCCI endpoint.
    */
   public List<CloudProviderInfo> getFeasibleProvidersInfo() {
@@ -154,13 +167,17 @@ public class CmdbClient {
     CmdbResponse response = cmdbClient.services();
     if (response != null && response.getRows() != null) {
 
-      List<ServiceType> services = response.getRows();
+      List<ServiceInfo> services = response.getRows();
 
-      return services.stream()
+      return services
+          .stream()
 
           // First filter only services which are of type OpenStack
-          .filter(service -> service.getDoc() != null && service.getDoc().getData() != null
-              && OPENSTACK_TYPE.equals(service.getDoc().getData().getServiceType()))
+          .filter(
+              service ->
+                  service.getDoc() != null
+                      && service.getDoc().getData() != null
+                      && OPENSTACK_TYPE.equals(service.getDoc().getData().getServiceType()))
 
           // For any of such services, get the full information of the associated provider
           .map(service -> getProviderData(service.getDoc().getData().getProviderId()))
@@ -174,7 +191,27 @@ public class CmdbClient {
     } else {
       return new ArrayList<>();
     }
-
   }
 
+  /**
+   * Returns a list of service of given type from the CMDB.
+   *
+   * @param type The type of the service to filter.
+   * @return A list of service information filtered by type.
+   */
+  public List<ServiceInfo> getServiceList(DocDataType.ServiceType type) {
+    List<ServiceInfo> services = cmdbClient.services().getRows();
+    if (type != null) {
+      services =
+          services
+              .stream()
+              .filter(
+                  service ->
+                      service.getDoc() != null
+                          && service.getDoc().getData() != null
+                          && type.equals(service.getDoc().getData().getServiceType()))
+              .collect(Collectors.toList());
+    }
+    return services;
+  }
 }
