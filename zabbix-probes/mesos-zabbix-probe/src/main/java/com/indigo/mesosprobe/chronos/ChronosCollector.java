@@ -1,16 +1,12 @@
 package com.indigo.mesosprobe.chronos;
 
-import com.indigo.mesosprobe.MesosProbeTags;
 import com.indigo.zabbix.utils.LifecycleCollector;
-import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.beans.AppOperation;
-
 import it.infn.ba.indigo.chronos.client.Chronos;
 import it.infn.ba.indigo.chronos.client.ChronosClient;
 import it.infn.ba.indigo.chronos.client.model.v1.Container;
 import it.infn.ba.indigo.chronos.client.model.v1.Job;
 import it.infn.ba.indigo.chronos.client.utils.ChronosException;
-
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,22 +30,17 @@ public class ChronosCollector extends LifecycleCollector {
 
 
   private Chronos client;
+  private String hostname;
 
   /**
    * Default constructor.
    */
-  public ChronosCollector() {
-    String url = PropertiesManager.getProperty(MesosProbeTags.CHRONOS_ENDPOINT);
-    String username = PropertiesManager.getProperty(MesosProbeTags.CHRONOS_USERNAME);
-    String password = PropertiesManager.getProperty(MesosProbeTags.CHRONOS_PASSWORD);
-
-    client = ChronosClient.getInstanceWithBasicAuth(url, username, password);
+  public ChronosCollector(String url, String token) {
+    client = ChronosClient.getInstanceWithTokenAuth(url, token);
+    hostname = findHostName(url);
   }
 
-  @Override
-  protected String getHostName() {
-    // We can't get the host name from the REST API. We will use the host ip
-    String strUrl = PropertiesManager.getProperty(MesosProbeTags.CHRONOS_ENDPOINT);
+  public String findHostName(String strUrl) {
     try {
       URL url = new URL(strUrl);
       InetAddress addr = InetAddress.getByName(url.getHost());
@@ -150,5 +141,10 @@ public class ChronosCollector extends LifecycleCollector {
           end.getTime() - start.getTime());
     }
 
+  }
+
+  @Override
+  public String getHostName() {
+    return this.hostname;
   }
 }

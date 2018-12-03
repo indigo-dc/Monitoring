@@ -3,11 +3,13 @@ package com.indigo.zabbix.utils.tests;
 import com.indigo.zabbix.utils.ProbeThread;
 import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.ZabbixClient;
-
 import io.github.hengyunabc.zabbix.sender.SenderResult;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by jose on 9/12/16.
@@ -32,7 +34,7 @@ public class TestProbeThread extends ProbeThread<TestCollector> {
     this.deleteResult = deleteResult;
   }
 
-  public SenderResult run() {
+  public Map<String, SenderResult> run() {
     return run("testprobe.properties");
   }
 
@@ -43,7 +45,7 @@ public class TestProbeThread extends ProbeThread<TestCollector> {
   }
 
   @Override
-  protected TestCollector createCollector() {
-    return new TestCollector(hostname, clearResult, createResult, retrieveResult, deleteResult);
+  protected List<TestCollector> createCollectors() {
+    return Arrays.asList(new TestCollector(hostname, clearResult, createResult, retrieveResult, deleteResult));
   }
 }

@@ -1,11 +1,13 @@
 package com.indigo.zabbix.utils;
 
 import io.github.hengyunabc.zabbix.sender.SenderResult;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by jose on 11/21/16.
@@ -39,8 +41,9 @@ public abstract class ProbeThread<T extends MetricsCollector> {
     PropertiesManager.loadProperties(propertiesFile);
   }
 
-  protected SenderResult run(String propertiesFile) {
+  protected Map<String, SenderResult> run(String propertiesFile) {
 
+    Map<String, SenderResult> result = new HashMap<>();
     try {
       if (propertiesFile != null) {
         loadConfiguration(propertiesFile);
@@ -50,21 +53,24 @@ public abstract class ProbeThread<T extends MetricsCollector> {
         this.client = new ZabbixClient(category, group, template);
       }
 
-      ZabbixMetrics metrics = createCollector().getMetrics();
+      for (T collector : createCollectors()) {
+        ZabbixMetrics metrics = collector.getMetrics();
 
-      if (metrics != null) {
-        return client.sendMetrics(metrics);
+        if (metrics != null) {
+          result.put(collector.getHostName(), client.sendMetrics(metrics));
+        }
       }
+
 
     } catch (IOException e) {
       logger.error("Error reading configuration file", e);
     }
 
 
-    return null;
+    return result;
   }
 
-  protected abstract T createCollector();
+  protected abstract List<T> createCollectors();
 
 
 }

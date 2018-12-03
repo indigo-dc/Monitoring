@@ -210,9 +210,10 @@ public class ZabbixClientTest {
             true,
             client);
 
-    SenderResult result = testCorrect.run();
+    Map<String, SenderResult> result = testCorrect.run();
 
     assert result != null;
-    assert result.success();
+    assert !result.isEmpty();
+    assert result.values().iterator().next().success();
   }
 }

@@ -6,6 +6,8 @@ import com.indigo.mesosprobe.mesos.beans.MesosMasterInfoBean;
 import com.indigo.zabbix.utils.MetricsCollector;
 import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.ZabbixMetrics;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -16,16 +18,35 @@ import java.util.stream.Collectors;
 /** Created by jose on 4/10/16. */
 public class MesosCollector implements MetricsCollector {
 
+  private static final Log LOGGER = LogFactory.getLog(MesosCollector.class);
+
   private static final String PREFIX = "Mesos_";
 
   private String mesosMasterUrl;
+  private String hostname;
 
   public MesosCollector(String masterUrl) {
     this.mesosMasterUrl = masterUrl;
+    this.hostname = findHostName(masterUrl);
   }
 
   public MesosCollector() {
     this(PropertiesManager.getProperty(MesosProbeTags.MESOS_MASTER_ENDPOINT));
+  }
+
+  private String findHostName(String masterUrl) {
+    MesosFeignClient mesosClient = MesosClientFactory.getMesosClient(mesosMasterUrl);
+
+    MesosMasterInfoBean leaderInfo = mesosClient.getMaster(new MesosMasterInfoBean());
+
+    if (leaderInfo.getGetMaster() != null
+        && leaderInfo.getGetMaster().getMasterInfo() != null
+        && leaderInfo.getGetMaster().getMasterInfo().getHostname() != null) {
+      return PREFIX + leaderInfo.getGetMaster().getMasterInfo().getHostname();
+    } else {
+      LOGGER.error("Can't find leader hostname");
+    }
+    return null;
   }
 
   private Map<String, String> readMetrics(GetMetricsResponse metrics, List<String> properties) {
@@ -67,26 +88,24 @@ public class MesosCollector implements MetricsCollector {
     if (properties != null && !properties.isEmpty()) {
       MesosFeignClient mesosClient = MesosClientFactory.getMesosClient(mesosMasterUrl);
 
-      MesosMasterInfoBean leaderInfo = mesosClient.getMaster(new MesosMasterInfoBean());
+      ZabbixMetrics result = new ZabbixMetrics();
 
-      if (leaderInfo.getGetMaster() != null
-          && leaderInfo.getGetMaster().getMasterInfo() != null
-          && leaderInfo.getGetMaster().getMasterInfo().getHostname() != null) {
+      result.setHostName(this.hostname);
 
-        ZabbixMetrics result = new ZabbixMetrics();
+      GetMetricsResponse metrics = mesosClient.getMetrics(new GetMetricsResponse(true));
 
-        result.setHostName(PREFIX + leaderInfo.getGetMaster().getMasterInfo().getHostname());
+      result.setMetrics(readMetrics(metrics, properties));
 
-        GetMetricsResponse metrics = mesosClient.getMetrics(new GetMetricsResponse(true));
+      result.setTimestamp(new Date().getTime());
 
-        result.setMetrics(readMetrics(metrics, properties));
-
-        result.setTimestamp(new Date().getTime());
-
-        return result;
-      }
+      return result;
     }
 
     return null;
+  }
+
+  @Override
+  public String getHostName() {
+    return this.hostname;
   }
 }

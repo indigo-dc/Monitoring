@@ -1,11 +1,10 @@
 package com.indigo.mesosprobe.marathon;
 
-import com.indigo.mesosprobe.MesosProbeTags;
 import com.indigo.zabbix.utils.LifecycleCollector;
-import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.beans.AppOperation;
-
+import it.infn.ba.indigo.chronos.client.utils.TokenAuthRequestInterceptor;
 import mesosphere.marathon.client.Marathon;
+import mesosphere.marathon.client.MarathonClient;
 import mesosphere.marathon.client.model.v2.App;
 import mesosphere.marathon.client.model.v2.Container;
 import mesosphere.marathon.client.model.v2.Docker;
@@ -13,16 +12,12 @@ import mesosphere.marathon.client.model.v2.GetAppResponse;
 import mesosphere.marathon.client.model.v2.GetServerInfoResponse;
 import mesosphere.marathon.client.model.v2.Result;
 import mesosphere.marathon.client.utils.MarathonException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.util.Date;
 
-
-/**
- * Created by jose on 25/10/16.
- */
+/** Created by jose on 25/10/16. */
 public class MarathonCollector extends LifecycleCollector {
 
   private static final String PREFIX = "Marathon_";
@@ -31,24 +26,16 @@ public class MarathonCollector extends LifecycleCollector {
 
   private static final String APP_NAME = "zabbix-test-app";
 
-  Marathon client;
+  private Marathon client;
+  private String hostname;
 
-  /**
-   * Default constructor.
-   */
-  public MarathonCollector() {
-
-    String url = PropertiesManager.getProperty(MesosProbeTags.MARATHON_ENDPOINT);
-    String username = PropertiesManager.getProperty(MesosProbeTags.MARATHON_USERNAME);
-    String password = PropertiesManager.getProperty(MesosProbeTags.MARATHON_PASSWORD);
-
-    client = mesosphere.marathon.client.MarathonClient.getInstanceWithBasicAuth(
-        url, username, password
-    );
+  /** Default constructor. */
+  public MarathonCollector(String url, String token) {
+    this.client = MarathonClient.getInstance(url, new TokenAuthRequestInterceptor(token));
+    this.hostname = findHostName();
   }
 
-  @Override
-  protected String getHostName() {
+  public String findHostName() {
     try {
       GetServerInfoResponse serverInfo = client.getServerInfo();
 
@@ -59,7 +46,7 @@ public class MarathonCollector extends LifecycleCollector {
         }
       }
     } catch (MarathonException e) {
-      logger.error("Error getting host information",e);
+      logger.error("Error getting host information", e);
     }
     return null;
   }
@@ -83,14 +70,15 @@ public class MarathonCollector extends LifecycleCollector {
       }
     }
 
-    if (getAppResponse != null && getAppResponse.getApp() != null
+    if (getAppResponse != null
+        && getAppResponse.getApp() != null
         && ("/" + APP_NAME).equals(getAppResponse.getApp().getId())) {
 
       Result delResult = null;
       try {
         delResult = client.deleteApp(APP_NAME);
       } catch (MarathonException e) {
-        logger.error("Can't clear test application",e);
+        logger.error("Can't clear test application", e);
         long respTime = new Date().getTime() - currentTime;
         return new AppOperation(AppOperation.Operation.CLEAR, false, e.getStatus(), respTime);
       }
@@ -122,7 +110,7 @@ public class MarathonCollector extends LifecycleCollector {
     app.setInstances(1);
 
     try {
-      App created =  client.createApp(app);
+      App created = client.createApp(app);
     } catch (MarathonException e) {
       long respTime = new Date().getTime() - time;
       return new AppOperation(AppOperation.Operation.CREATE, false, e.getStatus(), respTime);
@@ -138,7 +126,8 @@ public class MarathonCollector extends LifecycleCollector {
 
     try {
       GetAppResponse getAppResponse = client.getApp(APP_NAME);
-      if (getAppResponse != null && getAppResponse.getApp() != null
+      if (getAppResponse != null
+          && getAppResponse.getApp() != null
           && ("/" + APP_NAME).equals(getAppResponse.getApp().getId())) {
 
         long respTime = new Date().getTime() - currentTime;
@@ -164,14 +153,20 @@ public class MarathonCollector extends LifecycleCollector {
     try {
       Result deleteResult = client.deleteApp(APP_NAME);
       long respTime = new Date().getTime() - currentTime;
-      return new AppOperation(AppOperation.Operation.DELETE,
-          (deleteResult != null && deleteResult.getDeploymentId() != null), 200, respTime);
+      return new AppOperation(
+          AppOperation.Operation.DELETE,
+          (deleteResult != null && deleteResult.getDeploymentId() != null),
+          200,
+          respTime);
     } catch (MarathonException e) {
       long respTime = new Date().getTime() - currentTime;
       logger.error("Error deleting application " + APP_NAME);
       return new AppOperation(AppOperation.Operation.DELETE, false, e.getStatus(), respTime);
     }
-
   }
 
+  @Override
+  public String getHostName() {
+    return this.hostname;
+  }
 }

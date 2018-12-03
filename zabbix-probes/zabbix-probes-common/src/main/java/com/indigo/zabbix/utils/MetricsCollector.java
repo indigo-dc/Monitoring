@@ -6,5 +6,6 @@ package com.indigo.zabbix.utils;
 public interface MetricsCollector {
 
   ZabbixMetrics getMetrics();
+  String getHostName();
 
 }
