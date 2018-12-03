@@ -31,7 +31,7 @@ public class OpenstackThread extends ProbeThread<OpenstackCollector> {
    * @param args args
    */
   public static void main(String[] args) {
-    new OpenstackThread().run(OpenStackProbeTags.CONFIG_FILE);
+    new OpenstackThread().run(OpenStackProbeTags.CONFIG_FILE, args);
   }
 
   @Override

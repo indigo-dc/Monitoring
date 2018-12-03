@@ -9,9 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by jose on 11/21/16.
- */
+/** Created by jose on 11/21/16. */
 public abstract class ProbeThread<T extends MetricsCollector> {
 
   private static final Log logger = LogFactory.getLog(ProbeThread.class);
@@ -24,7 +22,7 @@ public abstract class ProbeThread<T extends MetricsCollector> {
 
   /**
    * Constructor used for testing.
-   * 
+   *
    * @param client client zabbix object.
    */
   protected ProbeThread(ZabbixClient client) {
@@ -37,16 +35,16 @@ public abstract class ProbeThread<T extends MetricsCollector> {
     this.template = template;
   }
 
-  protected void loadConfiguration(String propertiesFile) throws IOException {
-    PropertiesManager.loadProperties(propertiesFile);
+  protected void loadConfiguration(String propertiesFile, String[] args) throws IOException {
+    PropertiesManager.loadProperties(propertiesFile, args);
   }
 
-  protected Map<String, SenderResult> run(String propertiesFile) {
+  protected Map<String, SenderResult> run(String propertiesFile, String[] args) {
 
     Map<String, SenderResult> result = new HashMap<>();
     try {
       if (propertiesFile != null) {
-        loadConfiguration(propertiesFile);
+        loadConfiguration(propertiesFile, args);
       }
 
       if (this.client == null) {
@@ -61,16 +59,12 @@ public abstract class ProbeThread<T extends MetricsCollector> {
         }
       }
 
-
     } catch (IOException e) {
       logger.error("Error reading configuration file", e);
     }
-
 
     return result;
   }
 
   protected abstract List<T> createCollectors();
-
-
 }

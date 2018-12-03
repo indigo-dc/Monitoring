@@ -50,6 +50,6 @@ public class MonitoringThread extends com.indigo.zabbix.utils.ProbeThread<OpenSt
    * operations on the OCCI API and send the metrics gathered to Zabbix).
    */
   public Map<String, SenderResult> run() {
-    return run(null);
+    return run(null, new String[] {});
   }
 }

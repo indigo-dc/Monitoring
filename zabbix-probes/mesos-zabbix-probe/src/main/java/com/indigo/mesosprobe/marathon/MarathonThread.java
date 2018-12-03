@@ -14,7 +14,7 @@ public class MarathonThread extends CmdbServiceThread<MarathonCollector> {
   }
 
   public static void main(String[] args) {
-    new MarathonThread().run(MesosProbeTags.CONFIG_FILE);
+    new MarathonThread().run(MesosProbeTags.CONFIG_FILE, args);
   }
 
   @Override

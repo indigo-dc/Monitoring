@@ -21,7 +21,7 @@ public class MesosThread extends CmdbServiceThread<MesosCollector> {
    * @param args Arguments will be ignored.
    */
   public static void main(String[] args) {
-    new MesosThread().run(MesosProbeTags.CONFIG_FILE);
+    new MesosThread().run(MesosProbeTags.CONFIG_FILE, args);
   }
 
   @Override

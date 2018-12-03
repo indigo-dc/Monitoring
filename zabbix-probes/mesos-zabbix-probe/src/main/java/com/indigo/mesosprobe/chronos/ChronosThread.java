@@ -15,7 +15,7 @@ public class ChronosThread extends CmdbServiceThread<ChronosCollector> {
   }
 
   public static void main(String[] args) {
-    new ChronosThread().run(MesosProbeTags.CONFIG_FILE);
+    new ChronosThread().run(MesosProbeTags.CONFIG_FILE, args);
   }
 
   @Override

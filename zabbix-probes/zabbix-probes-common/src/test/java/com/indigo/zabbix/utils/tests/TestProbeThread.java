@@ -11,9 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by jose on 9/12/16.
- */
+/** Created by jose on 9/12/16. */
 public class TestProbeThread extends ProbeThread<TestCollector> {
 
   private String hostname;
@@ -23,9 +21,16 @@ public class TestProbeThread extends ProbeThread<TestCollector> {
   private boolean retrieveResult;
   private boolean deleteResult;
 
-  public TestProbeThread(String category, String group, String template, String hostname,
-                         boolean clearResult, boolean createResult, boolean retrieveResult,
-                         boolean deleteResult, ZabbixClient client ) {
+  public TestProbeThread(
+      String category,
+      String group,
+      String template,
+      String hostname,
+      boolean clearResult,
+      boolean createResult,
+      boolean retrieveResult,
+      boolean deleteResult,
+      ZabbixClient client) {
     super(client);
     this.hostname = hostname;
     this.clearResult = clearResult;
@@ -35,17 +40,18 @@ public class TestProbeThread extends ProbeThread<TestCollector> {
   }
 
   public Map<String, SenderResult> run() {
-    return run("testprobe.properties");
+    return run("testprobe.properties", new String[] {});
   }
 
   @Override
-  protected void loadConfiguration(String propertiesFile) throws IOException {
-    PropertiesManager.loadProperties(new InputStreamReader(
-        this.getClass().getResourceAsStream("/testprobe.properties")));
+  protected void loadConfiguration(String propertiesFile, String[] args) throws IOException {
+    PropertiesManager.loadProperties(
+        new InputStreamReader(this.getClass().getResourceAsStream("/testprobe.properties")));
   }
 
   @Override
   protected List<TestCollector> createCollectors() {
-    return Arrays.asList(new TestCollector(hostname, clearResult, createResult, retrieveResult, deleteResult));
+    return Arrays.asList(
+        new TestCollector(hostname, clearResult, createResult, retrieveResult, deleteResult));
   }
 }
