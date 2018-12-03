@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class aims at implementing the management of the threads to be used for 
@@ -117,14 +118,17 @@ public class ProbeThread {
       
           MonitoringThread myTask = new MonitoringThread(accessToken, currentProvider);
           try {
-            SenderResult result = myTask.run();
-            if (result.success()) {
-              System.out.println("Successfully sent metrics for host "
-                                     + currentProvider.getProviderId());
-            } else {
-              System.out.println("Error sending metrics for host "
-                                     + currentProvider.getProviderId());
-            }
+            Map<String, SenderResult> result = myTask.run();
+            result.entrySet().forEach(entry -> {
+              if (entry.getValue().success()) {
+                System.out.println("Successfully sent metrics for host "
+                        + entry.getKey());
+              } else {
+                System.out.println("Error sending metrics for host "
+                        + entry.getKey());
+              }
+            });
+
           } catch (Exception e) {
             System.out.println("Error while getting OCCI metrics from provider");
             e.printStackTrace();
