@@ -15,6 +15,7 @@
  *
  * @email francisco.nieto@atos.net
  */
+
 package org.indigo.occiprobe.openstack;
 
 import com.indigo.zabbix.utils.CloudProviderInfo;
