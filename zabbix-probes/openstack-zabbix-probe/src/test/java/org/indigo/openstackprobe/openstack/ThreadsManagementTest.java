@@ -261,7 +261,7 @@
 //		providermocked = Mockito.mock(CloudProviderInfo.class);
 //		Mockito.when(providermocked.getCloudType()).thenReturn(0);
 //		Mockito.when(providermocked.getIsBeta()).thenReturn(true);
-//		Mockito.when(providermocked.getProviderId()).thenReturn("provider-RECAS-BARI");
+//		Mockito.when(providermocked.getId()).thenReturn("provider-RECAS-BARI");
 //		Mockito.when(providermocked.getKeystoneEndpoint()).thenReturn("keystoneEndpoint");
 //		providersMocked.add(providermocked);
 //		Mockito.when(cmdbClientMock.getFeasibleProvidersInfo()).thenReturn(providersMocked);
@@ -413,7 +413,7 @@
 //				testInfo.getKeystoneEndpoint());
 //		Assert.assertTrue("The client should have parsed that production is Y.", testInfo.getIsProduction());
 //		Assert.assertTrue("The client should have parsed that production is Y.", testInfo.getIsMonitored());
-//		Assert.assertNotNull("The client should have parsed that production is Y.", testInfo.getProviderId());
+//		Assert.assertNotNull("The client should have parsed that production is Y.", testInfo.getId());
 //		Assert.assertNotNull("The client should have parsed that production is Y.", testInfo.getIsBeta());
 //		Assert.assertEquals("The client should have parsed that production is Y.", 0, testInfo.getCloudType());
 //	}

@@ -2,21 +2,17 @@ package org.indigo.openstackprobe.openstack;
 
 import com.indigo.zabbix.utils.LifecycleCollector;
 import com.indigo.zabbix.utils.beans.AppOperation;
-
-import java.util.Date;
-import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openstack4j.api.exceptions.ConnectionException;
 import org.openstack4j.model.compute.Server;
 
-
+import java.util.Date;
+import java.util.List;
 
 /**
- * 
  * @author Reply Santer. Collects the information about cloud providers to be metered and then
- *         implements the LifeCycleCollector by managing the metrics.
+ *     implements the LifeCycleCollector by managing the metrics.
  */
 public class OpenstackCollector extends LifecycleCollector {
 
@@ -31,13 +27,11 @@ public class OpenstackCollector extends LifecycleCollector {
   OpenStackComponent openstackComponent = new OpenStackComponent();
   CheckForProviderDifferences checkForProviderDifference = new CheckForProviderDifferences();
 
-  /**
-   * Default constructor.
-   */
+  /** Default constructor. */
   /**
    * This is the main constructor of the class, in order to retrieve the required information for
    * carrying out the monitoring activities.
-   * 
+   *
    * @param providerId String with the identifier of the provider evaluated
    * @param providerURL String representing the Openstack API URL
    * @param keystoneURL String representing the Keystone API URL
@@ -48,12 +42,11 @@ public class OpenstackCollector extends LifecycleCollector {
     keystoneEndpoint = keystoneUrl;
 
     openstackClient = new OpenStackClient(accessToken, keystoneUrl, providerId);
-
   }
 
   /**
    * Launches the creation, cancellation of VMs for each f the providers taken in cosideration.
-   * 
+   *
    * @return OpenstackProbeResult
    */
   protected OpenStackProbeResult getOsProbeResult() {
@@ -71,7 +64,7 @@ public class OpenstackCollector extends LifecycleCollector {
   }
 
   @Override
-  protected String getHostName() {
+  public String getHostName() {
     return provider;
   }
 
@@ -81,16 +74,17 @@ public class OpenstackCollector extends LifecycleCollector {
     VmResultCreation createdProbe = null;
     try {
       createdProbe = getOsProbeResult().getCreateVmElement();
-      log.info("Collected creation meters in: "
-          + String.valueOf(Math.abs(createdProbe.getCreateVmResponseTime())));
+      log.info(
+          "Collected creation meters in: "
+              + String.valueOf(Math.abs(createdProbe.getCreateVmResponseTime())));
     } catch (ConnectionException ce) {
       return getResultForConnectionException(ce, currentTime);
     } catch (Exception ex) {
       long respTime = new Date().getTime() - currentTime;
       return new AppOperation(AppOperation.Operation.CREATE, false, 404, respTime);
     }
-    return new AppOperation(AppOperation.Operation.CREATE, true, 200,
-        Math.abs(createdProbe.getCreateVmResponseTime()));
+    return new AppOperation(
+        AppOperation.Operation.CREATE, true, 200, Math.abs(createdProbe.getCreateVmResponseTime()));
   }
 
   @Override
@@ -101,10 +95,11 @@ public class OpenstackCollector extends LifecycleCollector {
     try {
       vmappRetrieved = getOsProbeResult().getInspectVmElement();
       if (vmappRetrieved != null) {
-        log.info("Collected inspection meters in: "
-            + String.valueOf(vmappRetrieved.getInspectVmResponseTime()));
-        return new AppOperation(AppOperation.Operation.RUN, true, 200,
-            vmappRetrieved.getInspectVmResponseTime());
+        log.info(
+            "Collected inspection meters in: "
+                + String.valueOf(vmappRetrieved.getInspectVmResponseTime()));
+        return new AppOperation(
+            AppOperation.Operation.RUN, true, 200, vmappRetrieved.getInspectVmResponseTime());
       } else {
         long respTime = new Date().getTime() - currentTime;
         log.error("Can't find server instance");
@@ -115,14 +110,14 @@ public class OpenstackCollector extends LifecycleCollector {
     } catch (Exception exc) {
       log.error("Error getting instance ", exc);
       long respTime = new Date().getTime() - currentTime;
-      return new AppOperation(AppOperation.Operation.RUN, false,
-          probeResult.getGlobalAvailability(), respTime);
+      return new AppOperation(
+          AppOperation.Operation.RUN, false, probeResult.getGlobalAvailability(), respTime);
     }
   }
 
   /**
    * Manages the reponse in case of connection exception to a specific provider.
-   * 
+   *
    * @param ce ConnectionException
    * @param currentTime currenttime
    * @return AppOperation
@@ -142,7 +137,10 @@ public class OpenstackCollector extends LifecycleCollector {
       deleteProbe = getOsProbeResult().getDeleteVmElement();
       log.info(
           "Collected delete meters in: " + String.valueOf(deleteProbe.getDeleteVmResponseTime()));
-      return new AppOperation(AppOperation.Operation.DELETE, deleteProbe != null, 200,
+      return new AppOperation(
+          AppOperation.Operation.DELETE,
+          deleteProbe != null,
+          200,
           deleteProbe.getDeleteVmResponseTime());
     } catch (ConnectionException ce) {
       return getResultForConnectionException(ce, currentTime);
@@ -151,7 +149,6 @@ public class OpenstackCollector extends LifecycleCollector {
       log.error("Error deleting server instance ");
       return new AppOperation(AppOperation.Operation.DELETE, false, 404, respTime);
     }
-
   }
 
   @Override
@@ -161,8 +158,10 @@ public class OpenstackCollector extends LifecycleCollector {
       List<? extends Server> instancesList = getOsProbeResult().getOsInstanceList();
       for (Server server : instancesList) {
         if (server.getName().contains(INSTANCE_NAME)) {
-          log.debug("Still the instance " + server.getName()
-              + " is listed or is about to be totally removed");
+          log.debug(
+              "Still the instance "
+                  + server.getName()
+                  + " is listed or is about to be totally removed");
 
           long respTime = new Date().getTime() - currentTime;
           log.info("Collected clear statistics in: " + String.valueOf(respTime));
@@ -175,5 +174,4 @@ public class OpenstackCollector extends LifecycleCollector {
     long respTime = new Date().getTime() - currentTime;
     return new AppOperation(AppOperation.Operation.CLEAR, true, 200, respTime);
   }
-
 }

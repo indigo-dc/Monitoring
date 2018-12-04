@@ -26,7 +26,7 @@ public class TestCollector extends LifecycleCollector {
   }
 
   @Override
-  protected String getHostName() {
+  public String getHostName() {
     return this.hostname;
   }
 

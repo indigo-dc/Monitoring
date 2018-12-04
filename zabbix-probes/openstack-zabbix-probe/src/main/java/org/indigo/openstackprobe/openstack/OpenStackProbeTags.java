@@ -1,28 +1,23 @@
 package org.indigo.openstackprobe.openstack;
 
-/**
- * <p>
- * Interface for exposing the properties.
- * </p>
- */
+/** Interface for exposing the properties. */
 public interface OpenStackProbeTags {
 
-  public static final String JAVA_KEYSTORE = "java.keystore";
-  public static final String ZABBIX_IP = "zabbix.ip";
-  public static final String ZABBIX_WRAPPER = "zabbix.wrapper.location";
-  public static final String CMDB_URL = "cmdb.location";
+  String JAVA_KEYSTORE = "java.keystore";
+  String ZABBIX_IP = "zabbix.ip";
+  String ZABBIX_WRAPPER = "zabbix.wrapper.location";
+  String CMDB_URL = "cmdb.location";
 
-  public static final String INSTANCE_NAME = "vMOpenstackZabbixProbe_";
-  public static final String WAIT_FOR_CREATION = "wait.real.vm.creation";
-  public static final String IAM_AUTHENTICATION = "is-iam-authenticated";
+  String INSTANCE_NAME = "vMOpenstackZabbixProbe_";
+  String WAIT_FOR_CREATION = "wait.real.vm.creation";
+  String IAM_AUTHENTICATION = "is-iam-authenticated";
 
-  public static final String IAM_LOCATION = "iam.location";
-  public static final String IAM_USERNAME = "iam.username";
-  public static final String IAM_PASSWORD = "iam.password";
+  String IAM_LOCATION = "iam.location";
+  String IAM_USERNAME = "iam.username";
+  String IAM_PASSWORD = "iam.password";
 
-  public static final String PROVIDERS_EXCEPTIONS = "providers.exceptions";
+  String PROVIDERS_EXCEPTIONS = "providers.exceptions";
 
-  public static String CONFIG_FILE = "openstackprobe.properties";
+  String CONFIG_FILE = "openstackprobe.properties";
   String OPENSTACK_METRIC = "os.metric";
-
 }

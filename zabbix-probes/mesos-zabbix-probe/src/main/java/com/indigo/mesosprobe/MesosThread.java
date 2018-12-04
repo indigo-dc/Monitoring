@@ -1,44 +1,36 @@
 package com.indigo.mesosprobe;
 
-import com.indigo.zabbix.utils.PropertiesManager;
-import com.indigo.zabbix.utils.ZabbixClient;
-
+import com.indigo.zabbix.utils.CmdbServiceThread;
+import com.indigo.zabbix.utils.beans.DocDataType;
+import com.indigo.zabbix.utils.beans.ServiceInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.io.IOException;
-
-/**
- * Created by jose on 22/09/16.
- */
-public class MesosThread {
+/** Created by jose on 22/09/16. */
+public class MesosThread extends CmdbServiceThread<MesosCollector> {
 
   private static final Log logger = LogFactory.getLog(MesosThread.class);
 
-  private ZabbixClient zabbixMesosClient =
-      new ZabbixClient("IaaS", "Mesos", "TemplateMesos");
-
-  private void startMonitoring() {
-    MesosCollector collector = new MesosCollector();
-    zabbixMesosClient.sendMetrics(collector.getMetrics());
+  protected MesosThread() {
+    super("IaaS", "Mesos", "TemplateMesos");
   }
-
-
 
   /**
    * Start monitoring process.
+   *
    * @param args Arguments will be ignored.
    */
   public static void main(String[] args) {
-
-    try {
-      PropertiesManager.loadProperties(MesosProbeTags.CONFIG_FILE);
-      MesosThread thread = new MesosThread();
-      thread.startMonitoring();
-    } catch (IOException e) {
-      logger.error("Error reading configuration file", e);
-    }
-
+    new MesosThread().run(MesosProbeTags.CONFIG_FILE, args);
   }
 
+  @Override
+  protected MesosCollector createServiceCollector(ServiceInfo service) {
+    return new MesosCollector(service.getDoc().getData().getEndpoint());
+  }
+
+  @Override
+  protected DocDataType.ServiceType getServiceType() {
+    return DocDataType.ServiceType.MESOS;
+  }
 }

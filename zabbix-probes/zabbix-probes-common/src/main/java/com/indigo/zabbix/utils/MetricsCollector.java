@@ -7,4 +7,6 @@ public interface MetricsCollector {
 
   ZabbixMetrics getMetrics();
 
+  String getHostName();
+
 }

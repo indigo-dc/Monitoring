@@ -2,23 +2,55 @@ package com.indigo.zabbix.utils.beans;
 
 import com.google.gson.annotations.SerializedName;
 
-/**
- * Created by jose on 8/02/17.
- */
+/** Created by jose on 8/02/17. */
 public class DocDataType {
 
+  public enum ServiceType {
+    @SerializedName("eu.egi.cloud.vm-management.openstack")
+    OPENSTACK,
+    @SerializedName("eu.egi.cloud.storage-management.oneprovider")
+    ONEPROVIDER,
+    @SerializedName("eu.indigo-datacloud.marathon")
+    MARATHON,
+    @SerializedName("eu.indigo-datacloud.chronos")
+    CHRONOS,
+    @SerializedName("eu.egi.storage-element")
+    STORAGE,
+    @SerializedName("eu.indigo-datacloud.mesos")
+    MESOS
+  }
+
+  public class PropertiesType {
+
+    @SerializedName("gpu_support")
+    private Boolean gpuSupport;
+
+    public Boolean getGpuSupport() {
+      return gpuSupport;
+    }
+
+    public void setGpuSupport(Boolean gpuSupport) {
+      this.gpuSupport = gpuSupport;
+    }
+  }
+
   @SerializedName("service_type")
-  String serviceType;
+  ServiceType serviceType;
+
   String endpoint;
+
   @SerializedName("provider_id")
   String providerId;
+
   String type;
 
-  public String getServiceType() {
+  PropertiesType properties;
+
+  public ServiceType getServiceType() {
     return serviceType;
   }
 
-  public void setServiceType(String serviceType) {
+  public void setServiceType(ServiceType serviceType) {
     this.serviceType = serviceType;
   }
 
@@ -44,5 +76,13 @@ public class DocDataType {
 
   public void setType(String type) {
     this.type = type;
+  }
+
+  public PropertiesType getProperties() {
+    return properties;
+  }
+
+  public void setProperties(PropertiesType properties) {
+    this.properties = properties;
   }
 }

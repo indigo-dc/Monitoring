@@ -1,119 +1,120 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <artifactId>heapster-zabbix-probe</artifactId>
-  <name>Zabbix Heapster Probe</name>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>heapster-zabbix-probe</artifactId>
+    <name>Zabbix Heapster Probe</name>
 
-	<parent>
-		<groupId>org.indigo</groupId>
-		<artifactId>zabbix-probes-base</artifactId>
-		<relativePath>../zabbix-probes-base</relativePath>
-		<version>1.1</version>
-	</parent>
+    <parent>
+        <groupId>org.indigo</groupId>
+        <artifactId>zabbix-probes-base</artifactId>
+        <relativePath>../zabbix-probes-base</relativePath>
+        <version>1.2</version>
+    </parent>
 
-  
-  <inceptionYear>2016</inceptionYear>
 
-  <licenses>
-	<license>
-		<name>Apache License, Version 2.0</name>
-		<url>http://www.apache.org/licenses/LICENSE-2.0</url>
-		<distribution>jar</distribution>
-	</license>
-  </licenses>
-  
-  <developers>
-	<developer>
-		<name>ATOS</name>
-	</developer>
-  </developers>
-  
+    <inceptionYear>2016</inceptionYear>
 
-  
-  <build>
-    	<!-- Configuration for creating the deb and rpm packages -->
-    	<plugins>
-    	
-    	<!-- Creation of the jar with dependencies -->
-    	<plugin>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <version>2.3</version>
-            <configuration>
-          	  	<archive>
-					<manifest>
-						<mainClass>org.indigo.heapsterprobe.ProbeThread</mainClass>
-					</manifest>
-				</archive>
-            </configuration>
-		</plugin>
-    	
-    	<!-- Creation of the deb package -->
-      	<plugin>        	
-        	<artifactId>jdeb</artifactId>
-        	<groupId>org.vafer</groupId>
-	
-        	<executions>
-          		<execution>
-            		<goals>
-              			<goal>jdeb</goal>
-            		</goals>
-            		<configuration>
-              			<dataSet>
-							<data>
-								<src>${project.artifactId}-${project.version}-jar-with-dependencies.jar</src>
-								<type>file</type>
-								<mapper>
-									<type>perm</type>
-									<prefix>/usr/share/java/zabbix/</prefix>
-								</mapper>
-							</data>
-                			<data>
-                  				<src>src/main/resources/heapsterprobe.properties</src>
-                  				<type>file</type>
-                  				<mapper>
-                    				<type>perm</type>
-                    				<prefix>/etc/zabbix/</prefix>
-                  				</mapper>
-                                <conffile>true</conffile>
-                			</data>
-              			</dataSet>
-            		</configuration>
-          		</execution>
-        	</executions>
-		</plugin>
-      
-      	<!-- Creation of the rpm package -->
-      	<plugin>
-			<groupId>org.codehaus.mojo</groupId>
-			<artifactId>rpm-maven-plugin</artifactId>
-			<configuration>
-                <name>HeapsterZabbixProbe</name>
-          		<mappings>
-					<mapping>
-						<directory>/usr/share/java/zabbix/</directory>
-						<filemode>644</filemode>
-						<username>root</username>
-						<groupname>root</groupname>
-						<sources>
-							<source>
-								<location>${project.artifactId}-${project.version}-jar-with-dependencies.jar</location>
-							</source>
-						</sources>
-					</mapping>
-					<mapping>
-              			<directory>/etc/zabbix/</directory>
-            				<filemode>644</filemode>
-              				<username>root</username>
-              				<groupname>root</groupname>
-              				<sources>
-                				<source>
-                  					<location>src/main/resources/heapsterprobe.properties</location>
-                				</source>
-              				</sources>
-					</mapping>
-				</mappings>
-			</configuration>
-		</plugin>
-    </plugins>
-  </build>
-  
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>jar</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>ATOS</name>
+        </developer>
+    </developers>
+
+
+    <build>
+        <!-- Configuration for creating the deb and rpm packages -->
+        <plugins>
+
+            <!-- Creation of the jar with dependencies -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.indigo.heapsterprobe.ProbeThread</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!-- Creation of the deb package -->
+            <plugin>
+                <artifactId>jdeb</artifactId>
+                <groupId>org.vafer</groupId>
+
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>jdeb</goal>
+                        </goals>
+                        <configuration>
+                            <dataSet>
+                                <data>
+                                    <src>${project.artifactId}-${project.version}-jar-with-dependencies.jar</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/share/java/zabbix/</prefix>
+                                    </mapper>
+                                </data>
+                                <data>
+                                    <src>src/main/resources/heapsterprobe.properties</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/etc/zabbix/</prefix>
+                                    </mapper>
+                                    <conffile>true</conffile>
+                                </data>
+                            </dataSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Creation of the rpm package -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>rpm-maven-plugin</artifactId>
+                <configuration>
+                    <name>HeapsterZabbixProbe</name>
+                    <mappings>
+                        <mapping>
+                            <directory>/usr/share/java/zabbix/</directory>
+                            <filemode>644</filemode>
+                            <username>root</username>
+                            <groupname>root</groupname>
+                            <sources>
+                                <source>
+                                    <location>${project.artifactId}-${project.version}-jar-with-dependencies.jar
+                                    </location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>/etc/zabbix/</directory>
+                            <filemode>644</filemode>
+                            <username>root</username>
+                            <groupname>root</groupname>
+                            <sources>
+                                <source>
+                                    <location>src/main/resources/heapsterprobe.properties</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                    </mappings>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

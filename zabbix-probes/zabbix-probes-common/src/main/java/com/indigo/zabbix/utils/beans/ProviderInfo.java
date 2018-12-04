@@ -1,29 +1,18 @@
 package com.indigo.zabbix.utils.beans;
 
-import com.google.gson.annotations.SerializedName;
-
 /**
  * Created by jose on 8/02/17.
  */
 public class ProviderInfo {
 
-  @SerializedName("provider_id")
-  String providerId;
-  String type;
+  String id;
 
-  public String getProviderId() {
-    return providerId;
+  public String getId() {
+    return id;
   }
 
-  public void setProviderId(String providerId) {
-    this.providerId = providerId;
+  public void setId(String id) {
+    this.id = id;
   }
 
-  public String getType() {
-    return type;
-  }
-
-  public void setType(String type) {
-    this.type = type;
-  }
 }

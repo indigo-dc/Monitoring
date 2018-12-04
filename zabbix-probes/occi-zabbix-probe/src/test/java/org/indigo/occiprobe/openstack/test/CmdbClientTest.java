@@ -8,7 +8,7 @@ import com.indigo.zabbix.utils.CloudProviderInfo;
 import com.indigo.zabbix.utils.CmdbClient;
 import com.indigo.zabbix.utils.CmdbFeignClient;
 import com.indigo.zabbix.utils.beans.CmdbResponse;
-import com.indigo.zabbix.utils.beans.ServiceType;
+import com.indigo.zabbix.utils.beans.ServiceInfo;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +38,7 @@ public class CmdbClientTest {
         "{\"id\":\"T-Systems-Openstack\",\"key\":[\"provider-T-Systems-Openstack\",\"services\"],\"value\":{\"sitename\":\"T-Systems\",\"provider_id\":\"provider-T-Systems-Openstack\",\"hostname\":\"tsystem-os\",\"type\":\"compute\"},\"doc\":{\"_id\":\"T-Systems-Openstack\",\"_rev\":\"1-eeafe39e1aa860ee9498e2753b0b20ac\",\"type\":\"service\",\"data\":{\"service_type\":\"eu.egi.cloud.vm-management.openstack\",\"endpoint\":\"https://tsystem-os:443/v3\",\"provider_id\":\"provider-T-Systems-Openstack\",\"type\":\"compute\",\"hostname\":\"tsystem-os\",\"sitename\":\"T-Systems\"}}}\n" +
         "]}";
 
-    CmdbResponse<ServiceType> serviceResponse = new Gson().fromJson(services, new TypeToken<CmdbResponse<ServiceType>>(){}.getType());
+    CmdbResponse<ServiceInfo> serviceResponse = new Gson().fromJson(services, new TypeToken<CmdbResponse<ServiceInfo>>(){}.getType());
 
     Mockito.when(mockClient.services()).thenReturn(serviceResponse);
 

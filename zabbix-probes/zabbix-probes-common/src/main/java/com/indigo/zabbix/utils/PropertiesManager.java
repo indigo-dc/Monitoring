@@ -1,7 +1,14 @@
 package com.indigo.zabbix.utils;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.File;
 import java.io.FileReader;
@@ -9,14 +16,34 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.List;
 
-/**
- * Created by jose on 16/08/16.
- */
+/** Created by jose on 16/08/16. */
 public class PropertiesManager {
+
+  private static final Log logger = LogFactory.getLog(PropertiesManager.class);
 
   private static PropertiesConfiguration props = new PropertiesConfiguration();
 
   private static final String DEFAULT_LOG_FILE = "probes-log.properties";
+
+  private static File getConfigFile(String file, String[] args) {
+    try {
+      Options options =
+          new Options()
+              .addOption("l", "config-location", true, "Set the configuration file location");
+      CommandLineParser parser = new DefaultParser();
+      CommandLine cmd = parser.parse(options, args);
+      if (cmd.hasOption("l")) {
+        return new File(cmd.getOptionValue("l") + "/" + file);
+      }
+    } catch (ParseException e) {
+      logger.error(
+          "Error parsing command line options: "
+              + e.getMessage()
+              + "\nUsing default configuration file location");
+    }
+
+    return getConfigFile(file);
+  }
 
   private static File getConfigFile(String file) {
     String location = "";
@@ -28,6 +55,16 @@ public class PropertiesManager {
     }
 
     return new File(location + "/" + file);
+  }
+
+  /**
+   * Loads the configuration file from a potential custom location passed as argument.
+   *
+   * @throws IOException Exception in case of fail.
+   */
+  public static void loadProperties(String configFileName, String[]args) throws IOException {
+    File configFile = getConfigFile(configFileName, args);
+    loadProperties(new FileReader(configFile));
   }
 
   /**
@@ -56,7 +93,7 @@ public class PropertiesManager {
 
   /**
    * Get an individual property value.
-   * 
+   *
    * @param property The property name.
    * @return The property value.
    */
@@ -66,7 +103,7 @@ public class PropertiesManager {
 
   /**
    * Get a property value providing a default in case it's not found.
-   * 
+   *
    * @param property The property name.
    * @param defaultValue The property default value.
    * @return The property value.
@@ -82,7 +119,7 @@ public class PropertiesManager {
 
   /**
    * Get a property list value.
-   * 
+   *
    * @param property The property name.
    * @return The property value.
    */

@@ -71,8 +71,6 @@ public abstract class LifecycleCollector implements MetricsCollector {
 
   }
 
-  protected abstract String getHostName();
-
   protected abstract AppOperation clear();
 
   protected abstract AppOperation create();

@@ -3,13 +3,14 @@ package com.indigo.zabbix.utils.beans;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by jose on 11/16/16.
- */
+/** Created by jose on 11/16/16. */
 public class AppOperation {
 
   public enum Operation {
-    CLEAR, CREATE, RUN, DELETE;
+    CLEAR,
+    CREATE,
+    RUN,
+    DELETE
   }
 
   private Operation operation;
@@ -19,7 +20,7 @@ public class AppOperation {
 
   /**
    * Generic operation constructor.
-   * 
+   *
    * @param operation The operations executed.
    * @param result True if the operation was executed successfully.
    * @param status Status code for the operation.
@@ -50,7 +51,7 @@ public class AppOperation {
 
   /**
    * Get a zabbix metrics representation of this operation results.
-   * 
+   *
    * @return The metrics representation as a key-value pair.
    */
   public Map<String, String> getMetrics() {
