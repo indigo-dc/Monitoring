@@ -71,6 +71,8 @@ This means that the probe will run every hour at xx:00, xx:15 and xx:30 each one
 
 The configuration of the different parameters is accomplished by modifying the /etc/zabbix/mesosprobe.properties file:
 
+To change the location of the configuration file, you can provide a `-l <location>` argument to the launch script so for example, executing `mesosprobe.sh mesos -l /home/user` will try to find the configuration file at `/home/user/mesosprobe.properties`.
+
 * cmdb.location: URL pointing to a CMDB instance to get Mesos, Chronos and Marathon services locations.
 
 * iam.location: Location of the IAM instance.

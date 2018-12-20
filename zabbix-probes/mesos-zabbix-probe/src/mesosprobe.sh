@@ -6,15 +6,15 @@ BASE="java $LOG_CONF -cp /usr/share/java/zabbix/mesos-zabbix-probe.jar"
 
 case $COMMAND in
   mesos)
-    $BASE com.indigo.mesosprobe.MesosThread
+    $BASE com.indigo.mesosprobe.MesosThread ${@:2}
     ;;
 
   marathon)
-    $BASE com.indigo.mesosprobe.marathon.MarathonThread
+    $BASE com.indigo.mesosprobe.marathon.MarathonThread ${@:2}
     ;;
 
   chronos)
-    $BASE com.indigo.mesosprobe.chronos.ChronosThread
+    $BASE com.indigo.mesosprobe.chronos.ChronosThread ${@:2}
     ;;
 
   *)
