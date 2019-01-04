@@ -81,6 +81,9 @@ To change the location of the configuration file, you can provide a `-l <locatio
 * iam.clientid: ClientID to use to authenticate against the IAM instance.
 * iam.clientsecret: Client secret of the above ClientID.
 
+* hosts.category: Hosts will be registered under this category. Defaults to "IAAS"
+* hosts.group: Hosts will be registered in this group of the above category. Defaults to "Cloud_Providers"
+
 * zabbix.wrapper.location: Location of the Zabbix wrapper instance that will serve to register hosts dynamically
 * zabbix.ip: IP of the Zabbix server to send the metrics
 * zabbix.port: **Optional.** Port of the Zabbix server. If undefined it will use the default 10051

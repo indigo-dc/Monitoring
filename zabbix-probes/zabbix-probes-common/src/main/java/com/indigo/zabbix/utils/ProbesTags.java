@@ -9,6 +9,9 @@ public interface ProbesTags {
   String ZABBIX_HOST = "zabbix.ip";
   String ZABBIX_PORT = "zabbix.port";
 
+  String HOSTS_CATEGORY = "hosts.category";
+  String HOSTS_GROUP = "hosts.group";
+
   String OPENSTACK_PROJECT = "openstack.project";
 
   String IAM_LOCATION = "iam.location";

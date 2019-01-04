@@ -12,7 +12,7 @@ public class MesosThread extends CmdbServiceThread<MesosCollector> {
   private static final Log logger = LogFactory.getLog(MesosThread.class);
 
   protected MesosThread() {
-    super("IaaS", "Mesos", "TemplateMesos");
+    super("IaaS", "Cloud_Providers", "TemplateMesos");
   }
 
   /**

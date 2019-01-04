@@ -11,7 +11,7 @@ import com.nimbusds.openid.connect.sdk.token.OIDCTokens;
 public class ChronosThread extends CmdbServiceThread<ChronosCollector> {
 
   public ChronosThread() {
-    super("IaaS", "Chronos", "RuntimeTestTemplate");
+    super("IaaS", "Cloud_Providers", "RuntimeTestTemplate");
   }
 
   public static void main(String[] args) {
