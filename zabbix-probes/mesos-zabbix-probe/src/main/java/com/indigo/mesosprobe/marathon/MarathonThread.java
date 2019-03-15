@@ -10,7 +10,7 @@ import com.nimbusds.openid.connect.sdk.token.OIDCTokens;
 public class MarathonThread extends CmdbServiceThread<MarathonCollector> {
 
   protected MarathonThread() {
-    super("IaaS", "Marathon", "RuntimeTestTemplate");
+    super("IaaS", "Cloud_Providers", "RuntimeTestTemplate");
   }
 
   public static void main(String[] args) {

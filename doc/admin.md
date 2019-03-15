@@ -164,3 +164,4 @@ In the case of providers requiring some communication using SSL (because of HTTP
 ```
 keytool -importcert -trustcacerts -alias infnkeystone -file infnkeystone.cer -keystore "%JAVA_HOME%/jre/lib/security/cacerts"
 ```
+

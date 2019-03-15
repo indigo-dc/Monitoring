@@ -71,19 +71,23 @@ This means that the probe will run every hour at xx:00, xx:15 and xx:30 each one
 
 The configuration of the different parameters is accomplished by modifying the /etc/zabbix/mesosprobe.properties file:
 
-* mesos.master.endpoint: The master endpoint and port to gather the Mesos metrics. It will check the leader node and retrieve the actual metrics from it.
-* mesos.metric: **This property can be defined more than once.** Each value of this property will be a metric retrieved from the metrics API that will be sent to the Zabbix server. Since those metrics come in the form `master/<metric>` it will be sent to Zabbix as `master.<metric>` key. Please make sure the key is correctly defined in the template associated to the host in the Zabbix configuration.
+To change the location of the configuration file, you can provide a `-l <location>` argument to the launch script so for example, executing `mesosprobe.sh mesos -l /home/user` will try to find the configuration file at `/home/user/mesosprobe.properties`.
 
-* chronos.endpoint: URL and port of the Chronos instance
-* chronos.username: Username of the chronos instance
-* chronos.password: Password associated to the above user
+* cmdb.location: URL pointing to a CMDB instance to get Mesos, Chronos and Marathon services locations.
 
-* marathon.endpoint: URL and port of the Marathon instance
-* marathon.username: Username of the Marathon instance
-* marathon.password: Password associated to the above user
+* iam.location: Location of the IAM instance.
+* iam.username: Username of the IAM to use to get data and create objects.
+* iam.password: Password associated to the above use.
+* iam.clientid: ClientID to use to authenticate against the IAM instance.
+* iam.clientsecret: Client secret of the above ClientID.
+
+* hosts.category: Hosts will be registered under this category. Defaults to "IAAS"
+* hosts.group: Hosts will be registered in this group of the above category. Defaults to "Cloud_Providers"
 
 * zabbix.wrapper.location: Location of the Zabbix wrapper instance that will serve to register hosts dynamically
 * zabbix.ip: IP of the Zabbix server to send the metrics
 * zabbix.port: **Optional.** Port of the Zabbix server. If undefined it will use the default 10051
+
+* mesos.metric: **This property can be defined more than once.** Each value of this property will be a metric retrieved from the metrics API that will be sent to the Zabbix server. Since those metrics come in the form `master/<metric>` it will be sent to Zabbix as `master.<metric>` key. Please make sure the key is correctly defined in the template associated to the host in the Zabbix configuration.
 
 As for logging, the probe uses the default JDK 1.4 logging system through Apache Commons Logging. As such, a default configuration is provided in the file /etc/zabbix/mesosprobe-log.properties that will log events by default to the console and the /var/log/mesosprobe<number>.log file

@@ -3,7 +3,7 @@
 /zabbix-probes/occi-zabbix-probe/occi-zabbix-probe.iml
 /zabbix-wrapper/monitoring-pillar.iml
 /MonitoringProbes.iml
-/.idea/
+**/**/.idea/
 /zabbix-probes/mesos-zabbix-probe/mesos-zabbix-probe.iml
 /zabbix-probes/zabbix-probes-common/zabbix-probes-common.iml
 .classpath

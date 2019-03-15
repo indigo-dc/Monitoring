@@ -1,0 +1,1 @@
+docker logs -f `docker run -d --name=indigo-zabbix-wrapper -e ZABBIX_URL=http://zabbix-docker_zabbix-web-nginx-mysql_1/api_jsonrpc.php -e ZABBIX_USERNAME=Admin -e ZABBIX_PASSWORD=zabbix  --name zabbix-wrapper -h zabbix-wrapper --network zabbix-docker_zbx_net_backend  -p 8080:808 indigodatacloud/zabbix-wrapper`
