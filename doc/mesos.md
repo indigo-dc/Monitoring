@@ -91,3 +91,10 @@ To change the location of the configuration file, you can provide a `-l <locatio
 * mesos.metric: **This property can be defined more than once.** Each value of this property will be a metric retrieved from the metrics API that will be sent to the Zabbix server. Since those metrics come in the form `master/<metric>` it will be sent to Zabbix as `master.<metric>` key. Please make sure the key is correctly defined in the template associated to the host in the Zabbix configuration.
 
 As for logging, the probe uses the default JDK 1.4 logging system through Apache Commons Logging. As such, a default configuration is provided in the file /etc/zabbix/mesosprobe-log.properties that will log events by default to the console and the /var/log/mesosprobe<number>.log file
+
+6 Docker
+----------------- 
+
+Build a docker image with ```docker build . -t <image_name>:<image_version>``` where ```image_name``` and ```image_version``` are arbitrary names although something like ```mesos-probe:1.3``` is recommended
+
+A container that executes the probe can then be run with ```docker run -v <config_path>:/etc/zabbix <image_name>:<image_version> <probe>``` where ```config_path``` is a path in the local filesystem to a folder containing a valid ```mesosprobe.properties``` file and ```probe``` is the probe to execute (```mesos```, ```chronos``` or ```marathon```)
