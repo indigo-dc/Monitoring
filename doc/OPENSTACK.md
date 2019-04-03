@@ -61,12 +61,28 @@ The Openstack probe requires to modify the openstackprobe.properties (inserted i
 * iam.clientid
 * iam.clientsecret
 * openstack.project - Name of the tenant where deploying the VMs
-* providers.exceptions - Meaning there are differences in configurations amongst the cloud providers just like the following two parameters
+* providers.exceptions - If set to true, providers in the oszones.yml file will have a custom configuration instead of the standard one specified in openstackprobe.properties. Please, see next section for how to configure this custom providers.
 * iam.protocol - Stands for the method used to get the unscoped token from openstack by using the already obtained bearer token
-* iam.identity.provider - stands for the general provider and that is as standard: indigo-dc
+* iam.identity.provider - The Identity Provider to pass to OpenStack to get the Keystone token.
 
 The probe now supports IAM authenticatiom so that with SSO it can communicate with all the Opestack supporting IAM authentication standard.
 However, if skipping Iam authentication from porperty file, just make sure to insert the credentials of openstack tenant (where the probe tries creating, deleting and inspecting the instances) inside oszones.yml file located at the same path as openstackprobe.properties.
+
+# 5 Per provider configuration
+Due to differences in the configuration of providers, we need to know which protocol, provider and project to use when getting the Keystone token. A standard one can be configured in openstackprobe.properties by filling the openstack.project, iam.protocol and iam.identity.provider properties. However, if any provider deviates from that, its custom configuration can be specified in an extra file named oszones.yml that resides in the same folder as openstackprobe.properties file. The format of such file is:
+```yaml
+cloud-providers-zones:
+  - name: <provider_name>
+    password: "<pswd>"
+    username: "<usr>"
+    tenant: <project>
+```
+
+Where:
+* provider_name is the name of the provider as it appears in the CMDB
+* usr is the user configured to access keystone (not needed if using IAM)
+* pswd is the password to access keystone (not needed if using IAM)
+* tenant is the project in which the test VMs will be created to monitor the Open Stack installation. This project has to have enough permissions to create, get and delete VMs for the configured user (either IAM user or the custom one if not using IAM)
 
 # 5 Potential Issues
 
