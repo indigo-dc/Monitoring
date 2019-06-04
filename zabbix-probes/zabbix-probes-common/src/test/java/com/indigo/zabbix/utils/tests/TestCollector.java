@@ -9,16 +9,18 @@ import com.indigo.zabbix.utils.beans.AppOperation;
 public class TestCollector extends LifecycleCollector {
 
   private String hostname;
+  private String hostGroup;
 
   private boolean clearResult;
   private boolean createResult;
   private boolean retrieveResult;
   private boolean deleteResult;
 
-  public TestCollector(String hostname, boolean clearResult, boolean createResult,
+  public TestCollector(String hostname, String hostGroup, boolean clearResult, boolean createResult,
                        boolean retrieveResult, boolean deleteResult) {
 
     this.hostname = hostname;
+    this.hostGroup = hostGroup;
     this.clearResult = clearResult;
     this.createResult = createResult;
     this.retrieveResult = retrieveResult;
@@ -28,6 +30,11 @@ public class TestCollector extends LifecycleCollector {
   @Override
   public String getHostName() {
     return this.hostname;
+  }
+
+  @Override
+ public String getGroup() {
+    return this.hostGroup;
   }
 
   @Override

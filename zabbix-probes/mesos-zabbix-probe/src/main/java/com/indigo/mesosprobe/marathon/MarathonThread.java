@@ -21,8 +21,7 @@ public class MarathonThread extends CmdbServiceThread<MarathonCollector> {
   protected MarathonCollector createServiceCollector(ServiceInfo service) {
     OIDCTokens accessToken = IamClient.getAccessToken();
     if (accessToken != null) {
-      return new MarathonCollector(
-          service.getDoc().getData().getEndpoint(), accessToken.getAccessToken().toString());
+      return new MarathonCollector(service, accessToken.getAccessToken().toString());
     }
     return null;
   }

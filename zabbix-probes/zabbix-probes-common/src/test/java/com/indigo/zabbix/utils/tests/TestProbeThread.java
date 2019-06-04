@@ -22,9 +22,6 @@ public class TestProbeThread extends ProbeThread<TestCollector> {
   private boolean deleteResult;
 
   public TestProbeThread(
-      String category,
-      String group,
-      String template,
       String hostname,
       boolean clearResult,
       boolean createResult,
@@ -52,6 +49,6 @@ public class TestProbeThread extends ProbeThread<TestCollector> {
   @Override
   protected List<TestCollector> createCollectors() {
     return Arrays.asList(
-        new TestCollector(hostname, clearResult, createResult, retrieveResult, deleteResult));
+        new TestCollector(hostname, "testgroup", clearResult, createResult, retrieveResult, deleteResult));
   }
 }

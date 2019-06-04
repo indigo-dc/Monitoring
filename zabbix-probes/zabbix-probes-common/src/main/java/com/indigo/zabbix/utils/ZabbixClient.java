@@ -21,7 +21,6 @@ public class ZabbixClient {
   public static final Integer ZABBIX_DEFAULT_PORT = 10051;
 
   private String zabbixCategory;
-  private String zabbixGroup;
   private String zabbixTemplate;
 
   private static final Log logger = LogFactory.getLog(ZabbixClient.class);
@@ -35,10 +34,9 @@ public class ZabbixClient {
    * @param wrapperClient mock wrapper client.
    * @param sender mock wrapper sender.
    */
-  public ZabbixClient(String category, String group, String template,
+  public ZabbixClient(String category, String template,
       ZabbixWrapperClient wrapperClient, ZabbixSender sender) {
     this.zabbixCategory = category;
-    this.zabbixGroup = group;
     this.zabbixTemplate = template;
     this.wrapperClient = wrapperClient;
     this.sender = sender;
@@ -47,8 +45,8 @@ public class ZabbixClient {
   /**
    * Default constructor that will read the information from the configuration properties.
    */
-  public ZabbixClient(String category, String group, String template) {
-    this(PropertiesManager.getProperty(ProbesTags.ZABBIX_WRAPPER_ENDPOINT), category, group,
+  public ZabbixClient(String category, String template) {
+    this(PropertiesManager.getProperty(ProbesTags.ZABBIX_WRAPPER_ENDPOINT), category,
         template, PropertiesManager.getProperty(ProbesTags.ZABBIX_HOST), new Integer(
             PropertiesManager.getProperty(ProbesTags.ZABBIX_PORT, ZABBIX_DEFAULT_PORT.toString())));
   }
@@ -56,7 +54,7 @@ public class ZabbixClient {
   /**
    * Default constructor.
    */
-  public ZabbixClient(String wrapperEndpoint, String category, String group, String template,
+  public ZabbixClient(String wrapperEndpoint, String category,  String template,
       String zabbixHost, Integer zabbixPort) {
 
     wrapperClient = ProbeClientFactory.getZabbixWrapperClient(wrapperEndpoint);
@@ -66,7 +64,6 @@ public class ZabbixClient {
     sender = new ZabbixSender(zabbixHost, port);
 
     zabbixCategory = category;
-    zabbixGroup = group;
     zabbixTemplate = template;
   }
 
@@ -76,7 +73,8 @@ public class ZabbixClient {
    * @param host The host name.
    * @return The registration status.
    */
-  public boolean ensureRegistration(String host, boolean register) throws Exception {
+  public boolean ensureRegistration(String host, String zabbixGroup, boolean register)
+          throws Exception {
 
     Response hostInfo = wrapperClient.getHostInfo(host, zabbixGroup);
     if (hostInfo.status() < 300 && hostInfo.status() >= 200) {
@@ -86,7 +84,7 @@ public class ZabbixClient {
         Response registrationResult = wrapperClient.registerHost(host, zabbixGroup,
             new ZabbixHost(host, zabbixCategory, zabbixGroup, zabbixTemplate));
         if (registrationResult.status() < 300 && registrationResult.status() >= 200) {
-          return ensureRegistration(host, false);
+          return ensureRegistration(host, zabbixGroup,false);
         } else {
           throw new Exception(hostInfo.reason());
         }
@@ -103,7 +101,7 @@ public class ZabbixClient {
    */
   public SenderResult sendMetrics(ZabbixMetrics metrics) {
     try {
-      if (ensureRegistration(metrics.getHostName(), true)) {
+      if (ensureRegistration(metrics.getHostName(), metrics.getHostGroup(),true)) {
         long timeSecs = metrics.getTimestamp() / 1000;
         String zabbixHost = PropertiesManager.getProperty(ProbesTags.ZABBIX_HOST);
         if (zabbixHost != null) {

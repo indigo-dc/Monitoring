@@ -58,9 +58,11 @@ public abstract class LifecycleCollector implements MetricsCollector {
     Map<AppOperation.Operation, AppOperation> execution = executeLifecycle();
 
     String hostName = getHostName();
+    String hostGroup = getGroup();
 
     ZabbixMetrics result = new ZabbixMetrics();
     result.setHostName(hostName);
+    result.setHostGroup(hostGroup);
 
     Map<String, String> metrics = new HashMap<>();
 

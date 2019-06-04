@@ -196,13 +196,10 @@ public class ZabbixClientTest {
   public void testAppOperation() {
 
     ZabbixClient client =
-        new ZabbixClient("testCategory", "testGroup", "testTemplate", wrapperClient, sender);
+        new ZabbixClient("testCategory", "testTemplate", wrapperClient, sender);
 
     TestProbeThread testCorrect =
         new TestProbeThread(
-            "testCategory",
-            "testGroup",
-            "testTemplate",
             "testHost",
             true,
             true,

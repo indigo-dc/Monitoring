@@ -9,4 +9,6 @@ public interface MetricsCollector {
 
   String getHostName();
 
+  String getGroup();
+
 }

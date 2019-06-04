@@ -2,6 +2,7 @@ package com.indigo.mesosprobe.chronos;
 
 import com.indigo.zabbix.utils.LifecycleCollector;
 import com.indigo.zabbix.utils.beans.AppOperation;
+import com.indigo.zabbix.utils.beans.ServiceInfo;
 import it.infn.ba.indigo.chronos.client.Chronos;
 import it.infn.ba.indigo.chronos.client.ChronosClient;
 import it.infn.ba.indigo.chronos.client.model.v1.Container;
@@ -35,9 +36,9 @@ public class ChronosCollector extends LifecycleCollector {
   /**
    * Default constructor.
    */
-  public ChronosCollector(String url, String token) {
-    client = ChronosClient.getInstanceWithTokenAuth(url, token);
-    hostname = findHostName(url);
+  public ChronosCollector(ServiceInfo service, String token) {
+    client = ChronosClient.getInstanceWithTokenAuth(service.getDoc().getData().getEndpoint(), token);
+    hostname = service.getDoc().getData().getProviderId();
   }
 
   public String findHostName(String strUrl) {
@@ -145,6 +146,11 @@ public class ChronosCollector extends LifecycleCollector {
 
   @Override
   public String getHostName() {
+    return "Chronos";
+  }
+
+  @Override
+  public String getGroup() {
     return this.hostname;
   }
 }

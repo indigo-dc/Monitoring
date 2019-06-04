@@ -26,7 +26,7 @@ public class MesosThread extends CmdbServiceThread<MesosCollector> {
 
   @Override
   protected MesosCollector createServiceCollector(ServiceInfo service) {
-    return new MesosCollector(service.getDoc().getData().getEndpoint());
+    return new MesosCollector(service);
   }
 
   @Override

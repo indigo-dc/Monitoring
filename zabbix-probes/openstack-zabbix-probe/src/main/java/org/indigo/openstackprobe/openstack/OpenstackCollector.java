@@ -65,7 +65,12 @@ public class OpenstackCollector extends LifecycleCollector {
 
   @Override
   public String getHostName() {
-    return provider;
+    return "OpenStack";
+  }
+
+  @Override
+  public String getGroup() {
+    return this.provider;
   }
 
   @Override

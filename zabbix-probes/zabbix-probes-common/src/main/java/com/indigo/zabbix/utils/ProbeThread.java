@@ -48,17 +48,16 @@ public abstract class ProbeThread<T extends MetricsCollector> {
       }
 
       String category = PropertiesManager.getProperty(ProbesTags.HOSTS_CATEGORY, this.category);
-      String group = PropertiesManager.getProperty(ProbesTags.HOSTS_GROUP, this.group);
 
       if (this.client == null) {
-        this.client = new ZabbixClient(category, group, template);
+        this.client = new ZabbixClient(category, template);
       }
 
       for (T collector : createCollectors()) {
         ZabbixMetrics metrics = collector.getMetrics();
 
         if (metrics != null) {
-          result.put(collector.getHostName(), client.sendMetrics(metrics));
+          result.put(metrics.getHostName(), client.sendMetrics(metrics));
         }
       }
 

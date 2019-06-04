@@ -46,4 +46,9 @@
     <orderEntry type="library" name="Maven: org.lightcouch:lightcouch:0.2.0" level="project" />
     <orderEntry type="library" name="Maven: commons-cli:commons-cli:1.4" level="project" />
   </component>
+  <component name="copyright">
+    <Base>
+      <setting name="state" value="2" />
+    </Base>
+  </component>
 </module>

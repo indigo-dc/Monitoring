@@ -125,6 +125,11 @@ public class OpenStackOcciClient extends LifecycleCollector {
   }
 
   @Override
+  public String getGroup() {
+    return "OCCI";
+  }
+
+  @Override
   protected AppOperation clear() {
     return new AppOperation(AppOperation.Operation.CLEAR, true, 200, 0);
   }

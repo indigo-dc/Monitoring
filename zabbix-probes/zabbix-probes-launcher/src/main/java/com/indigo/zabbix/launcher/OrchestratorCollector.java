@@ -36,4 +36,9 @@ public class OrchestratorCollector implements MetricsCollector {
   public String getHostName() {
     return hostname;
   }
+
+  @Override
+  public String getGroup() {
+    return null;
+  }
 }

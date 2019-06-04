@@ -2,6 +2,7 @@ package com.indigo.mesosprobe.marathon;
 
 import com.indigo.zabbix.utils.LifecycleCollector;
 import com.indigo.zabbix.utils.beans.AppOperation;
+import com.indigo.zabbix.utils.beans.ServiceInfo;
 import it.infn.ba.indigo.chronos.client.utils.TokenAuthRequestInterceptor;
 import mesosphere.marathon.client.Marathon;
 import mesosphere.marathon.client.MarathonClient;
@@ -9,7 +10,6 @@ import mesosphere.marathon.client.model.v2.App;
 import mesosphere.marathon.client.model.v2.Container;
 import mesosphere.marathon.client.model.v2.Docker;
 import mesosphere.marathon.client.model.v2.GetAppResponse;
-import mesosphere.marathon.client.model.v2.GetServerInfoResponse;
 import mesosphere.marathon.client.model.v2.Result;
 import mesosphere.marathon.client.utils.MarathonException;
 import org.apache.commons.logging.Log;
@@ -30,12 +30,12 @@ public class MarathonCollector extends LifecycleCollector {
   private String hostname;
 
   /** Default constructor. */
-  public MarathonCollector(String url, String token) {
-    this.client = MarathonClient.getInstance(url, new TokenAuthRequestInterceptor(token));
-    this.hostname = findHostName();
+  public MarathonCollector(ServiceInfo service, String token) {
+    this.client = MarathonClient.getInstance(service.getDoc().getData().getEndpoint(), new TokenAuthRequestInterceptor(token));
+    this.hostname = service.getDoc().getData().getProviderId();
   }
 
-  public String findHostName() {
+  /*public String findHostName() {
     try {
       GetServerInfoResponse serverInfo = client.getServerInfo();
 
@@ -49,7 +49,7 @@ public class MarathonCollector extends LifecycleCollector {
       logger.error("Error getting host information", e);
     }
     return null;
-  }
+  }*/
 
   @Override
   protected AppOperation clear() {
@@ -167,6 +167,11 @@ public class MarathonCollector extends LifecycleCollector {
 
   @Override
   public String getHostName() {
+    return "Marathon";
+  }
+
+  @Override
+  public String getGroup() {
     return this.hostname;
   }
 }
