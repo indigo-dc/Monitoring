@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.indigo</groupId>
     <artifactId>zabbix-probes</artifactId>
-    <version>1.2</version>
+    <version>1.3</version>
     <name>Zabbix Probe container project</name>
     <packaging>pom</packaging>
 
