@@ -79,7 +79,7 @@ public class CmdbClientForOpenStack {
     // Retrieve the services list
     CmdbResponse<ProviderInfo> jelement = cmdbClient.providerList();
     List<ProviderInfo> listArray = jelement.getRows();
-    if (listArray != null || listArray.size() == 0) {
+    if (listArray == null || listArray.size() == 0) {
       return null;
     }
 
