@@ -5,9 +5,13 @@ import feign.Logger;
 import feign.gson.GsonDecoder;
 import feign.gson.GsonEncoder;
 import feign.slf4j.Slf4jLogger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /** Created by jose on 12/08/16. */
 public class ProbeClientFactory {
+
+  private static final Log logger = LogFactory.getLog(ProbeClientFactory.class);
 
   /**
    * Returns a default Feign builder configured to use GSON and, depending on the parameters,
@@ -60,7 +64,19 @@ public class ProbeClientFactory {
    * @return A configured Feign client for the Zabbix Wrapper service.
    */
   public static ZabbixWrapperClient getZabbixWrapperClient(String endpoint) {
-    return getClient(ZabbixWrapperClient.class, endpoint);
+    Logger.Level logLevel = Logger.Level.NONE;
+    String configLog = PropertiesManager.getProperty(ProbesTags.ZABBIX_WRAPPER_LOG_LEVEL);
+    if (configLog != null) {
+      try {
+        logLevel =
+            Logger.Level.valueOf(
+                PropertiesManager.getProperty(ProbesTags.ZABBIX_WRAPPER_LOG_LEVEL));
+      } catch (Exception e) {
+        logger.info(
+            "Invalid log value " + configLog + " specified in configuration. Setting it to NONE");
+      }
+    }
+    return getClient(ZabbixWrapperClient.class, endpoint, false, logLevel);
   }
 
   /**

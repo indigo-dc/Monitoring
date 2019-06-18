@@ -6,6 +6,8 @@ package com.indigo.zabbix.utils;
 public interface ProbesTags {
 
   String ZABBIX_WRAPPER_ENDPOINT = "zabbix.wrapper.location";
+  String ZABBIX_WRAPPER_LOG_LEVEL = "zabbix.wrapper.log.level";
+
   String ZABBIX_HOST = "zabbix.ip";
   String ZABBIX_PORT = "zabbix.port";
 

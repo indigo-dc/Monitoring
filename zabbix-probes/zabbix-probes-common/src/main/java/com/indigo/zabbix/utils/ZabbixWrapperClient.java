@@ -1,5 +1,6 @@
 package com.indigo.zabbix.utils;
 
+import com.indigo.zabbix.utils.beans.ZabbixWrapperGroupCreationRequest;
 import feign.Headers;
 import feign.Param;
 import feign.RequestLine;
@@ -18,4 +19,12 @@ public interface ZabbixWrapperClient {
   @RequestLine("GET " + ZABBIX_BASE_PATH + "/{group}/hosts/{hostName}")
   @Headers("Content-Type: application/json")
   Response getHostInfo(@Param("hostName") String hostName, @Param("group") String group);
+
+  @RequestLine("GET " + ZABBIX_BASE_PATH + "/{group}")
+  @Headers("Content-Type: application/json")
+  Response getGroup(@Param("group") String group);
+
+  @RequestLine("POST " + ZABBIX_BASE_PATH)
+  @Headers("Content-Type: application/json")
+  Response registerGroup(ZabbixWrapperGroupCreationRequest group);
 }
