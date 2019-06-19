@@ -32,6 +32,7 @@ public class ChronosCollector extends LifecycleCollector {
 
   private Chronos client;
   private String hostname;
+  private String serviceId;
 
   /**
    * Default constructor.
@@ -39,6 +40,7 @@ public class ChronosCollector extends LifecycleCollector {
   public ChronosCollector(ServiceInfo service, String token) {
     client = ChronosClient.getInstanceWithTokenAuth(service.getDoc().getData().getEndpoint(), token);
     hostname = service.getDoc().getData().getProviderId();
+    this.serviceId = service.getId();
   }
 
   public String findHostName(String strUrl) {
@@ -146,7 +148,7 @@ public class ChronosCollector extends LifecycleCollector {
 
   @Override
   public String getHostName() {
-    return "Chronos";
+    return this.serviceId;
   }
 
   @Override

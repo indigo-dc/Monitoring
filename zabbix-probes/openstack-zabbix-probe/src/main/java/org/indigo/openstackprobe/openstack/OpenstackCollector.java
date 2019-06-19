@@ -17,6 +17,7 @@ import java.util.List;
 public class OpenstackCollector extends LifecycleCollector {
 
   public String provider;
+  public String serviceId;
   public String keystoneEndpoint;
   public String accessToken;
 
@@ -36,10 +37,11 @@ public class OpenstackCollector extends LifecycleCollector {
    * @param providerURL String representing the Openstack API URL
    * @param keystoneURL String representing the Keystone API URL
    */
-  protected OpenstackCollector(String accessToken, String providerId, String keystoneUrl)
+  protected OpenstackCollector(String accessToken, String serviceId, String providerId, String keystoneUrl)
       throws IllegalArgumentException {
-    provider = providerId;
-    keystoneEndpoint = keystoneUrl;
+    this.provider = providerId;
+    this.serviceId = serviceId;
+    this.keystoneEndpoint = keystoneUrl;
 
     openstackClient = new OpenStackClient(accessToken, keystoneUrl, providerId);
   }
@@ -65,7 +67,7 @@ public class OpenstackCollector extends LifecycleCollector {
 
   @Override
   public String getHostName() {
-    return "OpenStack";
+    return this.serviceId;
   }
 
   @Override

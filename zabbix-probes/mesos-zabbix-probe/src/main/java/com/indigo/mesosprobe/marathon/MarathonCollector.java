@@ -28,11 +28,13 @@ public class MarathonCollector extends LifecycleCollector {
 
   private Marathon client;
   private String hostname;
+  private String serviceId;
 
   /** Default constructor. */
   public MarathonCollector(ServiceInfo service, String token) {
     this.client = MarathonClient.getInstance(service.getDoc().getData().getEndpoint(), new TokenAuthRequestInterceptor(token));
     this.hostname = service.getDoc().getData().getProviderId();
+    this.serviceId = service.getId();
   }
 
   /*public String findHostName() {
@@ -167,7 +169,7 @@ public class MarathonCollector extends LifecycleCollector {
 
   @Override
   public String getHostName() {
-    return "Marathon";
+    return this.serviceId;
   }
 
   @Override

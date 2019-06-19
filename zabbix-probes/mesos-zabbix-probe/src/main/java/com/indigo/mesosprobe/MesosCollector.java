@@ -25,6 +25,7 @@ public class MesosCollector implements MetricsCollector {
 
   private String mesosMasterUrl;
   private String hostname;
+  private String serviceId;
 
   public MesosCollector(String masterUrl) {
     this.mesosMasterUrl = masterUrl;
@@ -34,6 +35,7 @@ public class MesosCollector implements MetricsCollector {
   public MesosCollector(ServiceInfo service) {
     this.mesosMasterUrl = service.getDoc().getData().getEndpoint();
     this.hostname = service.getDoc().getData().getProviderId();
+    this.serviceId = service.getId();
   }
 
   private String findHostName(String masterUrl) {
@@ -109,7 +111,7 @@ public class MesosCollector implements MetricsCollector {
 
   @Override
   public String getHostName() {
-    return "Mesos";
+    return this.serviceId;
   }
 
   @Override

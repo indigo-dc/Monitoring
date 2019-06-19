@@ -1,13 +1,17 @@
 package org.indigo.openstackprobe.openstack;
 
-import com.indigo.zabbix.utils.ProbeThread;
+import com.indigo.zabbix.utils.CmdbServiceThread;
+import com.indigo.zabbix.utils.IamClient;
+import com.indigo.zabbix.utils.beans.DocDataType;
+import com.indigo.zabbix.utils.beans.ServiceInfo;
+import com.nimbusds.openid.connect.sdk.token.OIDCTokens;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
 /** @author Reply Santer. */
-public class OpenstackThread extends ProbeThread<OpenstackCollector> {
+public class OpenstackThread extends CmdbServiceThread<OpenstackCollector> {
 
   private static final Logger log = LogManager.getLogger(OpenStackClient.class);
 
@@ -35,7 +39,19 @@ public class OpenstackThread extends ProbeThread<OpenstackCollector> {
   }
 
   @Override
-  protected List<OpenstackCollector> createCollectors() {
-    return ProvidersSearch.getCollectorResults();
+  protected OpenstackCollector createServiceCollector(ServiceInfo service) {
+    OIDCTokens accessToken = IamClient.getAccessToken();
+    if (accessToken != null) {
+      String serviceId = service.getId();
+      String providerId = service.getDoc().getData().getProviderId();
+      String keystoneUrl = service.getDoc().getData().getEndpoint();
+      return new OpenstackCollector(accessToken.getAccessToken().toString(), serviceId, providerId, keystoneUrl);
+    }
+    return null;
+  }
+
+  @Override
+  protected DocDataType.ServiceType getServiceType() {
+    return DocDataType.ServiceType.OPENSTACK;
   }
 }
