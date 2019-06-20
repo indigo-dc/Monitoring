@@ -2,6 +2,7 @@ package com.indigo.mesosprobe.marathon;
 
 import com.indigo.zabbix.utils.LifecycleCollector;
 import com.indigo.zabbix.utils.beans.AppOperation;
+import com.indigo.zabbix.utils.beans.DocDataType;
 import com.indigo.zabbix.utils.beans.ServiceInfo;
 import it.infn.ba.indigo.chronos.client.utils.TokenAuthRequestInterceptor;
 import mesosphere.marathon.client.Marathon;
@@ -32,7 +33,9 @@ public class MarathonCollector extends LifecycleCollector {
 
   /** Default constructor. */
   public MarathonCollector(ServiceInfo service, String token) {
-    this.client = MarathonClient.getInstance(service.getDoc().getData().getEndpoint(), new TokenAuthRequestInterceptor(token));
+    this.client =
+        MarathonClient.getInstance(
+            service.getDoc().getData().getEndpoint(), new TokenAuthRequestInterceptor(token));
     this.hostname = service.getDoc().getData().getProviderId();
     this.serviceId = service.getId();
   }
@@ -175,5 +178,10 @@ public class MarathonCollector extends LifecycleCollector {
   @Override
   public String getGroup() {
     return this.hostname;
+  }
+
+  @Override
+  public DocDataType.ServiceType getServiceType() {
+    return DocDataType.ServiceType.MARATHON;
   }
 }

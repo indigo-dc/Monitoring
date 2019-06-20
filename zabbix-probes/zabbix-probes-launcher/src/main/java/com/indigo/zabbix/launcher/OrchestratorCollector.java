@@ -6,6 +6,7 @@ import com.indigo.zabbix.launcher.client.OrchestratorClient;
 import com.indigo.zabbix.utils.MetricsCollector;
 import com.indigo.zabbix.utils.ProbeClientFactory;
 import com.indigo.zabbix.utils.ZabbixMetrics;
+import com.indigo.zabbix.utils.beans.DocDataType;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -39,6 +40,11 @@ public class OrchestratorCollector implements MetricsCollector {
 
   @Override
   public String getGroup() {
+    return null;
+  }
+
+  @Override
+  public DocDataType.ServiceType getServiceType() {
     return null;
   }
 }

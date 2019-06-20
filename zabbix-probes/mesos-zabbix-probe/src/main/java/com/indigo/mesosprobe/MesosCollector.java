@@ -6,6 +6,7 @@ import com.indigo.mesosprobe.mesos.beans.MesosMasterInfoBean;
 import com.indigo.zabbix.utils.MetricsCollector;
 import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.ZabbixMetrics;
+import com.indigo.zabbix.utils.beans.DocDataType;
 import com.indigo.zabbix.utils.beans.ServiceInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -57,10 +58,7 @@ public class MesosCollector implements MetricsCollector {
     if (metrics != null
         && metrics.getGetMetrics() != null
         && metrics.getGetMetrics().getMetrics() != null) {
-      return metrics
-          .getGetMetrics()
-          .getMetrics()
-          .stream()
+      return metrics.getGetMetrics().getMetrics().stream()
           .filter(metric -> properties.contains(metric.getName()))
           .collect(
               Collectors.toMap(
@@ -96,6 +94,7 @@ public class MesosCollector implements MetricsCollector {
 
       result.setHostName(this.getHostName());
       result.setHostGroup(this.getGroup());
+      result.setServiceType(this.getServiceType());
 
       GetMetricsResponse metrics = mesosClient.getMetrics(new GetMetricsResponse(true));
 
@@ -117,5 +116,10 @@ public class MesosCollector implements MetricsCollector {
   @Override
   public String getGroup() {
     return this.hostname;
+  }
+
+  @Override
+  public DocDataType.ServiceType getServiceType() {
+    return DocDataType.ServiceType.MESOS;
   }
 }

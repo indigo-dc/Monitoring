@@ -3,6 +3,7 @@ package com.indigo.zabbix.utils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import com.indigo.zabbix.utils.beans.DocDataType;
 import com.indigo.zabbix.utils.beans.ZabbixWrapperGroupCreationRequest;
 import com.indigo.zabbix.utils.beans.ZabbixWrapperGroupsResult;
 import com.indigo.zabbix.utils.beans.ZabbixWrapperResponse;
@@ -132,7 +133,8 @@ public class ZabbixClient {
    * @param host The host name.
    * @return The registration status.
    */
-  public boolean ensureRegistration(String host, String zabbixGroup, boolean register)
+  public boolean ensureRegistration(
+      String host, String zabbixGroup, DocDataType.ServiceType serviceType, boolean register)
       throws Exception {
 
     ZabbixWrapperGroupsResult.Group groupInfo = ensureGroupRegistration(zabbixGroup);
@@ -149,7 +151,7 @@ public class ZabbixClient {
             wrapperClient.registerHost(
                 host,
                 zabbixGroup,
-                new ZabbixHost(host, zabbixCategory, zabbixGroup, zabbixTemplate));
+                new ZabbixHost(host, serviceType, zabbixCategory, zabbixGroup, zabbixTemplate));
         if (registrationResult.status() == 201) {
           return true;
         } else {
@@ -181,7 +183,8 @@ public class ZabbixClient {
    */
   public SenderResult sendMetrics(ZabbixMetrics metrics) {
     try {
-      if (ensureRegistration(metrics.getHostName(), metrics.getHostGroup(), true)) {
+      if (ensureRegistration(
+          metrics.getHostName(), metrics.getHostGroup(), metrics.getServiceType(), true)) {
         long timeSecs = metrics.getTimestamp() / 1000;
         String zabbixHost = PropertiesManager.getProperty(ProbesTags.ZABBIX_HOST);
         if (zabbixHost != null) {

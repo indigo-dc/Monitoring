@@ -2,6 +2,7 @@ package org.indigo.openstackprobe.openstack;
 
 import com.indigo.zabbix.utils.LifecycleCollector;
 import com.indigo.zabbix.utils.beans.AppOperation;
+import com.indigo.zabbix.utils.beans.DocDataType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openstack4j.api.exceptions.ConnectionException;
@@ -37,7 +38,8 @@ public class OpenstackCollector extends LifecycleCollector {
    * @param providerURL String representing the Openstack API URL
    * @param keystoneURL String representing the Keystone API URL
    */
-  protected OpenstackCollector(String accessToken, String serviceId, String providerId, String keystoneUrl)
+  protected OpenstackCollector(
+      String accessToken, String serviceId, String providerId, String keystoneUrl)
       throws IllegalArgumentException {
     this.provider = providerId;
     this.serviceId = serviceId;
@@ -73,6 +75,11 @@ public class OpenstackCollector extends LifecycleCollector {
   @Override
   public String getGroup() {
     return this.provider;
+  }
+
+  @Override
+  public DocDataType.ServiceType getServiceType() {
+    return DocDataType.ServiceType.OPENSTACK;
   }
 
   @Override
