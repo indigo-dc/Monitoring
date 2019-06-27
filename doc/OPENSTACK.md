@@ -43,7 +43,7 @@ Although the probes can be run just on demand, the best option is to configure t
 
 Then, add the following lines:
 ```
-0 * * * * java -jar /usr/share/java/zabbix/openstack-zabbix-probe-1.2-jar-with-dependencies.jar
+0 * * * * java -jar /usr/share/java/zabbix/openstack-zabbix-probe-1.4-jar-with-dependencies.jar
 ```
 
 This means that the probe will run every hour at xx:00. Modify this configuration according to your needs, so the probes will run when required.
