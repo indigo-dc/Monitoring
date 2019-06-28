@@ -17,7 +17,9 @@ public class DocDataType {
     @SerializedName("eu.egi.storage-element")
     STORAGE,
     @SerializedName("eu.indigo-datacloud.mesos")
-    MESOS
+    MESOS,
+    @SerializedName("eu.indigo-datacloud.occi")
+    OCCI
   }
 
   public class PropertiesType {

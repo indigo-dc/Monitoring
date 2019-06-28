@@ -48,17 +48,25 @@ public abstract class ProbeThread<T extends MetricsCollector> {
       }
 
       String category = PropertiesManager.getProperty(ProbesTags.HOSTS_CATEGORY, this.category);
-      String group = PropertiesManager.getProperty(ProbesTags.HOSTS_GROUP, this.group);
 
       if (this.client == null) {
-        this.client = new ZabbixClient(category, group, template);
+        this.client = new ZabbixClient(category, template);
       }
 
-      for (T collector : createCollectors()) {
-        ZabbixMetrics metrics = collector.getMetrics();
+      List<T> collectors = createCollectors();
+      for (T collector : collectors) {
+        try {
+          ZabbixMetrics metrics = collector.getMetrics();
 
-        if (metrics != null) {
-          result.put(collector.getHostName(), client.sendMetrics(metrics));
+          if (metrics != null) {
+            result.put(metrics.getHostName(), client.sendMetrics(metrics));
+          }
+        } catch (Throwable e) {
+          logger.error(
+              "Error gathering or sending metrics for collector "
+                  + collector.getHostName()
+                  + "@"
+                  + collector.getGroup(), e);
         }
       }
 

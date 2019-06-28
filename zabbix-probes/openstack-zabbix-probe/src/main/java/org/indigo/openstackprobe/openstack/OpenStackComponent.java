@@ -1,10 +1,5 @@
 package org.indigo.openstackprobe.openstack;
 
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.client.Client;
-
 import org.openstack4j.api.OSClient;
 import org.openstack4j.api.client.IOSClientBuilder.V2;
 import org.openstack4j.api.compute.ComputeService;
@@ -13,7 +8,11 @@ import org.openstack4j.api.compute.ServerService;
 import org.openstack4j.api.image.ImageService;
 import org.openstack4j.model.compute.Flavor;
 import org.openstack4j.model.compute.Server;
-import org.openstack4j.model.image.Image;
+import org.openstack4j.model.image.v2.Image;
+
+import javax.ws.rs.client.Client;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 

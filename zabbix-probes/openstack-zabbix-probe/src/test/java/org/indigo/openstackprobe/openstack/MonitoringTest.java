@@ -33,7 +33,7 @@ import org.openstack4j.api.image.ImageService;
 import org.openstack4j.model.compute.Flavor;
 import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.compute.ServerCreate;
-import org.openstack4j.model.image.Image;
+import org.openstack4j.model.image.v2.Image;
 import org.openstack4j.openstack.client.OSClientBuilder.ClientV3;
 
 import javax.ws.rs.client.Client;

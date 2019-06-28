@@ -1,5 +1,7 @@
 package com.indigo.zabbix.utils;
 
+import com.indigo.zabbix.utils.beans.DocDataType;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +12,8 @@ import java.util.Map;
 public class ZabbixMetrics {
 
   private String hostName;
+  private DocDataType.ServiceType serviceType;
+  private String hostGroup;
   private Map<String, String> metrics = new HashMap<>();
   private long timestamp = new Date().getTime();
 
@@ -36,6 +40,22 @@ public class ZabbixMetrics {
 
   public void setHostName(String hostName) {
     this.hostName = hostName;
+  }
+
+  public DocDataType.ServiceType getServiceType() {
+    return serviceType;
+  }
+
+  public void setServiceType(DocDataType.ServiceType serviceType) {
+    this.serviceType = serviceType;
+  }
+
+  public String getHostGroup() {
+    return hostGroup;
+  }
+
+  public void setHostGroup(String hostGroup) {
+    this.hostGroup = hostGroup;
   }
 
   public Map<String, String> getMetrics() {

@@ -2,7 +2,7 @@
 ------------------
 The mesos probe has three different components:
 
-* Mesos: It will check the health status of the mesos cluster by acessing the metrics that it exposes
+* Mesos: It will check the health status of the Mesos cluster by accessing the metrics that it exposes
 * Chronos: It will check the correct behaviour of the cluster by checking that it can create a job, run it and then delete it.
 * Marathon: It will check the correct behaviour of the cluster by checking that it can create a application, run it and then delete it.
 
@@ -11,6 +11,7 @@ The mesos probe has three different components:
 
 * It is necessary to have a Mesos instance running with the API exposed. The same is applicable to Marathon and Chronos in case the monitoring of them is needed.
 * It requires an instance of Zabbix which it can send the metrics collected.
+* It requires an instance of CMDB to get the providers that the probe must test
 
 Since the implementation of the probes is in Java, it requires, at least, a Java8 JVM to be already installed.
 
@@ -20,7 +21,7 @@ Since the implementation of the probes is in Java, it requires, at least, a Java
 First of all, make sure the JRE is installed. If this is not the case, they can be installed following a few simple steps.
 
 In order to install the JRE:
-* Ubuntu (14.04):
+* Ubuntu (16.04):
 ```
 sudo add-apt-repository ppa:openjdk-r/ppa
 sudo apt-get update
@@ -36,15 +37,15 @@ Then, it is necessary to install the corresponding packages generated for the pr
 
 * Ubuntu:
 ```
-wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/mesos-zabbix-probe/mesos-zabbix-probe-1.01.deb
+wget https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/mesos-zabbix-probe/mesos-zabbix-probe_1.4_all.deb
 ```
 ```
-dpkg --install mesos-zabbix-probe-1.01.deb
+dpkg --install mesos-zabbix-probe-1.4.deb
 ```
 
 * CentOS
 ```
-sudo yum install https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/mesos-zabbix-probe/MesosZabbixProbe-1.01.rpm
+sudo yum install https://github.com/indigo-dc/Monitoring/raw/master/zabbix-probes/mesos-zabbix-probe/MesosZabbixProbe-1.4.noarch.rpm
 ```
 
 4 Running
@@ -82,7 +83,6 @@ To change the location of the configuration file, you can provide a `-l <locatio
 * iam.clientsecret: Client secret of the above ClientID.
 
 * hosts.category: Hosts will be registered under this category. Defaults to "IAAS"
-* hosts.group: Hosts will be registered in this group of the above category. Defaults to "Cloud_Providers"
 
 * zabbix.wrapper.location: Location of the Zabbix wrapper instance that will serve to register hosts dynamically
 * zabbix.ip: IP of the Zabbix server to send the metrics
@@ -90,11 +90,36 @@ To change the location of the configuration file, you can provide a `-l <locatio
 
 * mesos.metric: **This property can be defined more than once.** Each value of this property will be a metric retrieved from the metrics API that will be sent to the Zabbix server. Since those metrics come in the form `master/<metric>` it will be sent to Zabbix as `master.<metric>` key. Please make sure the key is correctly defined in the template associated to the host in the Zabbix configuration.
 
+The default Mesos template has this properties that must be in the configuration file:
+
+```
+mesos.metric=master/uptime_secs
+mesos.metric=master/tasks_lost
+mesos.metric=master/slaves_active
+mesos.metric=master/cpus_percent
+mesos.metric=master/elected
+mesos.metric=master/dropped_messages
+mesos.metric=master/frameworks_inactive
+mesos.metric=master/frameworks_disconnected
+mesos.metric=master/disk_total
+mesos.metric=master/disk_used
+mesos.metric=master/disk_percent
+mesos.metric=master/gpus_total
+mesos.metric=master/gpus_used
+mesos.metric=master/gpus_percent
+mesos.metric=master/mem_total
+mesos.metric=master/mem_used
+mesos.metric=master/mem_percent
+mesos.metric=master/cpus_total
+mesos.metric=master/cpus_used
+mesos.metric=master/cpus_percent
+```
+
 As for logging, the probe uses the default JDK 1.4 logging system through Apache Commons Logging. As such, a default configuration is provided in the file /etc/zabbix/mesosprobe-log.properties that will log events by default to the console and the /var/log/mesosprobe<number>.log file
 
 6 Docker
 ----------------- 
 
-Build a docker image with ```docker build . -t <image_name>:<image_version>``` where ```image_name``` and ```image_version``` are arbitrary names although something like ```mesos-probe:1.3``` is recommended
+Build a docker image with ```docker build . -t <image_name>:<image_version>``` where ```image_name``` and ```image_version``` are arbitrary names although something like ```mesos-probe:1.4``` is recommended
 
 A container that executes the probe can then be run with ```docker run -v <config_path>:/etc/zabbix <image_name>:<image_version> <probe>``` where ```config_path``` is a path in the local filesystem to a folder containing a valid ```mesosprobe.properties``` file and ```probe``` is the probe to execute (```mesos```, ```chronos``` or ```marathon```)

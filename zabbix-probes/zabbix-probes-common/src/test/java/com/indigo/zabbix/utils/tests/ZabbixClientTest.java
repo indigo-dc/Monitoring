@@ -1,9 +1,14 @@
 package com.indigo.zabbix.utils.tests;
 
+import com.google.gson.Gson;
+
 import com.indigo.zabbix.utils.ZabbixClient;
 import com.indigo.zabbix.utils.ZabbixHost;
 import com.indigo.zabbix.utils.ZabbixWrapperClient;
 import com.indigo.zabbix.utils.beans.AppOperation;
+import com.indigo.zabbix.utils.beans.ZabbixWrapperGroupCreationRequest;
+import com.indigo.zabbix.utils.beans.ZabbixWrapperGroupsResult;
+import com.indigo.zabbix.utils.beans.ZabbixWrapperResponse;
 import feign.Request;
 import feign.Response;
 import io.github.hengyunabc.zabbix.sender.DataObject;
@@ -18,6 +23,8 @@ import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,18 +39,30 @@ public class ZabbixClientTest {
   private ZabbixWrapperClient wrapperClient;
   private ZabbixSender sender;
 
+  private <T> Response fakeResponse(int code, T body) {
+    Response.Builder result =
+        Response.builder()
+            .status(code)
+            .request(
+                Request.create(
+                    Request.HttpMethod.GET,
+                    "http://example.com",
+                    new HashMap<>(),
+                    new byte[] {},
+                    Charset.defaultCharset()))
+            .headers(new HashMap<>());
+
+    if (body != null) {
+      Map<String, Collection<String>> jsonHeader = new HashMap<>();
+      jsonHeader.put("ContentType", Arrays.asList(new String[] {"application/json"}));
+      result.headers(jsonHeader);
+      result.body(new Gson().toJson(body), Charset.defaultCharset());
+    }
+    return result.build();
+  }
+
   private Response fakeResponse(int code) {
-    return Response.builder()
-        .status(code)
-        .request(
-            Request.create(
-                Request.HttpMethod.GET,
-                "http://example.com",
-                new HashMap<>(),
-                new byte[] {},
-                Charset.defaultCharset()))
-        .headers(new HashMap<>())
-        .build();
+    return fakeResponse(code, null);
   }
 
   private Map<String, Class> createAppOperationTemplate() {
@@ -77,8 +96,7 @@ public class ZabbixClientTest {
                 Map<String, ZabbixHost> groupMap = hosts.get(group);
 
                 if (groupMap == null) {
-                  groupMap = new HashMap<String, ZabbixHost>();
-                  hosts.put(group, groupMap);
+                  return fakeResponse(404);
                 }
 
                 ZabbixHost existing = groupMap.get(hostName);
@@ -88,7 +106,7 @@ public class ZabbixClientTest {
 
                 groupMap.put(hostName, hostInfo);
 
-                return fakeResponse(200);
+                return fakeResponse(201);
               }
             });
 
@@ -112,6 +130,38 @@ public class ZabbixClientTest {
                     return fakeResponse(200);
                   }
                 }
+              }
+            });
+
+    Mockito.when(result.getGroup(ArgumentMatchers.anyString()))
+        .thenAnswer(
+            new Answer<Response>() {
+
+              @Override
+              public Response answer(InvocationOnMock invocation) throws Throwable {
+                String group = invocation.getArgument(0);
+                Map<String, ZabbixHost> groupMap = hosts.get(group);
+                if (groupMap == null) {
+                  return fakeResponse(404);
+                } else {
+                  ZabbixWrapperGroupsResult result = new ZabbixWrapperGroupsResult();
+                  groupMap.forEach(
+                      (name, info) ->
+                          result.getGroups().add(new ZabbixWrapperGroupsResult.Group(name)));
+                  return fakeResponse(200, new ZabbixWrapperResponse<>(200, result));
+                }
+              }
+            });
+
+    Mockito.when(result.registerGroup(ArgumentMatchers.any()))
+        .thenAnswer(
+            new Answer<Response>() {
+
+              @Override
+              public Response answer(InvocationOnMock invocation) throws Throwable {
+                ZabbixWrapperGroupCreationRequest request = invocation.getArgument(0);
+                hosts.put(request.getHostGroupName(), new HashMap<>());
+                return fakeResponse(201);
               }
             });
 
@@ -195,20 +245,9 @@ public class ZabbixClientTest {
   @Test
   public void testAppOperation() {
 
-    ZabbixClient client =
-        new ZabbixClient("testCategory", "testGroup", "testTemplate", wrapperClient, sender);
+    ZabbixClient client = new ZabbixClient("testCategory", "testTemplate", wrapperClient, sender);
 
-    TestProbeThread testCorrect =
-        new TestProbeThread(
-            "testCategory",
-            "testGroup",
-            "testTemplate",
-            "testHost",
-            true,
-            true,
-            true,
-            true,
-            client);
+    TestProbeThread testCorrect = new TestProbeThread("testHost", true, true, true, true, client);
 
     Map<String, SenderResult> result = testCorrect.run();
 

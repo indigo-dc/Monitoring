@@ -22,8 +22,7 @@ public class ChronosThread extends CmdbServiceThread<ChronosCollector> {
   protected ChronosCollector createServiceCollector(ServiceInfo service) {
     OIDCTokens accessToken = IamClient.getAccessToken();
     if (accessToken != null) {
-      return new ChronosCollector(
-          service.getDoc().getData().getEndpoint(), accessToken.getAccessToken().toString());
+      return new ChronosCollector(service, accessToken.getAccessToken().toString());
     }
     return null;
   }

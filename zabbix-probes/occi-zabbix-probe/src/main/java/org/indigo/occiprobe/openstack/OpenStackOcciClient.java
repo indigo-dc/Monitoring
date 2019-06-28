@@ -15,7 +15,6 @@
  *
  * @email francisco.nieto@atos.net
  */
-
 package org.indigo.occiprobe.openstack;
 
 import com.indigo.zabbix.utils.CloudProviderInfo;
@@ -24,6 +23,7 @@ import com.indigo.zabbix.utils.LifecycleCollector;
 import com.indigo.zabbix.utils.PropertiesManager;
 import com.indigo.zabbix.utils.ZabbixMetrics;
 import com.indigo.zabbix.utils.beans.AppOperation;
+import com.indigo.zabbix.utils.beans.DocDataType;
 import cz.cesnet.cloud.occi.Model;
 import cz.cesnet.cloud.occi.api.EntityBuilder;
 import cz.cesnet.cloud.occi.api.exception.CommunicationException;
@@ -122,6 +122,16 @@ public class OpenStackOcciClient extends LifecycleCollector {
   @Override
   public String getHostName() {
     return providerId;
+  }
+
+  @Override
+  public String getGroup() {
+    return "OCCI";
+  }
+
+  @Override
+  public DocDataType.ServiceType getServiceType() {
+    return DocDataType.ServiceType.OCCI;
   }
 
   @Override

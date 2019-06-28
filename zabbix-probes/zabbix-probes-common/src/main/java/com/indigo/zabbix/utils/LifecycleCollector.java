@@ -5,9 +5,7 @@ import com.indigo.zabbix.utils.beans.AppOperation;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by jose on 11/17/16.
- */
+/** Created by jose on 11/17/16. */
 public abstract class LifecycleCollector implements MetricsCollector {
 
   protected Map<AppOperation.Operation, AppOperation> result = new HashMap<>();
@@ -55,20 +53,19 @@ public abstract class LifecycleCollector implements MetricsCollector {
   @Override
   public ZabbixMetrics getMetrics() {
 
-    Map<AppOperation.Operation, AppOperation> execution = executeLifecycle();
-
-    String hostName = getHostName();
-
     ZabbixMetrics result = new ZabbixMetrics();
-    result.setHostName(hostName);
+    result.setHostName(getHostName());
+    result.setHostGroup(getGroup());
+    result.setServiceType(getServiceType());
 
     Map<String, String> metrics = new HashMap<>();
+
+    Map<AppOperation.Operation, AppOperation> execution = executeLifecycle();
 
     execution.entrySet().forEach(entry -> metrics.putAll(entry.getValue().getMetrics()));
 
     result.setMetrics(metrics);
     return result;
-
   }
 
   protected abstract AppOperation clear();
@@ -78,6 +75,4 @@ public abstract class LifecycleCollector implements MetricsCollector {
   protected abstract AppOperation retrieve();
 
   protected abstract AppOperation delete();
-
-
 }
