@@ -36,7 +36,7 @@ import org.openstack4j.model.compute.Server;
 import org.openstack4j.model.compute.ServerCreate;
 import org.openstack4j.model.compute.builder.ServerCreateBuilder;
 import org.openstack4j.model.identity.v3.Token;
-import org.openstack4j.model.image.Image;
+import org.openstack4j.model.image.v2.Image;
 import org.openstack4j.model.network.Network;
 import org.openstack4j.openstack.OSFactory;
 
@@ -351,11 +351,11 @@ public class OpenStackClient {
   protected List<? extends Image> getInternalOsImage(Object osClient) {
 
     List<? extends Image> images =
-        (osClient.equals(osClientV3)) ? osClientV3.images().list() : osClientV2.images().list();
+        (osClient.equals(osClientV3)) ? osClientV3.imagesV2().list() : osClientV2.imagesV2().list();
 
     return images
         .stream()
-        .filter(image -> Image.Status.ACTIVE.equals(image.getStatus()))
+        .filter(image -> Image.ImageStatus.ACTIVE.equals(image.getStatus()))
         .collect(Collectors.toList());
   }
 
@@ -708,7 +708,7 @@ public class OpenStackClient {
   /**
    * Delete the instance in Openstack by using Openstack4j.
    *
-   * @param vmI VM uuid
+   * @param  vmId VM uuid
    * @return the managed result of @see DeleteVmResult
    * @throws TimeoutException timeout
    * @throws InterruptedException interrupt

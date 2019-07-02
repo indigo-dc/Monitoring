@@ -5,13 +5,13 @@ import com.indigo.zabbix.utils.beans.AppOperation;
 import it.infn.ba.indigo.chronos.client.utils.TokenAuthRequestInterceptor;
 import mesosphere.marathon.client.Marathon;
 import mesosphere.marathon.client.MarathonClient;
+import mesosphere.marathon.client.MarathonException;
 import mesosphere.marathon.client.model.v2.App;
 import mesosphere.marathon.client.model.v2.Container;
 import mesosphere.marathon.client.model.v2.Docker;
 import mesosphere.marathon.client.model.v2.GetAppResponse;
 import mesosphere.marathon.client.model.v2.GetServerInfoResponse;
 import mesosphere.marathon.client.model.v2.Result;
-import mesosphere.marathon.client.utils.MarathonException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
