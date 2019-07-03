@@ -54,12 +54,15 @@ public abstract class ProbeThread<T extends MetricsCollector> {
         this.client = new ZabbixClient(category, group, template);
       }
 
-      for (T collector : createCollectors()) {
+      List<T> collectors = createCollectors();
+      for (T collector : collectors) {
         try {
           ZabbixMetrics metrics = collector.getMetrics();
 
           if (metrics != null) {
             result.put(collector.getHostName(), client.sendMetrics(metrics));
+          } else {
+            logger.warn("Did not receive metrics from host " + collector.getHostName());
           }
         } catch (Throwable e) {
           logger.error("Failed to register metrics for host " + collector.getHostName(), e);
