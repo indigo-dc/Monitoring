@@ -1,0 +1,8 @@
+Package: [[artifactId]]
+Version: [[version]]
+Section: misc
+Priority: low
+Architecture: all
+Description: Zabbix probe for monitoring an Apache Mesos cluster
+Maintainer: jose.sanchezm@atos.net
+Depends: default-jre (>=2:1.8) | openjdk-8-jre | openjdk-8-jre-headless | openjdk-8

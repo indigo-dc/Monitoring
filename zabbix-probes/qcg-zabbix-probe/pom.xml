@@ -1,0 +1,203 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>qcg-zabbix-probe</artifactId>
+    <name>Zabbix QCG Probe</name>
+
+    <parent>
+        <groupId>org.indigo</groupId>
+        <artifactId>zabbix-probes-base</artifactId>
+        <relativePath>../zabbix-probes-base</relativePath>
+        <version>1.3</version>
+    </parent>
+
+    <version>1.4</version>
+
+
+    <inceptionYear>2019</inceptionYear>
+    <!--identityProvider>
+      <name>Indigo DataCloud H2020 Project</name>
+      <url>https://www.indigo-datacloud.eu/</url>
+    </identityProvider-->
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>jar</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>ATOS</name>
+        </developer>
+    </developers>
+
+    <repositories>
+        <repository>
+            <id>infn</id>
+            <name>INFN temporal repository until Chronos client is in maven central/indigo repo</name>
+            <url>http://nexusconcept.cloud.reply.eu/content/groups/public</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.indigo</groupId>
+            <artifactId>zabbix-probes-common</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.4</version>
+        </dependency>
+
+    </dependencies>
+
+
+    <build>
+        <!-- Configuration for creating the deb and rpm packages -->
+        <plugins>
+
+            <!-- Creation of the jar with dependencies -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.deep.qcgprobe.QCGThread</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!-- Creation of the deb package -->
+            <plugin>
+                <artifactId>jdeb</artifactId>
+                <groupId>org.vafer</groupId>
+
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>jdeb</goal>
+                        </goals>
+                        <configuration>
+                            <dataSet>
+                                <data>
+                                    <src>${project.artifactId}-${project.version}-jar-with-dependencies.jar</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/share/java/zabbix/</prefix>
+                                    </mapper>
+                                    <dst>${project.artifactId}.jar</dst>
+                                </data>
+                                <data>
+                                    <src>src/main/resources/qcgprobe.properties</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/etc/zabbix/</prefix>
+                                    </mapper>
+                                    <conffile>true</conffile>
+                                </data>
+                                <data>
+                                    <src>src/main/resources/qcgprobe-log.properties</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/etc/zabbix/</prefix>
+                                    </mapper>
+                                    <conffile>true</conffile>
+                                </data>
+                                <data>
+                                    <src>src/qcgprobe.sh</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/bin</prefix>
+                                        <user>root</user>
+                                        <group>root</group>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+                            </dataSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Creation of the rpm package -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>rpm-maven-plugin</artifactId>
+                <configuration>
+                    <name>QCGZabbixProbe</name>
+                    <mappings>
+                        <mapping>
+                            <directory>/usr/share/java/zabbix/</directory>
+                            <filemode>644</filemode>
+                            <username>root</username>
+                            <groupname>root</groupname>
+                            <sources>
+                                <source>
+                                    <location>${project.artifactId}-${project.version}-jar-with-dependencies.jar
+                                    </location>
+                                    <destination>${project.artifactId}.jar</destination>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>/etc/zabbix/</directory>
+                            <filemode>644</filemode>
+                            <username>root</username>
+                            <groupname>root</groupname>
+                            <configuration>true</configuration>
+                            <sources>
+                                <source>
+                                    <location>src/main/resources/qcgprobe.properties</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>/etc/zabbix/</directory>
+                            <filemode>644</filemode>
+                            <username>root</username>
+                            <groupname>root</groupname>
+                            <configuration>true</configuration>
+                            <sources>
+                                <source>
+                                    <location>src/main/resources/qcgprobe-log.properties</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>/usr/bin</directory>
+                            <filemode>755</filemode>
+                            <username>root</username>
+                            <groupname>root</groupname>
+                            <directoryIncluded>false</directoryIncluded>
+                            <sources>
+                                <source>
+                                    <location>src/qcgprobe.sh</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                    </mappings>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
