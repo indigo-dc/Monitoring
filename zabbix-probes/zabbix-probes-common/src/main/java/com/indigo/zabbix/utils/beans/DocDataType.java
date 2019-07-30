@@ -19,7 +19,9 @@ public class DocDataType {
     @SerializedName("eu.indigo-datacloud.mesos")
     MESOS,
     @SerializedName("eu.indigo-datacloud.occi")
-    OCCI
+    OCCI,
+    @SerializedName("eu.deep.qcg")
+    QCG
   }
 
   public class PropertiesType {
