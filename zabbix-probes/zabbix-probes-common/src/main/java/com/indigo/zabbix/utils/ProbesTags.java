@@ -21,6 +21,7 @@ public interface ProbesTags {
   String IAM_PASSWORD = "iam.password";
   String IAM_CLIENTID = "iam.clientid";
   String IAM_CLIENTSECRET = "iam.clientsecret";
+  String IAM_GRANT_TYPE = "iam.grant_type";
   String CMDB_URL = "cmdb.location";
   String IAM_PROTOCOL = "iam.protocol";
   String IDENTITY_PROVIDER = "iam.identity.provider";
