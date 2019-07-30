@@ -48,6 +48,7 @@
         <module>occi-zabbix-probe</module>
         <module>openstack-zabbix-probe</module>
         <module>mesos-zabbix-probe</module>
+        <module>qcg-zabbix-probe</module>
         <module>zabbix-probes-launcher</module>
     </modules>
 
