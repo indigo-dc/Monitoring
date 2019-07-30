@@ -1,6 +1,7 @@
 package com.indigo.zabbix.utils;
 
 import com.nimbusds.oauth2.sdk.AuthorizationGrant;
+import com.nimbusds.oauth2.sdk.ClientCredentialsGrant;
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.RefreshTokenGrant;
 import com.nimbusds.oauth2.sdk.ResourceOwnerPasswordCredentialsGrant;
@@ -73,14 +74,24 @@ public class IamClient {
    * @param clientSecret Client secret of the client ID application.
    * @return An access token for the provided user and application.
    */
-  public static OIDCTokens getAccessToken(
-      String location, String username, String password, String clientId, String clientSecret) {
+  public static OIDCTokens getAccessTokenStub(
+      String location, String username, String password, String clientId, String clientSecret, String grant_type) {
 
-    return getAccessToken(
-        location,
-        new ResourceOwnerPasswordCredentialsGrant(username, new Secret(password)),
-        clientId,
-        clientSecret);
+	  if (grant_type.equals(ProbesTags.GRANT_TYPE_CLIENT_CREDENTIALS)) {
+    	  return getAccessToken(
+    		        location,
+    		        new ClientCredentialsGrant(),
+    		        clientId,
+    		        clientSecret);
+      } else if (grant_type.equals(ProbesTags.GRANT_TYPE_PASSWORD)) {
+    	  return getAccessToken(
+    			  location,
+    			  new ResourceOwnerPasswordCredentialsGrant(username, new Secret(password)),
+    			  clientId,
+    			  clientSecret);
+      }
+      else 
+    	  return null;
   }
 
   /**
@@ -93,12 +104,13 @@ public class IamClient {
    */
   public static OIDCTokens getAccessToken() {
 
-    return getAccessToken(
-        PropertiesManager.getProperty(ProbesTags.IAM_LOCATION),
-        PropertiesManager.getProperty(ProbesTags.IAM_USERNAME),
-        PropertiesManager.getProperty(ProbesTags.IAM_PASSWORD),
-        PropertiesManager.getProperty(ProbesTags.IAM_CLIENTID),
-        PropertiesManager.getProperty(ProbesTags.IAM_CLIENTSECRET));
+	  return getAccessTokenStub(
+		        PropertiesManager.getProperty(ProbesTags.IAM_LOCATION),
+		        PropertiesManager.getProperty(ProbesTags.IAM_USERNAME),
+		        PropertiesManager.getProperty(ProbesTags.IAM_PASSWORD),
+		        PropertiesManager.getProperty(ProbesTags.IAM_CLIENTID),
+		        PropertiesManager.getProperty(ProbesTags.IAM_CLIENTSECRET),
+		        PropertiesManager.getProperty(ProbesTags.IAM_GRANT_TYPE));
   }
 
   /**
@@ -134,3 +146,4 @@ public class IamClient {
         PropertiesManager.getProperty(ProbesTags.IAM_CLIENTSECRET));
   }
 }
+
