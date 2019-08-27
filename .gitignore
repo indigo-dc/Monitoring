@@ -82,3 +82,4 @@ fabric.properties
 .idea/httpRequests
 
 zabbix-probes/openstack-zabbix-probe/.factorypath
+zabbix-probes/.vscode/settings.json
