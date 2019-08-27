@@ -5,4 +5,4 @@ Priority: high
 Architecture: all
 Description: Zabbix probe for monitoring Openstack APIs
 Maintainer: jose.sanchezm@atos.net
-Depends: default-jre | java-8-runtime
+Depends: openjdk-8-jre-headless

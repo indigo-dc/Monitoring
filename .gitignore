@@ -81,3 +81,4 @@ fabric.properties
 # Editor-based Rest Client
 .idea/httpRequests
 
+zabbix-probes/openstack-zabbix-probe/.factorypath
