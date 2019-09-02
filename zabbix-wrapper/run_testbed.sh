@@ -1,0 +1,1 @@
+docker logs -f `docker run -d --name=indigo-zabbix-wrapper -e ZABBIX_URL=https://deep-paas.cloud.ba.infn.it/monitoring/api_jsonrpc.php -e ZABBIX_USERNAME=$1 -e ZABBIX_PASSWORD=$2  --name zabbix-wrapper -p 808:8080 -p 9990:9990 indigodatacloud/zabbix-wrapper`
