@@ -1,8 +1,9 @@
 package org.indigo.openstackprobe.openstack;
 
-import java.util.List;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.openstack4j.model.compute.Server;
+
+import java.util.List;
 
 /**
  * This class represents the whole result of a monitoring action which has followed the full VM
@@ -19,6 +20,8 @@ public class OpenStackProbeResult {
   private VmResultCreation createVmElement;
   private VmResultInspection inspectVmElement;
   private VmResultDeletion deleteVmElement;
+
+  @JsonIgnore
   private List<? extends Server> instancesList;
 
   /**
@@ -155,6 +158,7 @@ public class OpenStackProbeResult {
     this.instancesList = instances;
   }
 
+  @JsonIgnore
   public List<? extends Server> getOsInstanceList() {
     return instancesList;
   }
