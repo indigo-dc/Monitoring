@@ -13,6 +13,8 @@ package org.indigo.openstackprobe.openstack;
 
 import com.google.common.collect.Lists;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.indigo.zabbix.utils.KeystoneClient;
 import com.indigo.zabbix.utils.ProbesTags;
 import com.indigo.zabbix.utils.PropertiesManager;
@@ -708,7 +710,7 @@ public class OpenStackClient {
   /**
    * Delete the instance in Openstack by using Openstack4j.
    *
-   * @param vmI VM uuid
+   * @param vmId VM uuid
    * @return the managed result of @see DeleteVmResult
    * @throws TimeoutException timeout
    * @throws InterruptedException interrupt
@@ -878,7 +880,13 @@ public class OpenStackClient {
     finalResult.setOsInstanceList(getServerOsList(osClient));
     finalResult.addGlobalInfo(globalAvailability, globalResult, globalResponseTime);
 
-    log.info(finalResult);
+    try {
+      ObjectMapper mapper = new ObjectMapper();
+      String strFinalResults = mapper.writeValueAsString(finalResult);
+      log.info(strFinalResults);
+    } catch (JsonProcessingException e) {
+      log.error("Error marshalling final results", e);
+    }
 
     return finalResult;
   }
