@@ -1,6 +1,7 @@
 package org.indigo.openstackprobe.openstack;
 
 import com.indigo.zabbix.utils.LifecycleCollector;
+import com.indigo.zabbix.utils.ZabbixMetrics;
 import com.indigo.zabbix.utils.beans.AppOperation;
 import com.indigo.zabbix.utils.beans.DocDataType;
 import org.apache.logging.log4j.LogManager;
@@ -29,14 +30,15 @@ public class OpenstackCollector extends LifecycleCollector {
   OpenStackComponent openstackComponent = new OpenStackComponent();
   CheckForProviderDifferences checkForProviderDifference = new CheckForProviderDifferences();
 
-  /** Default constructor. */
   /**
-   * This is the main constructor of the class, in order to retrieve the required information for
+   * This is the main constructor of the class, in order to retrieve the required information for *
    * carrying out the monitoring activities.
    *
-   * @param providerId String with the identifier of the provider evaluated
-   * @param providerURL String representing the Openstack API URL
-   * @param keystoneURL String representing the Keystone API URL
+   * @param accessToken The access token to use in OpenStack
+   * @param serviceId The service identifier to use
+   * @param providerId The service provider identifier to use
+   * @param keystoneUrl The URL to the keystone service
+   * @throws IllegalArgumentException
    */
   protected OpenstackCollector(
       String accessToken, String serviceId, String providerId, String keystoneUrl)
@@ -187,5 +189,15 @@ public class OpenstackCollector extends LifecycleCollector {
     }
     long respTime = new Date().getTime() - currentTime;
     return new AppOperation(AppOperation.Operation.CLEAR, true, 200, respTime);
+  }
+
+  @Override
+  public ZabbixMetrics getMetrics() {
+    ZabbixMetrics metrics = super.getMetrics();
+    OpenStackProbeResult result = getOsProbeResult();
+    metrics.getMetrics().put("openstack.status", Integer.toString(result.getGlobalResult()));
+    metrics.getMetrics().put("openstack.result", Integer.toString(result.getGlobalAvailability()));
+    metrics.getMetrics().put("openstack.responseTime", Long.toString(result.getGlobalResponseTime()));
+    return metrics;
   }
 }

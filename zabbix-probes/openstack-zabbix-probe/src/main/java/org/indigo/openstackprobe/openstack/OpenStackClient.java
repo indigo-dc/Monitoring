@@ -464,7 +464,7 @@ public class OpenStackClient {
     } else {
       long creationTime = serverCreation.get(Server.Status.ACTIVE).getCreated().getTime();
 
-      responseTime = creationTime - startTime;
+      responseTime = System.currentTimeMillis() - startTime;
       log.info(
           TOTAL_CREATION_TIME
               + serverCreation.get(Server.Status.ACTIVE).getId()
