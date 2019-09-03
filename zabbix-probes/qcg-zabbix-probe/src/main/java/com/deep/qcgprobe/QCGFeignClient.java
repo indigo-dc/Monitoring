@@ -8,7 +8,7 @@ import feign.RequestLine;
 /** Created by damian on 12/07/19. */
 public interface QCGFeignClient {
 	@Headers("Content-type: application/json")
-	@RequestLine("GET /api/resources/")
+	@RequestLine("GET /resources/")
 	//QCGResourcesBean getResources(@HeaderMap Map<String, Object> headerMap);	
 	QCGResourcesBean getResources();
 }
