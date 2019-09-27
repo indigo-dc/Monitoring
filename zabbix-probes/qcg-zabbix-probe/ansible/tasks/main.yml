@@ -1,0 +1,24 @@
+---
+
+- name: Install OpenJDK 8 (Ubuntu)
+  apt: name=openjdk-8-jre-headless state=present update_cache=yes
+  become: true
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Install probe (Ubuntu)
+  apt: name=qcg-zabbix-probe state=present
+  become: true
+  when: ansible_distribution == 'Ubuntu'
+
+- name: Install OpenJDK 8 (CentOS)
+  yum: name=java-1.8.0-openjdk-headless state=present update_cache=yes
+  become: true
+  when: ansible_distribution == 'CentOS'
+
+- name: Install probe (CentOS)
+  yum: name=QCGZabbixProbe state=present
+  become: true
+  when: ansible_distribution == 'CentOS'
+
+- name: Configuration creation
+  template: src=qcgprobe.properties.j2 dest="{{ zabbix_config_location }}/qcgprobe.properties"
