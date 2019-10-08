@@ -8,7 +8,7 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Created by jose on 22/09/16.
+ * Created by damian on 22/08/19.
  */
 public class QCGResourcesBean {
 
