@@ -6,7 +6,7 @@ import com.google.gson.annotations.SerializedName;
 public class DocDataType {
 
   public enum ServiceType {
-    @SerializedName("eu.egi.cloud.vm-management.openstack")
+    @SerializedName("org.openstack.nova")
     OPENSTACK,
     @SerializedName("eu.egi.cloud.storage-management.oneprovider")
     ONEPROVIDER,
