@@ -6,6 +6,7 @@ import org.apache.commons.logging.LogFactory;
 import com.indigo.zabbix.utils.CmdbServiceThread;
 import com.indigo.zabbix.utils.beans.DocDataType;
 import com.indigo.zabbix.utils.beans.ServiceInfo;
+import com.nimbusds.openid.connect.sdk.token.OIDCTokens;
 
 /** Created by damian on 22/07/19. */
 public class QCGThread extends CmdbServiceThread<QCGCollector> {
@@ -28,7 +29,11 @@ public class QCGThread extends CmdbServiceThread<QCGCollector> {
 
   @Override
   protected QCGCollector createServiceCollector(ServiceInfo service) {
-    return new QCGCollector(service);
+    OIDCTokens accessToken = IamClient.getAccessToken();
+    if (accessToken != null) {
+      return new QCGCollector(service, accessToken.getAccessToken().toString());
+    }
+    return null;
   }
   
   @Override
