@@ -42,6 +42,9 @@ public class DocDataType {
   ServiceType serviceType;
 
   String endpoint;
+  
+  @SerializedName("is_public_service")
+  boolean isPublicService;
 
   @SerializedName("provider_id")
   String providerId;
@@ -62,6 +65,10 @@ public class DocDataType {
     return endpoint;
   }
 
+  public boolean isPublicService() {
+	    return isPublicService;
+  }
+  
   public void setEndpoint(String endpoint) {
     this.endpoint = endpoint;
   }
