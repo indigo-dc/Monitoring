@@ -71,27 +71,24 @@ public QCGCollector(String masterUrl) {
   
   @Override
   public ZabbixMetrics getMetrics() {
-    List<String> metricProperties = PropertiesManager.getListProperty(QCGProbeTags.QCG_METRICS);
-    String qcgToken = PropertiesManager.getProperty(QCGProbeTags.QCG_TOKEN);
-    
-        if (metricProperties != null && !metricProperties.isEmpty() && qcgToken != null) {
-	      QCGFeignClient qcgClient = QCGClientFactory.getQCGClient(qcgAPIUrl, qcgToken);
-	      QCGResourcesBean metrics = qcgClient.getResources();
-	      ZabbixMetrics result = new ZabbixMetrics();
-	
-	      result.setHostName(this.getHostName());
-	      result.setHostGroup(this.getGroup());
-	      result.setServiceType(this.getServiceType());
-	
-	
-	      result.setMetrics(readMetrics(metrics, metricProperties));
-	
-	      result.setTimestamp(new Date().getTime());
-	
-	      return result;
-	    }
-	
-	return null;
+ 	   try {
+		  List<String> metricProperties = PropertiesManager.getListProperty(QCGProbeTags.QCG_METRICS);
+		  if (metricProperties != null && !metricProperties.isEmpty() && getToken() != null) {
+		      QCGFeignClient qcgClient = QCGClientFactory.getQCGClient(qcgAPIUrl, getToken());
+		      QCGResourcesBean metrics = qcgClient.getResources();
+		      ZabbixMetrics result = new ZabbixMetrics();
+		      result.setHostName(this.getHostName());
+		      result.setHostGroup(this.getGroup());
+		      result.setServiceType(this.getServiceType());
+		      result.setMetrics(readMetrics(metrics, metricProperties));
+		      result.setTimestamp(new Date().getTime());
+		      return result;
+		  }
+	  } catch (NullPointerException e) {
+		  LOGGER.error("Error during getting metrics: " + e.getMessage());
+		  return null;
+	  }
+	  return null;
   }
 
   @Override
@@ -109,3 +106,4 @@ public QCGCollector(String masterUrl) {
     return DocDataType.ServiceType.QCG;
   }
 }
+
