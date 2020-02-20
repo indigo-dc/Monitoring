@@ -209,6 +209,7 @@ public class CmdbClient {
                   service ->
                       service.getDoc() != null
                           && service.getDoc().getData() != null
+                          && ! service.getDoc().getData().isPublicService()
                           && type.equals(service.getDoc().getData().getServiceType()))
               .collect(Collectors.toList());
     }
