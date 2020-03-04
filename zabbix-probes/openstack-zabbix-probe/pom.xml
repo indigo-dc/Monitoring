@@ -182,6 +182,31 @@
                                 </source>
                             </sources>
                         </mapping>
+
+                        <mapping>
+                            <directory>/etc/zabbix/</directory>
+                            <filemode>644</filemode>
+                            <username>root</username>
+                            <groupname>root</groupname>
+                            <configuration>true</configuration>
+                            <sources>
+                                <source>
+                                    <location>src/main/resources/openstackprobe-log.properties</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>/usr/bin</directory>
+                            <filemode>755</filemode>
+                            <username>root</username>
+                            <groupname>root</groupname>
+                            <directoryIncluded>false</directoryIncluded>
+                            <sources>
+                                <source>
+                                    <location>src/openstackprobe.sh</location>
+                                </source>
+                            </sources>
+                        </mapping>
                     </mappings>
                 </configuration>
             </plugin>
