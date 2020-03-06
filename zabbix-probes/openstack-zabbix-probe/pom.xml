@@ -102,6 +102,7 @@
                                         <type>perm</type>
                                         <prefix>/usr/share/java/zabbix/</prefix>
                                     </mapper>
+                                    <dst>${project.artifactId}.jar</dst>
                                 </data>
                                 <data>
                                     <src>src/main/resources/openstackprobe.properties</src>
@@ -112,6 +113,26 @@
                                     </mapper>
                                     <conffile>true</conffile>
                                 </data>
+                                <data>
+                                    <src>src/main/resources/openstackprobe-log.properties</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/etc/zabbix/</prefix>
+                                    </mapper>
+                                    <conffile>true</conffile>
+                                </data>
+                                <data>
+                                    <src>src/openstackprobe.sh</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/bin</prefix>
+                                        <user>root</user>
+                                        <group>root</group>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>                                
                             </dataSet>
                         </configuration>
                     </execution>
@@ -145,6 +166,7 @@
                                 <source>
                                     <location>${project.artifactId}-${project.version}-jar-with-dependencies.jar
                                     </location>
+                                    <destination>${project.artifactId}.jar</destination>
                                 </source>
                             </sources>
                         </mapping>
@@ -157,6 +179,31 @@
                             <sources>
                                 <source>
                                     <location>src/main/resources/openstackprobe.properties</location>
+                                </source>
+                            </sources>
+                        </mapping>
+
+                        <mapping>
+                            <directory>/etc/zabbix/</directory>
+                            <filemode>644</filemode>
+                            <username>root</username>
+                            <groupname>root</groupname>
+                            <configuration>true</configuration>
+                            <sources>
+                                <source>
+                                    <location>src/main/resources/openstackprobe-log.properties</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>/usr/bin</directory>
+                            <filemode>755</filemode>
+                            <username>root</username>
+                            <groupname>root</groupname>
+                            <directoryIncluded>false</directoryIncluded>
+                            <sources>
+                                <source>
+                                    <location>src/openstackprobe.sh</location>
                                 </source>
                             </sources>
                         </mapping>
