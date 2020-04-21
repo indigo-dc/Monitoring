@@ -37,6 +37,7 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.JerseyClientBuilder;
 import org.openstack4j.api.Builders;
 import org.openstack4j.api.OSClient;
+import org.openstack4j.api.OSClient.OSClientV2;
 import org.openstack4j.api.OSClient.OSClientV3;
 import org.openstack4j.api.client.IOSClientBuilder.V2;
 import org.openstack4j.api.client.IOSClientBuilder.V3;
@@ -88,7 +89,7 @@ public class OpenStackClient {
   private List<? extends Server> servers = new ArrayList<>();
   private static final String INSTANCE_NAME = OpenStackProbeTags.INSTANCE_NAME;
   private OSClientV3 osClientV3;
-  private OSClient osClientV2;
+  private OSClientV2 osClientV2;
   private Object osClient;
   private V2 myKeystoneClientV2;
   private V3 keystoneclientV3;
@@ -137,11 +138,8 @@ public class OpenStackClient {
 
       checkCredentials(providerName);
       myKeystoneClientV2 = OSFactory.builderV2();
-      try {
-    	buildClientV2(myKeystoneClientV2);
-      }  catch (AuthenticationException exc) {
-        	log.debug("Cannot authenticate with error: " + exc);    
-      } 
+      buildClientV2(myKeystoneClientV2);
+      
     } else {
       // use the Client IAM to authenticate to openstack instance
       // Retrieve properties
@@ -190,7 +188,11 @@ public class OpenStackClient {
     // Create the Clients
     ClientConfig cc = new ClientConfig();
     client = JerseyClientBuilder.newClient(cc);
+    try {
     osClient = getOsAuthIam(keystoneclient, project);
+    } catch (AuthenticationException ae) {
+    	log.error("Authentication Exception identified");
+    }
   }
 
   /**
@@ -203,7 +205,11 @@ public class OpenStackClient {
     // Create the Clients
     ClientConfig cc = new ClientConfig();
     client = JerseyClientBuilder.newClient(cc);
+    try {
     osClient = getOsAuth(myKeystoneClientV2);
+    } catch (AuthenticationException ae) {
+    	log.error("Authentication Exception identified");
+    }
   }
 
   /** Set the the certification path and properties. */
@@ -253,17 +259,13 @@ public class OpenStackClient {
    * @param project os tenant
    * @return OSClientV3
    */
-  private OSClientV3 getOsAuthIam(V3 keystoneclient, String project) {      
-    try {
+  private OSClientV3 getOsAuthIam(V3 keystoneclient, String project) throws AuthenticationException { 	    
     osClientV3 =
         keystoneclient
             .endpoint(baseKeystoneUrl)
             .token(tokenId)
             .scopeToProject(Identifier.byName(project), Identifier.byName("default"))
             .authenticate();
-    } catch (AuthenticationException exc) {
-    	log.debug("Authentication Exception " + exc + " on project " + project);    
-    }      
     return osClientV3;
   }
 
@@ -273,18 +275,13 @@ public class OpenStackClient {
    * @param keystoneclient keystoneclient os4j
    * @return OSClient osclient
    */
-  private OSClient getOsAuth(V2 keystoneclient) {	  
-	try {  
+  private OSClientV2 getOsAuth(V2 keystoneclient) throws AuthenticationException {	    
     osClientV2 =
         myKeystoneClientV2
             .endpoint(baseKeystoneUrl)
             .credentials(openStackUser, openStackPwd)
             .tenantName(tenantName)
             .authenticate();
-	} 
-   catch (AuthenticationException exc) {
-   	log.debug("Authentication Exception " + exc + " on tenant " + tenantName);	
-   }   	
     return osClientV2;
   }
 
@@ -828,12 +825,65 @@ public class OpenStackClient {
    */
   public OpenStackProbeResult getOpenstackMonitoringInfo(String project) 
       throws TimeoutException, InterruptedException {	  
+      
+      if (tokenId == null)	{	
+      	log.error("Token from " + providerId + " is null. Cannot continue monitoring.");    	      	
+     // Construct the result
+        OpenStackProbeResult failureResult = new OpenStackProbeResult(providerId);
+        VmResultCreation createVmInfo = new VmResultCreation (0,503,-1,null); 
+        failureResult.addCreateVmInfo(createVmInfo);
+        VmResultInspection inspectVmInfo = new VmResultInspection (0,503,-1);
+        failureResult.addInspectVmInfo(inspectVmInfo);
+        VmResultDeletion deleteVmInfo = new VmResultDeletion(0,503,-1);
+        failureResult.addDeleteVmInfo(deleteVmInfo);
+        /* List<? extends Server> emptyList = null;
+        failureResult.setOsInstanceList(emptyList);*/
+        failureResult.setOsInstanceList(getServerOsList(osClient));
+      	
+      	failureResult.addGlobalInfo(0, 503, -1);
+      	try {
+            ObjectMapper mapper = new ObjectMapper();
+            String strFinalResults = mapper.writeValueAsString(failureResult);
+            log.info("Openstack Monitoring Info:" + strFinalResults);
+          } catch (JsonProcessingException e) {
+            log.error("Error marshalling final results", e);
+          }
+      	return failureResult;
+     }
+	  	  
     // Follow the full lifecycle for a VM
     // Retrieve the operation token     
+	try {  
     osClient =
         osClient.equals(osClientV3)
             ? getOsAuthIam(keystoneclientV3, project)
             : getOsAuth(myKeystoneClientV2);
+	}
+    catch (NullPointerException ae)   {
+    	log.error("Authentication Exception on project " + project);
+    	
+    	// Construct the result
+        OpenStackProbeResult failureResult = new OpenStackProbeResult(providerId);
+        VmResultCreation createVmInfo = new VmResultCreation (0,503,-1,null); 
+        failureResult.addCreateVmInfo(createVmInfo);
+        VmResultInspection inspectVmInfo = new VmResultInspection (0,503,-1);
+        failureResult.addInspectVmInfo(inspectVmInfo);
+        VmResultDeletion deleteVmInfo = new VmResultDeletion(0,503,-1);
+        failureResult.addDeleteVmInfo(deleteVmInfo);
+        List<? extends Server> emptyList = null;
+        failureResult.setOsInstanceList(emptyList);
+        /*failureResult.setOsInstanceList(getServerOsList(osClient));*/
+      	         	
+    	failureResult.addGlobalInfo(0, 401, -1);
+    	try {
+            ObjectMapper mapper = new ObjectMapper();
+            String strFinalResults = mapper.writeValueAsString(failureResult);
+            log.info("Openstack Monitoring Info:" + strFinalResults);
+          } catch (JsonProcessingException e) {
+            log.error("Error marshalling final results", e);
+          }
+      	return failureResult;
+    }             
     				
     log.info("Token obtained from " + providerId + " is valid. Continue monitoring operation...");
 	
@@ -847,6 +897,23 @@ public class OpenStackClient {
       log.info("Instantiation failed with time: " + failureResult.getGlobalResponseTime());
 
       tryToDeleteInstance(createVmInfo);
+      
+   // Construct the result
+      VmResultInspection inspectVmInfo = new VmResultInspection (0,503,-1);
+      failureResult.addInspectVmInfo(inspectVmInfo);
+      VmResultDeletion deleteVmInfo = new VmResultDeletion(0,503,-1);
+      failureResult.addDeleteVmInfo(deleteVmInfo);
+/*      List<? extends Server> emptyList = null;
+      failureResult.setOsInstanceList(emptyList);*/
+      failureResult.setOsInstanceList(getServerOsList(osClient));
+      
+      try {
+          ObjectMapper mapper = new ObjectMapper();
+          String strFinalResults = mapper.writeValueAsString(failureResult);
+          log.info("Openstac kMonitoring Info:" + strFinalResults);
+        } catch (JsonProcessingException e) {
+          log.error("Error marshalling final results", e);
+        }
       return failureResult;
     }
 
@@ -890,12 +957,13 @@ public class OpenStackClient {
     finalResult.addInspectVmInfo(inspectVmInfo);
     finalResult.addDeleteVmInfo(deleteVmInfo);
     finalResult.setOsInstanceList(getServerOsList(osClient));
+    
     finalResult.addGlobalInfo(globalAvailability, globalResult, globalResponseTime);
 
     try {
       ObjectMapper mapper = new ObjectMapper();
       String strFinalResults = mapper.writeValueAsString(finalResult);
-      log.info(strFinalResults);
+      log.info("Openstack Monitoring Info:" + strFinalResults);
     } catch (JsonProcessingException e) {
       log.error("Error marshalling final results", e);
     }
