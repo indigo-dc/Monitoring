@@ -830,17 +830,17 @@ public class OpenStackClient {
       	log.error("Token from " + providerId + " is null. Cannot continue monitoring.");    	      	
      // Construct the result
         OpenStackProbeResult failureResult = new OpenStackProbeResult(providerId);
-        VmResultCreation createVmInfo = new VmResultCreation (0,503,-1,null); 
+        VmResultCreation createVmInfo = new VmResultCreation (0,503,0,null); 
         failureResult.addCreateVmInfo(createVmInfo);
-        VmResultInspection inspectVmInfo = new VmResultInspection (0,503,-1);
+        VmResultInspection inspectVmInfo = new VmResultInspection (0,503,0);
         failureResult.addInspectVmInfo(inspectVmInfo);
-        VmResultDeletion deleteVmInfo = new VmResultDeletion(0,503,-1);
+        VmResultDeletion deleteVmInfo = new VmResultDeletion(0,503,0);
         failureResult.addDeleteVmInfo(deleteVmInfo);
         /* List<? extends Server> emptyList = null;
         failureResult.setOsInstanceList(emptyList);*/
         failureResult.setOsInstanceList(getServerOsList(osClient));
       	
-      	failureResult.addGlobalInfo(0, 503, -1);
+      	failureResult.addGlobalInfo(0, 503, 0);
       	try {
             ObjectMapper mapper = new ObjectMapper();
             String strFinalResults = mapper.writeValueAsString(failureResult);
@@ -864,17 +864,17 @@ public class OpenStackClient {
     	
     	// Construct the result
         OpenStackProbeResult failureResult = new OpenStackProbeResult(providerId);
-        VmResultCreation createVmInfo = new VmResultCreation (0,503,-1,null); 
+        VmResultCreation createVmInfo = new VmResultCreation (0,503,0,null); 
         failureResult.addCreateVmInfo(createVmInfo);
-        VmResultInspection inspectVmInfo = new VmResultInspection (0,503,-1);
+        VmResultInspection inspectVmInfo = new VmResultInspection (0,503,0);
         failureResult.addInspectVmInfo(inspectVmInfo);
-        VmResultDeletion deleteVmInfo = new VmResultDeletion(0,503,-1);
+        VmResultDeletion deleteVmInfo = new VmResultDeletion(0,503,0);
         failureResult.addDeleteVmInfo(deleteVmInfo);
         List<? extends Server> emptyList = null;
         failureResult.setOsInstanceList(emptyList);
         /*failureResult.setOsInstanceList(getServerOsList(osClient));*/
       	         	
-    	failureResult.addGlobalInfo(0, 401, -1);
+    	failureResult.addGlobalInfo(0, 401, 0);
     	try {
             ObjectMapper mapper = new ObjectMapper();
             String strFinalResults = mapper.writeValueAsString(failureResult);
@@ -893,15 +893,15 @@ public class OpenStackClient {
       // Send failure result, since we cannot go on with the process
       OpenStackProbeResult failureResult = new OpenStackProbeResult(providerId);
       failureResult.addCreateVmInfo(createVmInfo);
-      failureResult.addGlobalInfo(0, createVmInfo.getCreateVmResult(), -1);
+      failureResult.addGlobalInfo(0, createVmInfo.getCreateVmResult(), 0);
       log.info("Instantiation failed with time: " + failureResult.getGlobalResponseTime());
 
       tryToDeleteInstance(createVmInfo);
       
    // Construct the result
-      VmResultInspection inspectVmInfo = new VmResultInspection (0,503,-1);
+      VmResultInspection inspectVmInfo = new VmResultInspection (0,503,0);
       failureResult.addInspectVmInfo(inspectVmInfo);
-      VmResultDeletion deleteVmInfo = new VmResultDeletion(0,503,-1);
+      VmResultDeletion deleteVmInfo = new VmResultDeletion(0,503,0);
       failureResult.addDeleteVmInfo(deleteVmInfo);
 /*      List<? extends Server> emptyList = null;
       failureResult.setOsInstanceList(emptyList);*/
