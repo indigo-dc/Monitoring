@@ -184,9 +184,13 @@ public class OpenstackCollector extends LifecycleCollector {
           return new AppOperation(AppOperation.Operation.CLEAR, true, 204, respTime);
         }
       }
-    } catch (Exception ce) {
+    } catch (ConnectionException ce) {
       return getResultForConnectionException(ce, currentTime);
-    }
+    }catch (Exception exc) {
+        long respTime = new Date().getTime() - currentTime;
+        log.error("Error on clear operation ");
+        return new AppOperation(AppOperation.Operation.CLEAR, false, probeResult.getGlobalAvailability(), respTime);
+      }
     long respTime = new Date().getTime() - currentTime;
     return new AppOperation(AppOperation.Operation.CLEAR, true, 200, respTime);
   }

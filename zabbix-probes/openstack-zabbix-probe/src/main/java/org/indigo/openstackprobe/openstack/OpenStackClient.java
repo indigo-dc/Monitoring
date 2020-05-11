@@ -11,39 +11,6 @@
  */
 package org.indigo.openstackprobe.openstack;
 
-import com.google.common.collect.Lists;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.indigo.zabbix.utils.KeystoneClient;
-import com.indigo.zabbix.utils.ProbesTags;
-import com.indigo.zabbix.utils.PropertiesManager;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.JerseyClientBuilder;
-import org.openstack4j.api.Builders;
-import org.openstack4j.api.OSClient;
-import org.openstack4j.api.OSClient.OSClientV3;
-import org.openstack4j.api.client.IOSClientBuilder.V2;
-import org.openstack4j.api.client.IOSClientBuilder.V3;
-import org.openstack4j.api.compute.ComputeService;
-import org.openstack4j.api.compute.FlavorService;
-import org.openstack4j.api.compute.ServerService;
-import org.openstack4j.api.image.ImageService;
-import org.openstack4j.model.common.ActionResponse;
-import org.openstack4j.model.common.Identifier;
-import org.openstack4j.model.compute.Flavor;
-import org.openstack4j.model.compute.Server;
-import org.openstack4j.model.compute.ServerCreate;
-import org.openstack4j.model.compute.builder.ServerCreateBuilder;
-import org.openstack4j.model.identity.v3.Token;
-import org.openstack4j.model.image.v2.Image;
-import org.openstack4j.model.network.Network;
-import org.openstack4j.openstack.OSFactory;
-
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.client.Client;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -60,6 +27,42 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
+
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.client.Client;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.JerseyClientBuilder;
+import org.openstack4j.api.Builders;
+import org.openstack4j.api.OSClient;
+import org.openstack4j.api.OSClient.OSClientV2;
+import org.openstack4j.api.OSClient.OSClientV3;
+import org.openstack4j.api.client.IOSClientBuilder.V2;
+import org.openstack4j.api.client.IOSClientBuilder.V3;
+import org.openstack4j.api.compute.ComputeService;
+import org.openstack4j.api.compute.FlavorService;
+import org.openstack4j.api.compute.ServerService;
+import org.openstack4j.api.exceptions.AuthenticationException;
+import org.openstack4j.api.image.ImageService;
+import org.openstack4j.model.common.ActionResponse;
+import org.openstack4j.model.common.Identifier;
+import org.openstack4j.model.compute.Flavor;
+import org.openstack4j.model.compute.Server;
+import org.openstack4j.model.compute.ServerCreate;
+import org.openstack4j.model.compute.builder.ServerCreateBuilder;
+import org.openstack4j.model.identity.v3.Token;
+import org.openstack4j.model.image.v2.Image;
+import org.openstack4j.model.network.Network;
+import org.openstack4j.openstack.OSFactory;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import com.indigo.zabbix.utils.KeystoneClient;
+import com.indigo.zabbix.utils.ProbesTags;
+import com.indigo.zabbix.utils.PropertiesManager;
 
 /**
  * It takes care of the interactions to be performed with Cloud Providers whose base platform is
@@ -86,7 +89,7 @@ public class OpenStackClient {
   private List<? extends Server> servers = new ArrayList<>();
   private static final String INSTANCE_NAME = OpenStackProbeTags.INSTANCE_NAME;
   private OSClientV3 osClientV3;
-  private OSClient osClientV2;
+  private OSClientV2 osClientV2;
   private Object osClient;
   private V2 myKeystoneClientV2;
   private V3 keystoneclientV3;
@@ -123,7 +126,7 @@ public class OpenStackClient {
    * @param providerName String with the identifier of the Cloud Provider
    */
   public OpenStackClient(String accessToken, String keystoneLocation, String providerName) {
-
+	  
     if (!Boolean.parseBoolean(
         PropertiesManager.getProperty(OpenStackProbeTags.IAM_AUTHENTICATION))) {
       log.info("getting openstack credentials from property file for provider " + providerName);
@@ -136,7 +139,7 @@ public class OpenStackClient {
       checkCredentials(providerName);
       myKeystoneClientV2 = OSFactory.builderV2();
       buildClientV2(myKeystoneClientV2);
-
+      
     } else {
       // use the Client IAM to authenticate to openstack instance
       // Retrieve properties
@@ -166,7 +169,7 @@ public class OpenStackClient {
 
       baseKeystoneUrl = keystoneLocation;
       tokenId = openstackToken;
-      keystoneclientV3 = OSFactory.builderV3();
+      keystoneclientV3 = OSFactory.builderV3();      
       buildClientV3(keystoneclientV3, project);
     }
 
@@ -180,11 +183,16 @@ public class OpenStackClient {
    * @param project project
    */
   private void buildClientV3(V3 keystoneclient, String project) {
+	  
     setCertificate();
     // Create the Clients
     ClientConfig cc = new ClientConfig();
     client = JerseyClientBuilder.newClient(cc);
+    try {
     osClient = getOsAuthIam(keystoneclient, project);
+    } catch (AuthenticationException ae) {
+    	log.error("Authentication Exception identified");
+    }
   }
 
   /**
@@ -197,7 +205,11 @@ public class OpenStackClient {
     // Create the Clients
     ClientConfig cc = new ClientConfig();
     client = JerseyClientBuilder.newClient(cc);
+    try {
     osClient = getOsAuth(myKeystoneClientV2);
+    } catch (AuthenticationException ae) {
+    	log.error("Authentication Exception identified");
+    }
   }
 
   /** Set the the certification path and properties. */
@@ -247,8 +259,7 @@ public class OpenStackClient {
    * @param project os tenant
    * @return OSClientV3
    */
-  private OSClientV3 getOsAuthIam(V3 keystoneclient, String project) {
-
+  private OSClientV3 getOsAuthIam(V3 keystoneclient, String project) throws AuthenticationException { 	    
     osClientV3 =
         keystoneclient
             .endpoint(baseKeystoneUrl)
@@ -259,13 +270,12 @@ public class OpenStackClient {
   }
 
   /**
-   * To maintain back compatibility just make sure to authentuicate with legacy method.
+   * To maintain back compatibility just make sure to authenticate with legacy method.
    *
    * @param keystoneclient keystoneclient os4j
    * @return OSClient osclient
    */
-  private OSClient getOsAuth(V2 keystoneclient) {
-
+  private OSClientV2 getOsAuth(V2 keystoneclient) throws AuthenticationException {	    
     osClientV2 =
         myKeystoneClientV2
             .endpoint(baseKeystoneUrl)
@@ -813,28 +823,97 @@ public class OpenStackClient {
    * @throws TimeoutException timeout
    * @throws InterruptedException interrupt
    */
-  public OpenStackProbeResult getOpenstackMonitoringInfo(String project)
-      throws TimeoutException, InterruptedException {
+  public OpenStackProbeResult getOpenstackMonitoringInfo(String project) 
+      throws TimeoutException, InterruptedException {	  
+      
+      if (tokenId == null)	{	
+      	log.error("Token from " + providerId + " is null. Cannot continue monitoring.");    	      	
+     // Construct the result
+        OpenStackProbeResult failureResult = new OpenStackProbeResult(providerId);
+        VmResultCreation createVmInfo = new VmResultCreation (0,503,0,null); 
+        failureResult.addCreateVmInfo(createVmInfo);
+        VmResultInspection inspectVmInfo = new VmResultInspection (0,503,0);
+        failureResult.addInspectVmInfo(inspectVmInfo);
+        VmResultDeletion deleteVmInfo = new VmResultDeletion(0,503,0);
+        failureResult.addDeleteVmInfo(deleteVmInfo);
+        /* List<? extends Server> emptyList = null;
+        failureResult.setOsInstanceList(emptyList);*/
+        failureResult.setOsInstanceList(getServerOsList(osClient));
+      	
+      	failureResult.addGlobalInfo(0, 503, 0);
+      	try {
+            ObjectMapper mapper = new ObjectMapper();
+            String strFinalResults = mapper.writeValueAsString(failureResult);
+            log.info("Openstack Monitoring Info:" + strFinalResults);
+          } catch (JsonProcessingException e) {
+            log.error("Error marshalling final results", e);
+          }
+      	return failureResult;
+     }
+	  	  
     // Follow the full lifecycle for a VM
-    // Retrieve the operation token
-
+    // Retrieve the operation token     
+	try {  
     osClient =
         osClient.equals(osClientV3)
             ? getOsAuthIam(keystoneclientV3, project)
             : getOsAuth(myKeystoneClientV2);
-
+	}
+    catch (NullPointerException ae)   {
+    	log.error("Authentication Exception on project " + project);
+    	
+    	// Construct the result
+        OpenStackProbeResult failureResult = new OpenStackProbeResult(providerId);
+        VmResultCreation createVmInfo = new VmResultCreation (0,503,0,null); 
+        failureResult.addCreateVmInfo(createVmInfo);
+        VmResultInspection inspectVmInfo = new VmResultInspection (0,503,0);
+        failureResult.addInspectVmInfo(inspectVmInfo);
+        VmResultDeletion deleteVmInfo = new VmResultDeletion(0,503,0);
+        failureResult.addDeleteVmInfo(deleteVmInfo);
+        List<? extends Server> emptyList = null;
+        failureResult.setOsInstanceList(emptyList);
+        /*failureResult.setOsInstanceList(getServerOsList(osClient));*/
+      	         	
+    	failureResult.addGlobalInfo(0, 401, 0);
+    	try {
+            ObjectMapper mapper = new ObjectMapper();
+            String strFinalResults = mapper.writeValueAsString(failureResult);
+            log.info("Openstack Monitoring Info:" + strFinalResults);
+          } catch (JsonProcessingException e) {
+            log.error("Error marshalling final results", e);
+          }
+      	return failureResult;
+    }             
+    				
     log.info("Token obtained from " + providerId + " is valid. Continue monitoring operation...");
-
+	
     VmResultCreation createVmInfo = createVm(osClient);
     // Map<String, Object> resultTryMap = new HashMap<>();
     if (createVmInfo.getCreateVmAvailability() == 0) {
       // Send failure result, since we cannot go on with the process
       OpenStackProbeResult failureResult = new OpenStackProbeResult(providerId);
       failureResult.addCreateVmInfo(createVmInfo);
-      failureResult.addGlobalInfo(0, createVmInfo.getCreateVmResult(), -1);
+      failureResult.addGlobalInfo(0, createVmInfo.getCreateVmResult(), 0);
       log.info("Instantiation failed with time: " + failureResult.getGlobalResponseTime());
 
       tryToDeleteInstance(createVmInfo);
+      
+   // Construct the result
+      VmResultInspection inspectVmInfo = new VmResultInspection (0,503,0);
+      failureResult.addInspectVmInfo(inspectVmInfo);
+      VmResultDeletion deleteVmInfo = new VmResultDeletion(0,503,0);
+      failureResult.addDeleteVmInfo(deleteVmInfo);
+/*      List<? extends Server> emptyList = null;
+      failureResult.setOsInstanceList(emptyList);*/
+      failureResult.setOsInstanceList(getServerOsList(osClient));
+      
+      try {
+          ObjectMapper mapper = new ObjectMapper();
+          String strFinalResults = mapper.writeValueAsString(failureResult);
+          log.info("Openstac kMonitoring Info:" + strFinalResults);
+        } catch (JsonProcessingException e) {
+          log.error("Error marshalling final results", e);
+        }
       return failureResult;
     }
 
@@ -878,12 +957,13 @@ public class OpenStackClient {
     finalResult.addInspectVmInfo(inspectVmInfo);
     finalResult.addDeleteVmInfo(deleteVmInfo);
     finalResult.setOsInstanceList(getServerOsList(osClient));
+    
     finalResult.addGlobalInfo(globalAvailability, globalResult, globalResponseTime);
 
     try {
       ObjectMapper mapper = new ObjectMapper();
       String strFinalResults = mapper.writeValueAsString(finalResult);
-      log.info(strFinalResults);
+      log.info("Openstack Monitoring Info:" + strFinalResults);
     } catch (JsonProcessingException e) {
       log.error("Error marshalling final results", e);
     }
